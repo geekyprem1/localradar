@@ -90,9 +90,9 @@ export default function LeadFinderPage() {
   };
 
   const getScoreBadgeColor = (score: number) => {
-    if (score <= 50) return 'text-red-400 bg-red-500/10 border-red-500/20'; // High Opportunity (Red)
-    if (score <= 75) return 'text-amber-400 bg-amber-500/10 border-amber-500/20'; // Medium Opportunity
-    return 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20'; // Low Opportunity
+    if (score <= 50) return 'text-[#E54D80] bg-[#E54D80]/10 border-[#E54D80]/20'; // High Opportunity (Red/Pink)
+    if (score <= 75) return 'text-amber-600 bg-amber-500/10 border-amber-500/20'; // Medium Opportunity
+    return 'text-emerald-600 bg-emerald-500/10 border-emerald-500/20'; // Low Opportunity
   };
 
   const getOpportunityLabel = (score: number) => {
@@ -102,21 +102,21 @@ export default function LeadFinderPage() {
   };
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto">
+    <div className="space-y-8 max-w-7xl mx-auto font-sans">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-white">Lead Finder</h1>
-        <p className="text-zinc-400 text-sm mt-1">
+        <h1 className="text-2xl font-serif font-bold text-[#0F0F11]">Lead Finder</h1>
+        <p className="text-zinc-500 text-xs mt-1">
           Search for local businesses in any niche and discover critical conversion vulnerabilities.
         </p>
       </div>
 
       {/* Search Bar Panel */}
-      <div className="glass-panel p-6 shadow-[0_0_30px_rgba(255,45,45,0.02)]">
+      <div className="bg-white border border-[#E5E5E8] p-6 rounded-2xl shadow-sm">
         <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
           <div className="space-y-2">
-            <label className="text-xs font-semibold text-zinc-300 flex items-center gap-1">
-              <Search className="w-3.5 h-3.5 text-[#FF2D2D]" />
+            <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-1 font-mono">
+              <Search className="w-3.5 h-3.5 text-[#E54D80]" />
               Business Type / Niche
             </label>
             <input
@@ -124,14 +124,14 @@ export default function LeadFinderPage() {
               placeholder="e.g. Dentists, Plumbers, Roofer"
               value={niche}
               onChange={(e) => setNiche(e.target.value)}
-              className="w-full bg-white/[0.02] border border-white/[0.08] rounded-xl py-3 px-4 text-white placeholder-zinc-500 text-sm focus:outline-none focus:border-[#FF2D2D] focus:ring-1 focus:ring-[#FF2D2D] transition-all"
+              className="w-full bg-[#F4F4F6] border border-[#E5E5E8] rounded-xl py-3 px-4 text-[#0F0F11] placeholder-zinc-400 text-sm focus:outline-none focus:border-[#E54D80] focus:ring-1 focus:ring-[#E54D80] transition-all"
               required
             />
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-semibold text-zinc-300 flex items-center gap-1">
-              <MapPin className="w-3.5 h-3.5 text-[#FF2D2D]" />
+            <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-1 font-mono">
+              <MapPin className="w-3.5 h-3.5 text-[#E54D80]" />
               City
             </label>
             <input
@@ -139,20 +139,20 @@ export default function LeadFinderPage() {
               placeholder="e.g. Dallas, Austin, Chicago"
               value={city}
               onChange={(e) => setCity(e.target.value)}
-              className="w-full bg-white/[0.02] border border-white/[0.08] rounded-xl py-3 px-4 text-white placeholder-zinc-500 text-sm focus:outline-none focus:border-[#FF2D2D] focus:ring-1 focus:ring-[#FF2D2D] transition-all"
+              className="w-full bg-[#F4F4F6] border border-[#E5E5E8] rounded-xl py-3 px-4 text-[#0F0F11] placeholder-zinc-400 text-sm focus:outline-none focus:border-[#E54D80] focus:ring-1 focus:ring-[#E54D80] transition-all"
               required
             />
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-semibold text-zinc-300 flex items-center gap-1">
-              <Globe className="w-3.5 h-3.5 text-[#FF2D2D]" />
+            <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-1 font-mono">
+              <Globe className="w-3.5 h-3.5 text-[#E54D80]" />
               Country
             </label>
             <select
               value={country}
               onChange={(e) => setCountry(e.target.value)}
-              className="w-full bg-[#050505] border border-white/[0.08] rounded-xl py-3 px-4 text-white text-sm focus:outline-none focus:border-[#FF2D2D] focus:ring-1 focus:ring-[#FF2D2D] transition-all"
+              className="w-full bg-[#F4F4F6] border border-[#E5E5E8] rounded-xl py-3 px-4 text-[#0F0F11] text-sm focus:outline-none focus:border-[#E54D80] focus:ring-1 focus:ring-[#E54D80] transition-all"
             >
               <option value="United States">United States</option>
               <option value="Canada">Canada</option>
@@ -164,7 +164,7 @@ export default function LeadFinderPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-[#FF2D2D] hover:bg-[#e62222] disabled:bg-[#FF2D2D]/50 text-white font-semibold text-sm py-3 rounded-xl transition-all shadow-[0_0_15px_rgba(255,45,45,0.25)] flex items-center justify-center gap-2 cursor-pointer h-[46px]"
+            className="w-full bg-[#E54D80] hover:bg-[#FF5E8C] disabled:bg-[#E54D80]/50 text-white font-bold text-sm py-3 rounded-full transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer h-[46px]"
           >
             {loading ? (
               <>
@@ -188,35 +188,35 @@ export default function LeadFinderPage() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="glass-panel p-8 text-center space-y-6"
+            className="bg-white border border-[#E5E5E8] p-8 rounded-3xl text-center space-y-6 shadow-sm"
           >
             <div className="flex flex-col items-center justify-center space-y-4">
               <div className="relative w-16 h-16 flex items-center justify-center">
-                <div className="absolute inset-0 border-4 border-[#FF2D2D]/15 rounded-full"></div>
-                <div className="absolute inset-0 border-4 border-[#FF2D2D] border-t-transparent rounded-full animate-spin"></div>
-                <Search className="w-6 h-6 text-[#FF2D2D] animate-pulse" />
+                <div className="absolute inset-0 border-4 border-[#E54D80]/15 rounded-full"></div>
+                <div className="absolute inset-0 border-4 border-[#E54D80] border-t-transparent rounded-full animate-spin"></div>
+                <Search className="w-6 h-6 text-[#E54D80] animate-pulse" />
               </div>
               <div className="space-y-1">
-                <h3 className="text-white text-sm font-semibold">Running Opportunity Scan</h3>
+                <h3 className="text-[#0F0F11] text-sm font-bold">Running Opportunity Scan</h3>
                 <p className="text-zinc-500 text-xs">This takes about 5-8 seconds as we scan search indexes.</p>
               </div>
             </div>
 
             {/* Scanning stages checklist */}
-            <div className="max-w-md mx-auto bg-black/20 rounded-xl p-4 border border-white/[0.04] text-left space-y-2.5">
+            <div className="max-w-md mx-auto bg-[#F9F9FB] rounded-2xl p-4 border border-[#E5E5E8] text-left space-y-2.5 shadow-sm">
               {loadingStages.map((stage, idx) => {
                 const isPassed = loadingStage > idx;
                 const isActive = loadingStage === idx;
                 return (
-                  <div key={stage} className="flex items-center gap-3 text-xs">
+                  <div key={stage} className="flex items-center gap-3 text-xs font-mono">
                     {isPassed ? (
-                      <span className="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-bold text-[9px]">✓</span>
+                      <span className="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-600 border border-emerald-500/30 flex items-center justify-center font-bold text-[9px]">✓</span>
                     ) : isActive ? (
-                      <Loader2 className="w-3.5 h-3.5 text-[#FF2D2D] animate-spin" />
+                      <Loader2 className="w-3.5 h-3.5 text-[#E54D80] animate-spin" />
                     ) : (
-                      <span className="w-3.5 h-3.5 rounded-full border border-white/10 bg-white/[0.01]"></span>
+                      <span className="w-3.5 h-3.5 rounded-full border border-[#E5E5E8] bg-white"></span>
                     )}
-                    <span className={isPassed ? 'text-zinc-500 line-through' : isActive ? 'text-[#FF2D2D] font-semibold' : 'text-zinc-500'}>
+                    <span className={isPassed ? 'text-zinc-400 line-through' : isActive ? 'text-[#E54D80] font-bold' : 'text-zinc-400'}>
                       {stage}
                     </span>
                   </div>
@@ -232,29 +232,29 @@ export default function LeadFinderPage() {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="glass-panel overflow-hidden border border-white/[0.08]"
+          className="bg-white border border-[#E5E5E8] rounded-2xl overflow-hidden shadow-sm"
         >
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-white/[0.08] bg-white/[0.01]">
-                  <th className="p-4 text-xs font-semibold text-zinc-400">Business Name</th>
-                  <th className="p-4 text-xs font-semibold text-zinc-400">Website</th>
-                  <th className="p-4 text-xs font-semibold text-zinc-400">Rating / Reviews</th>
-                  <th className="p-4 text-xs font-semibold text-zinc-400">Phone</th>
-                  <th className="p-4 text-xs font-semibold text-zinc-400 text-center">LocalRadar Score</th>
-                  <th className="p-4 text-xs font-semibold text-zinc-400 text-right">Actions</th>
+                <tr className="border-b border-[#E5E5E8] bg-[#F9F9FB] text-zinc-500">
+                  <th className="p-4 text-[10px] font-bold uppercase tracking-wider font-mono">Business Name</th>
+                  <th className="p-4 text-[10px] font-bold uppercase tracking-wider font-mono">Website</th>
+                  <th className="p-4 text-[10px] font-bold uppercase tracking-wider font-mono">Rating / Reviews</th>
+                  <th className="p-4 text-[10px] font-bold uppercase tracking-wider font-mono">Phone</th>
+                  <th className="p-4 text-[10px] font-bold uppercase tracking-wider font-mono text-center">LocalRadar Score</th>
+                  <th className="p-4 text-[10px] font-bold uppercase tracking-wider font-mono text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/[0.04]">
+              <tbody className="divide-y divide-[#E5E5E8]">
                 {leads.map((biz) => {
                   const opp = opportunities[biz.id];
                   const score = opp?.total_score || 0;
                   return (
-                    <tr key={biz.id} className="hover:bg-white/[0.02] transition-colors">
+                    <tr key={biz.id} className="hover:bg-zinc-50 transition-colors text-[#0F0F11]">
                       <td className="p-4">
-                        <div className="font-semibold text-sm text-white truncate max-w-[200px]">{biz.name}</div>
-                        <div className="text-[10px] text-zinc-500 truncate max-w-[200px]">{biz.address}</div>
+                        <div className="font-semibold text-sm text-[#0F0F11] truncate max-w-[200px]">{biz.name}</div>
+                        <div className="text-[10px] text-zinc-400 truncate max-w-[200px] mt-0.5 font-mono">{biz.address}</div>
                       </td>
                       <td className="p-4">
                         {biz.website ? (
@@ -262,50 +262,50 @@ export default function LeadFinderPage() {
                             href={biz.website}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-xs text-[#FF2D2D] hover:underline flex items-center gap-1 max-w-[150px] truncate"
+                            className="text-xs text-[#E54D80] hover:underline flex items-center gap-1 max-w-[150px] truncate"
                           >
-                            <Globe className="w-3.5 h-3.5 text-zinc-500" />
+                            <Globe className="w-3.5 h-3.5 text-zinc-400" />
                             {biz.website.replace('https://www.', '')}
                           </a>
                         ) : (
-                          <span className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 px-2.5 py-0.5 rounded-full font-medium">
+                          <span className="text-[10px] text-red-600 bg-red-50 border border-red-200 px-2.5 py-0.5 rounded-full font-bold font-mono">
                             No Website
                           </span>
                         )}
                       </td>
                       <td className="p-4">
-                        <div className="flex items-center gap-1 text-xs text-white">
+                        <div className="flex items-center gap-1 text-xs text-[#0F0F11]">
                           <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
                           <span>{biz.rating}</span>
-                          <span className="text-zinc-500">({biz.reviews_count} reviews)</span>
+                          <span className="text-zinc-400 font-mono">({biz.reviews_count} reviews)</span>
                         </div>
                       </td>
                       <td className="p-4">
-                        <span className="text-xs text-zinc-400 flex items-center gap-1.5">
-                          <Phone className="w-3.5 h-3.5 text-zinc-500" />
+                        <span className="text-xs text-zinc-500 flex items-center gap-1.5 font-mono">
+                          <Phone className="w-3.5 h-3.5 text-zinc-400" />
                           {biz.phone || 'N/A'}
                         </span>
                       </td>
                       <td className="p-4 text-center">
                         <div className="inline-flex flex-col items-center">
-                          <span className={`inline-block text-xs font-bold px-3 py-1 rounded-full border ${getScoreBadgeColor(score)}`}>
+                          <span className={`inline-block text-xs font-bold px-3 py-1 rounded-full border font-mono ${getScoreBadgeColor(score)}`}>
                             {score} / 100
                           </span>
-                          <span className="text-[9px] text-zinc-500 mt-1 capitalize">{getOpportunityLabel(score)} Opportunity</span>
+                          <span className="text-[9px] text-zinc-400 mt-1 capitalize font-mono">{getOpportunityLabel(score)} Opportunity</span>
                         </div>
                       </td>
                       <td className="p-4 text-right">
                         <div className="flex items-center justify-end gap-2">
                           <button
                             onClick={() => router.push(`/dashboard/audit/${biz.id}`)}
-                            className="bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] hover:border-white/[0.15] text-white text-xs font-medium px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
+                            className="bg-[#F4F4F6] hover:bg-[#E5E5E8] border border-[#E5E5E8] text-[#0F0F11] text-xs font-bold px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
                           >
-                            <FileText className="w-3.5 h-3.5 text-zinc-400" />
+                            <FileText className="w-3.5 h-3.5 text-zinc-500" />
                             Audit
                           </button>
                           <button
                             onClick={() => router.push(`/dashboard/pitch?bizId=${biz.id}`)}
-                            className="bg-[#FF2D2D] hover:bg-[#e62222] text-white text-xs font-medium px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
+                            className="bg-[#E54D80] hover:bg-[#FF5E8C] text-white text-xs font-bold px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shadow-sm"
                           >
                             <Send className="w-3.5 h-3.5 text-white" />
                             Pitch
@@ -323,11 +323,11 @@ export default function LeadFinderPage() {
 
       {/* Empty State */}
       {!searched && !loading && (
-        <div className="glass-panel p-12 text-center max-w-lg mx-auto border border-dashed border-white/[0.08]">
-          <div className="w-12 h-12 rounded-xl bg-white/[0.03] border border-white/[0.08] flex items-center justify-center mx-auto mb-4">
-            <Search className="w-5 h-5 text-[#FF2D2D]" />
+        <div className="bg-white border border-dashed border-[#E5E5E8] p-12 text-center max-w-lg mx-auto rounded-3xl shadow-sm">
+          <div className="w-12 h-12 rounded-xl bg-[#F4F4F6] border border-[#E5E5E8] flex items-center justify-center mx-auto mb-4 text-[#E54D80]">
+            <Search className="w-5 h-5" />
           </div>
-          <h3 className="text-white text-sm font-semibold">Start Scanning Local Leads</h3>
+          <h3 className="text-[#0F0F11] text-sm font-bold">Start Scanning Local Leads</h3>
           <p className="text-zinc-500 text-xs mt-1 max-w-sm mx-auto">
             Input a business type (like "Roofer" or "Dentist") and a city name to scan opportunities in seconds.
           </p>

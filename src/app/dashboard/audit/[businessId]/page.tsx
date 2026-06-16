@@ -107,7 +107,7 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#050505] flex items-center justify-center">
+      <div className="min-h-screen bg-[#F9F9FB] flex items-center justify-center">
         <LoaderComponent />
       </div>
     );
@@ -115,9 +115,9 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
 
   if (!business || !opportunity || !audit) {
     return (
-      <div className="p-8 text-center space-y-4">
-        <p className="text-red-400">Error loading audit details.</p>
-        <button onClick={() => router.push('/dashboard/lead-finder')} className="text-zinc-300 hover:text-white">
+      <div className="p-8 text-center space-y-4 font-mono text-xs text-[#0F0F11]">
+        <p className="text-[#E54D80]">Error loading audit details.</p>
+        <button onClick={() => router.push('/dashboard/lead-finder')} className="text-zinc-500 hover:text-[#0F0F11] underline">
           Back to Lead Finder
         </button>
       </div>
@@ -133,11 +133,11 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
   ];
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto pb-12">
+    <div className="space-y-8 max-w-7xl mx-auto pb-12 font-sans">
       {/* Back link */}
       <button 
         onClick={() => router.push('/dashboard/lead-finder')}
-        className="flex items-center gap-2 text-zinc-400 hover:text-white text-xs font-semibold transition-colors cursor-pointer"
+        className="flex items-center gap-2 text-zinc-500 hover:text-[#0F0F11] text-xs font-bold transition-colors cursor-pointer"
       >
         <ArrowLeft className="w-4 h-4" />
         Back to Lead Finder
@@ -146,40 +146,41 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
       {/* Hero Overview Row */}
       <div className="flex flex-col lg:flex-row gap-6">
         {/* Left main info */}
-        <div className="glass-panel p-6 flex-1 flex flex-col justify-between relative overflow-hidden border border-white/[0.08]">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-[#FF2D2D]/5 rounded-full blur-3xl" />
+        <div className="bg-white border border-[#E5E5E8] p-6 flex-1 flex flex-col justify-between relative overflow-hidden rounded-3xl shadow-sm">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-[#E54D80]/5 rounded-full blur-3xl pointer-events-none" />
           
           <div className="space-y-4">
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold text-[#FF4D4D] bg-[#FF4D4D]/10 border border-[#FF4D4D]/20 px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                <span className="text-[9px] font-bold text-[#E54D80] bg-[#E54D80]/10 border border-[#E54D80]/20 px-2.5 py-0.5 rounded-full uppercase tracking-wider font-mono">
                   AI Opportunity Scanned
                 </span>
-                <span className="text-[10px] font-bold text-zinc-500 bg-white/[0.03] border border-white/[0.08] px-2.5 py-0.5 rounded-full">
+                <span className="text-[9px] font-bold text-zinc-500 bg-[#F4F4F6] border border-[#E5E5E8] px-2.5 py-0.5 rounded-full font-mono">
                   ID: {business.id.slice(0, 8)}
                 </span>
               </div>
-              <h1 className="text-xl font-bold text-white mt-3">{business.name}</h1>
-              <p className="text-zinc-400 text-xs mt-1 flex items-center gap-1.5">
-                <MapPin className="w-3.5 h-3.5 text-zinc-500" />
+              <h1 className="text-2xl font-serif font-bold text-[#0F0F11] mt-3">{business.name}</h1>
+              <p className="text-zinc-500 text-xs mt-1 flex items-center gap-1.5 font-mono">
+                <MapPin className="w-3.5 h-3.5 text-zinc-400" />
                 {business.address}
               </p>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 border-t border-white/[0.08] pt-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 border-t border-[#E5E5E8] pt-4">
               <div>
-                <span className="text-zinc-500 text-[10px] font-medium block">Google Rating</span>
-                <div className="flex items-center gap-1 text-xs text-white mt-1">
+                <span className="text-zinc-400 text-[9px] font-bold uppercase tracking-wider block font-mono">Google Rating</span>
+                <div className="flex items-center gap-1 text-xs text-[#0F0F11] mt-1 font-mono">
                   <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
-                  <span className="font-semibold">{business.rating}</span>
-                  <span className="text-zinc-500">({business.reviews_count} reviews)</span>
+                  <span className="font-bold">{business.rating}</span>
+                  <span className="text-zinc-400">({business.reviews_count} reviews)</span>
                 </div>
               </div>
               <div>
-                <span className="text-zinc-500 text-[10px] font-medium block">Website Domain</span>
-                <span className="text-xs text-[#FF2D2D] font-semibold truncate block mt-1">
+                <span className="text-zinc-400 text-[9px] font-bold uppercase tracking-wider block font-mono">Website Domain</span>
+                <span className="text-xs text-[#E54D80] font-bold truncate block mt-1">
                   {business.website ? (
-                    <a href={business.website} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                    <a href={business.website} target="_blank" rel="noopener noreferrer" className="hover:underline flex items-center gap-1">
+                      <Globe className="w-3.5 h-3.5" />
                       {business.website.replace('https://www.', '')}
                     </a>
                   ) : (
@@ -188,23 +189,23 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
                 </span>
               </div>
               <div>
-                <span className="text-zinc-500 text-[10px] font-medium block">Phone Line</span>
-                <span className="text-xs text-zinc-300 font-semibold block mt-1">{business.phone || 'N/A'}</span>
+                <span className="text-zinc-400 text-[9px] font-bold uppercase tracking-wider block font-mono">Phone Line</span>
+                <span className="text-xs text-[#0F0F11] font-bold block mt-1 font-mono">{business.phone || 'N/A'}</span>
               </div>
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-2.5 border-t border-white/[0.08] pt-6 mt-6">
+          <div className="flex flex-wrap gap-2.5 border-t border-[#E5E5E8] pt-6 mt-6">
             <button
               onClick={handleCopyReport}
-              className="bg-white/[0.02] hover:bg-white/[0.04] border border-white/[0.08] text-zinc-300 hover:text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
+              className="bg-[#F4F4F6] hover:bg-[#E5E5E8] border border-[#E5E5E8] text-[#0F0F11] text-xs font-bold px-4 py-2.5 rounded-full transition-all flex items-center gap-1.5 cursor-pointer shadow-sm"
             >
-              {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+              {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
               {copied ? 'Copied Report' : 'Copy Report'}
             </button>
             <button
               onClick={() => router.push(`/dashboard/pitch?bizId=${business.id}`)}
-              className="bg-[#FF2D2D] hover:bg-[#e62222] text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition-all shadow-[0_0_15px_rgba(255,45,45,0.25)] flex items-center gap-1.5 cursor-pointer"
+              className="bg-[#E54D80] hover:bg-[#FF5E8C] text-white text-xs font-bold px-5 py-2.5 rounded-full transition-all flex items-center gap-1.5 cursor-pointer shadow-sm"
             >
               <Sparkles className="w-3.5 h-3.5" />
               Generate Pitch Copy
@@ -213,7 +214,7 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
         </div>
 
         {/* Circular score dial & intelligence metrics */}
-        <div className="glass-panel p-6 w-full lg:w-96 flex flex-col md:flex-row lg:flex-col justify-around gap-6 items-center text-center border border-white/[0.08] relative overflow-hidden">
+        <div className="bg-white border border-[#E5E5E8] p-6 w-full lg:w-96 flex flex-col md:flex-row lg:flex-col justify-around gap-6 items-center text-center rounded-3xl shadow-sm relative overflow-hidden">
           {/* Radial score container */}
           <div className="relative w-36 h-36 flex items-center justify-center">
             {/* SVG circle */}
@@ -222,7 +223,7 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
                 cx="72"
                 cy="72"
                 r="64"
-                stroke="rgba(255,255,255,0.02)"
+                stroke="rgba(15,15,17,0.02)"
                 strokeWidth="8"
                 fill="transparent"
               />
@@ -230,7 +231,7 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
                 cx="72"
                 cy="72"
                 r="64"
-                stroke={opportunity.total_score <= 50 ? '#FF2D2D' : opportunity.total_score <= 75 ? '#F59E0B' : '#10B981'}
+                stroke={opportunity.total_score <= 50 ? '#E54D80' : opportunity.total_score <= 75 ? '#F59E0B' : '#10B981'}
                 strokeWidth="8"
                 strokeDasharray={2 * Math.PI * 64}
                 strokeDashoffset={2 * Math.PI * 64 * (1 - opportunity.total_score / 100)}
@@ -239,41 +240,41 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
               />
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-3xl font-extrabold text-white tracking-tight">{opportunity.total_score}</span>
-              <span className="text-[9px] text-zinc-500 uppercase tracking-widest font-semibold mt-0.5">LOCALRADAR</span>
+              <span className="text-3xl font-serif font-bold text-[#0F0F11] tracking-tight">{opportunity.total_score}</span>
+              <span className="text-[9px] text-zinc-400 uppercase tracking-widest font-bold mt-0.5 font-mono">LOCALRADAR</span>
             </div>
           </div>
 
           {/* Metrics indicators */}
-          <div className="flex-1 w-full space-y-4">
-            <div className="flex items-center justify-between border-b border-white/[0.04] pb-2.5">
-              <div className="flex items-center gap-2 text-zinc-400 text-xs">
-                <Target className="w-4 h-4 text-red-400" />
+          <div className="flex-1 w-full space-y-4 font-mono">
+            <div className="flex items-center justify-between border-b border-[#E5E5E8] pb-2.5">
+              <div className="flex items-center gap-2 text-zinc-500 text-xs">
+                <Target className="w-4 h-4 text-[#E54D80]" />
                 <span>Opportunity Level</span>
               </div>
               <span className={`text-xs font-bold uppercase tracking-wider ${
-                opportunity.opportunity_level === 'High' ? 'text-red-400' : 'text-amber-400'
+                opportunity.opportunity_level === 'High' ? 'text-[#E54D80]' : 'text-amber-600'
               }`}>
                 {opportunity.opportunity_level}
               </span>
             </div>
 
-            <div className="flex items-center justify-between border-b border-white/[0.04] pb-2.5">
-              <div className="flex items-center gap-2 text-zinc-400 text-xs">
-                <DollarSign className="w-4 h-4 text-emerald-400" />
+            <div className="flex items-center justify-between border-b border-[#E5E5E8] pb-2.5">
+              <div className="flex items-center gap-2 text-zinc-500 text-xs">
+                <DollarSign className="w-4 h-4 text-emerald-600" />
                 <span>Est. Service Value</span>
               </div>
-              <span className="text-xs font-bold text-white">
+              <span className="text-xs font-bold text-[#0F0F11]">
                 ${opportunity.estimated_deal_value.toLocaleString()}
               </span>
             </div>
 
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-zinc-400 text-xs">
-                <TrendingUp className="w-4 h-4 text-[#FF2D2D]" />
+              <div className="flex items-center gap-2 text-zinc-500 text-xs">
+                <TrendingUp className="w-4 h-4 text-[#E54D80]" />
                 <span>Closing Probability</span>
               </div>
-              <span className="text-xs font-bold text-emerald-400">
+              <span className="text-xs font-bold text-emerald-600">
                 {opportunity.closing_probability}%
               </span>
             </div>
@@ -286,9 +287,9 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
         
         {/* Left Column: Breakdown items */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="glass-panel p-6 space-y-6">
-            <h2 className="text-sm font-semibold text-white flex items-center gap-2">
-              <ListTodo className="w-4 h-4 text-[#FF2D2D]" />
+          <div className="bg-white border border-[#E5E5E8] p-6 space-y-6 rounded-3xl shadow-sm">
+            <h2 className="text-sm font-bold text-[#0F0F11] flex items-center gap-2 uppercase tracking-wider font-mono">
+              <ListTodo className="w-4 h-4 text-[#E54D80]" />
               AI Vulnerability Diagnostics
             </h2>
 
@@ -297,19 +298,19 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
                 const percent = (sec.score / sec.max) * 100;
                 const isCrit = percent <= 50;
                 return (
-                  <div key={sec.title} className="border-b border-white/[0.04] pb-5 last:border-0 last:pb-0">
+                  <div key={sec.title} className="border-b border-[#E5E5E8] pb-5 last:border-0 last:pb-0">
                     <div className="flex justify-between items-center mb-2">
-                      <span className="text-xs font-semibold text-white">{sec.title}</span>
-                      <span className="text-xs text-zinc-400">
+                      <span className="text-xs font-bold text-[#0F0F11]">{sec.title}</span>
+                      <span className="text-xs text-zinc-400 font-mono">
                         {sec.score} / {sec.max} points
                       </span>
                     </div>
 
                     {/* Progress track */}
-                    <div className="w-full bg-white/[0.02] h-2 rounded-full border border-white/[0.04] overflow-hidden">
+                    <div className="w-full bg-[#F4F4F6] h-2 rounded-full border border-[#E5E5E8] overflow-hidden">
                       <div 
                         className={`h-full rounded-full transition-all duration-500 ${
-                          isCrit ? 'bg-red-500' : percent <= 75 ? 'bg-amber-500' : 'bg-emerald-500'
+                          isCrit ? 'bg-[#E54D80]' : percent <= 75 ? 'bg-amber-500' : 'bg-emerald-500'
                         }`}
                         style={{ width: `${percent}%` }}
                       />
@@ -319,14 +320,14 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
                     <div className="mt-3.5 space-y-2">
                       {sec.issues.length > 0 ? (
                         sec.issues.map((issue, i) => (
-                          <div key={i} className="flex items-start gap-2.5 text-xs text-red-300 bg-red-500/[0.02] border border-red-500/10 p-2.5 rounded-xl">
-                            <AlertTriangle className="w-3.5 h-3.5 text-red-400 shrink-0 mt-0.5" />
+                          <div key={i} className="flex items-start gap-2.5 text-xs text-red-600 bg-red-50 border border-red-100 p-2.5 rounded-xl font-mono">
+                            <AlertTriangle className="w-3.5 h-3.5 text-[#E54D80] shrink-0 mt-0.5" />
                             <span>{issue}</span>
                           </div>
                         ))
                       ) : (
-                        <div className="flex items-center gap-2.5 text-xs text-emerald-300 bg-emerald-500/[0.02] border border-emerald-500/10 p-2.5 rounded-xl">
-                          <CheckCircle className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                        <div className="flex items-center gap-2.5 text-xs text-emerald-700 bg-emerald-50 border border-emerald-100 p-2.5 rounded-xl font-mono">
+                          <CheckCircle className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                           <span>No critical vulnerabilities discovered. Strong performance.</span>
                         </div>
                       )}
@@ -342,48 +343,48 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
         <div className="space-y-6">
           
           {/* Competitor Gap Analysis */}
-          <div className="glass-panel p-6 space-y-4">
-            <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-              <Building2 className="w-4 h-4 text-[#FF2D2D]" />
+          <div className="bg-white border border-[#E5E5E8] p-6 space-y-4 rounded-3xl shadow-sm">
+            <h3 className="text-sm font-bold text-[#0F0F11] flex items-center gap-2 uppercase tracking-wider font-mono">
+              <Building2 className="w-4 h-4 text-[#E54D80]" />
               Competitor Gap Analysis
             </h3>
             
             <div className="space-y-3">
               {/* Subject Business card */}
-              <div className="bg-white/[0.02] border border-white/[0.08] p-3 rounded-xl">
-                <p className="text-xs font-semibold text-[#FF2D2D] truncate">{business.name}</p>
-                <div className="grid grid-cols-3 gap-2 mt-2 text-[10px] text-zinc-400">
+              <div className="bg-[#FFF0F5] border border-[#E54D80]/20 p-3 rounded-xl shadow-sm">
+                <p className="text-xs font-bold text-[#E54D80] truncate">{business.name}</p>
+                <div className="grid grid-cols-3 gap-2 mt-2 text-[10px] text-zinc-500 font-mono">
                   <div>
                     <span>Rating:</span>
-                    <span className="text-white font-medium block mt-0.5">⭐ {business.rating}</span>
+                    <span className="text-[#0F0F11] font-bold block mt-0.5">⭐ {business.rating}</span>
                   </div>
                   <div>
                     <span>Reviews:</span>
-                    <span className="text-white font-medium block mt-0.5">{business.reviews_count}</span>
+                    <span className="text-[#0F0F11] font-bold block mt-0.5">{business.reviews_count}</span>
                   </div>
                   <div>
                     <span>Opp. Score:</span>
-                    <span className="text-white font-medium block mt-0.5">{opportunity.total_score}</span>
+                    <span className="text-[#E54D80] font-bold block mt-0.5">{opportunity.total_score}</span>
                   </div>
                 </div>
               </div>
 
               {/* Competitors list */}
               {competitors.map((comp) => (
-                <div key={comp.id} className="bg-white/[0.01] border border-white/[0.04] p-3 rounded-xl">
-                  <p className="text-xs font-semibold text-zinc-300 truncate">{comp.name}</p>
-                  <div className="grid grid-cols-3 gap-2 mt-2 text-[10px] text-zinc-500">
+                <div key={comp.id} className="bg-[#F4F4F6] border border-[#E5E5E8] p-3 rounded-xl">
+                  <p className="text-xs font-semibold text-zinc-700 truncate">{comp.name}</p>
+                  <div className="grid grid-cols-3 gap-2 mt-2 text-[10px] text-zinc-500 font-mono">
                     <div>
                       <span>Rating:</span>
-                      <span className="text-white font-medium block mt-0.5">⭐ {comp.rating}</span>
+                      <span className="text-[#0F0F11] font-bold block mt-0.5">⭐ {comp.rating}</span>
                     </div>
                     <div>
                       <span>Reviews:</span>
-                      <span className="text-white font-medium block mt-0.5">{comp.reviews_count}</span>
+                      <span className="text-[#0F0F11] font-bold block mt-0.5">{comp.reviews_count}</span>
                     </div>
                     <div>
                       <span>SEO Score:</span>
-                      <span className="text-white font-medium block mt-0.5">{comp.seo_score}/100</span>
+                      <span className="text-[#0F0F11] font-bold block mt-0.5">{comp.seo_score}/100</span>
                     </div>
                   </div>
                 </div>
@@ -392,21 +393,21 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
           </div>
 
           {/* Recommended Services Panel */}
-          <div className="glass-panel p-6 space-y-4">
-            <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-[#FF4D4D]" />
-              Recommended Pitch Services
+          <div className="bg-white border border-[#E5E5E8] p-6 space-y-4 rounded-3xl shadow-sm">
+            <h3 className="text-sm font-bold text-[#0F0F11] flex items-center gap-2 uppercase tracking-wider font-mono">
+              <Sparkles className="w-4 h-4 text-[#E54D80]" />
+              Recommended Pitches
             </h3>
             
             <div className="space-y-2.5">
               {audit.recommended_services.map((service, idx) => (
-                <div key={idx} className="bg-gradient-to-r from-[#FF2D2D]/5 to-transparent border border-white/[0.06] p-3.5 rounded-xl flex gap-2.5 items-start">
-                  <span className="w-5 h-5 rounded-full bg-[#FF2D2D]/15 border border-[#FF2D2D]/25 flex items-center justify-center font-bold text-[9px] text-[#FF4D4D] mt-0.5 shrink-0">
+                <div key={idx} className="bg-[#FFF0F5]/50 border border-[#E54D80]/15 p-3.5 rounded-xl flex gap-2.5 items-start">
+                  <span className="w-5 h-5 rounded-full bg-[#E54D80]/10 border border-[#E54D80]/20 flex items-center justify-center font-bold text-[9px] text-[#E54D80] mt-0.5 shrink-0 font-mono">
                     {idx + 1}
                   </span>
                   <div>
-                    <p className="text-xs text-white font-semibold leading-relaxed">{service.split(' ($')[0]}</p>
-                    <p className="text-[10px] text-[#FF4D4D] font-bold mt-1">
+                    <p className="text-xs text-[#0F0F11] font-bold leading-relaxed">{service.split(' ($')[0]}</p>
+                    <p className="text-[10px] text-[#E54D80] font-bold mt-1 font-mono">
                       Est. Service Fee: {service.includes('$') ? '$' + service.split('$')[1] : 'Included'}
                     </p>
                   </div>
@@ -425,8 +426,8 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
 function LoaderComponent() {
   return (
     <div className="relative w-16 h-16 flex items-center justify-center">
-      <div className="absolute inset-0 border-4 border-[#FF2D2D]/15 rounded-full"></div>
-      <div className="absolute inset-0 border-4 border-[#FF2D2D] border-t-transparent rounded-full animate-spin"></div>
+      <div className="absolute inset-0 border-4 border-[#E54D80]/10 rounded-full"></div>
+      <div className="absolute inset-0 border-4 border-[#E54D80] border-t-transparent rounded-full animate-spin"></div>
     </div>
   );
 }

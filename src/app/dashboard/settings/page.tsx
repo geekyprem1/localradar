@@ -90,11 +90,11 @@ export default function SettingsPage() {
   ];
 
   return (
-    <div className="space-y-8 max-w-6xl mx-auto pb-12">
+    <div className="space-y-8 max-w-6xl mx-auto pb-12 font-sans">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-white">Settings & Billing</h1>
-        <p className="text-zinc-400 text-sm mt-1">
+        <h1 className="text-2xl font-serif font-bold text-[#0F0F11]">Settings & Billing</h1>
+        <p className="text-zinc-500 text-xs mt-1">
           Manage your account profile, upgrade subscription plans, or configure live API credentials.
         </p>
       </div>
@@ -104,47 +104,47 @@ export default function SettingsPage() {
         {/* Left Column forms */}
         <div className="lg:col-span-2 space-y-6">
           {/* Profile form */}
-          <div className="glass-panel p-6 space-y-4 border border-white/[0.08]">
-            <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-              <User className="w-4 h-4 text-[#FF2D2D]" />
+          <div className="bg-white border border-[#E5E5E8] p-6 rounded-2xl space-y-4 shadow-sm">
+            <h3 className="text-sm font-bold text-[#0F0F11] flex items-center gap-2 uppercase tracking-wider font-mono">
+              <User className="w-4 h-4 text-[#E54D80]" />
               Agency Profile Details
             </h3>
 
             <form onSubmit={handleSaveProfile} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-zinc-400">Full Name</label>
+                  <label className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest font-mono">Full Name</label>
                   <input
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full bg-white/[0.02] border border-white/[0.08] rounded-xl py-2.5 px-4 text-white text-xs focus:outline-none focus:border-[#FF2D2D] transition-all"
+                    className="w-full bg-[#F4F4F6] border border-[#E5E5E8] rounded-xl py-2.5 px-4 text-[#0F0F11] text-xs focus:outline-none focus:border-[#E54D80] transition-all"
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-zinc-400">Email Address</label>
+                  <label className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest font-mono">Email Address</label>
                   <input
                     type="email"
                     value={email}
                     disabled
-                    className="w-full bg-white/[0.01] border border-white/[0.04] text-zinc-500 rounded-xl py-2.5 px-4 text-xs cursor-not-allowed"
+                    className="w-full bg-[#F4F4F6]/50 border border-[#E5E5E8] text-zinc-400 rounded-xl py-2.5 px-4 text-xs cursor-not-allowed font-mono"
                   />
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-zinc-400">Agency Organization Name</label>
+                <label className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest font-mono">Agency Organization Name</label>
                 <input
                   type="text"
                   value={orgName}
                   onChange={(e) => setOrgName(e.target.value)}
-                  className="w-full bg-white/[0.02] border border-white/[0.08] rounded-xl py-2.5 px-4 text-white text-xs focus:outline-none focus:border-[#FF2D2D] transition-all"
+                  className="w-full bg-[#F4F4F6] border border-[#E5E5E8] rounded-xl py-2.5 px-4 text-[#0F0F11] text-xs focus:outline-none focus:border-[#E54D80] transition-all"
                 />
               </div>
 
               <button
                 type="submit"
-                className="bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ml-auto"
+                className="bg-[#F4F4F6] hover:bg-[#E5E5E8] border border-[#E5E5E8] text-[#0F0F11] text-xs font-bold px-4 py-2.5 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ml-auto shadow-sm"
               >
                 <Save className="w-3.5 h-3.5" />
                 Save Changes
@@ -153,13 +153,13 @@ export default function SettingsPage() {
           </div>
 
           {/* Pricing Billing Section */}
-          <div className="glass-panel p-6 space-y-6 border border-white/[0.08]">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-                <CreditCard className="w-4 h-4 text-[#FF2D2D]" />
+          <div className="bg-white border border-[#E5E5E8] p-6 rounded-2xl space-y-6 shadow-sm">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <h3 className="text-sm font-bold text-[#0F0F11] flex items-center gap-2 uppercase tracking-wider font-mono">
+                <CreditCard className="w-4 h-4 text-[#E54D80]" />
                 Subscription Plans
               </h3>
-              <span className="text-[10px] text-zinc-400 font-semibold bg-white/[0.03] border border-white/[0.08] px-2.5 py-1 rounded-full uppercase tracking-wider">
+              <span className="text-[9px] text-zinc-500 font-bold bg-[#F4F4F6] border border-[#E5E5E8] px-2.5 py-1 rounded-full uppercase tracking-wider font-mono">
                 Active Tier: {user?.subscription_tier}
               </span>
             </div>
@@ -172,21 +172,21 @@ export default function SettingsPage() {
                     key={tier.id} 
                     className={`p-4 rounded-xl border flex flex-col justify-between ${
                       isActive 
-                        ? 'bg-[#FF2D2D]/5 border-[#FF2D2D]/30 shadow-[0_0_20px_rgba(255,45,45,0.1)]' 
-                        : 'bg-white/[0.01] border-white/[0.06]'
+                        ? 'bg-[#E54D80]/5 border-[#E54D80] shadow-sm' 
+                        : 'bg-white border-[#E5E5E8]'
                     }`}
                   >
                     <div>
-                      <h4 className="text-xs font-bold text-white">{tier.name}</h4>
+                      <h4 className="text-xs font-bold text-[#0F0F11]">{tier.name}</h4>
                       <div className="mt-2 flex items-baseline">
-                        <span className="text-xl font-extrabold text-white">{tier.price}</span>
-                        <span className="text-[10px] text-zinc-500 font-medium ml-1">/{tier.period}</span>
+                        <span className="text-xl font-serif font-extrabold text-[#0F0F11]">{tier.price}</span>
+                        <span className="text-[10px] text-zinc-400 font-semibold ml-1">/{tier.period}</span>
                       </div>
 
-                      <ul className="mt-4 space-y-2 text-[10px] text-zinc-400">
+                      <ul className="mt-4 space-y-2 text-[10px] text-zinc-500 font-mono">
                         {tier.features.map((feat, i) => (
                           <li key={i} className="flex items-center gap-1.5">
-                            <Check className="w-3.5 h-3.5 text-[#FF2D2D]" />
+                            <Check className="w-3.5 h-3.5 text-[#E54D80]" />
                             <span>{feat}</span>
                           </li>
                         ))}
@@ -196,10 +196,10 @@ export default function SettingsPage() {
                     <button
                       onClick={() => handleSubscriptionUpgrade(tier.id as any)}
                       disabled={isActive}
-                      className={`w-full text-center text-xs font-semibold py-2 rounded-xl mt-6 transition-all cursor-pointer ${
+                      className={`w-full text-center text-xs font-bold py-2.5 rounded-xl mt-6 transition-all cursor-pointer ${
                         isActive 
-                          ? 'bg-[#FF2D2D]/10 border border-[#FF2D2D]/25 text-white cursor-default' 
-                          : 'bg-[#FF2D2D] hover:bg-[#e62222] text-white'
+                          ? 'bg-[#E54D80]/15 border border-[#E54D80]/30 text-[#E54D80] cursor-default' 
+                          : 'bg-[#E54D80] hover:bg-[#FF5E8C] text-white shadow-sm'
                       }`}
                     >
                       {isActive ? 'Active' : tier.buttonText}
@@ -212,84 +212,84 @@ export default function SettingsPage() {
         </div>
 
         {/* Right Column: API credentials key inputs */}
-        <div className="glass-panel p-6 space-y-4 border border-white/[0.08]">
+        <div className="bg-white border border-[#E5E5E8] p-6 rounded-2xl space-y-4 shadow-sm">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-              <Key className="w-4 h-4 text-[#FF2D2D]" />
+            <h3 className="text-sm font-bold text-[#0F0F11] flex items-center gap-2 uppercase tracking-wider font-mono">
+              <Key className="w-4 h-4 text-[#E54D80]" />
               Developer Keys
             </h3>
-            <span className="p-1.5 rounded-lg bg-white/[0.03] border border-white/[0.08]" title="Encrypted Local Storage">
-              <Lock className="w-3.5 h-3.5 text-zinc-500" />
+            <span className="p-1.5 rounded-lg bg-[#F4F4F6] border border-[#E5E5E8]" title="Encrypted Local Storage">
+              <Lock className="w-3.5 h-3.5 text-zinc-400" />
             </span>
           </div>
 
-          <p className="text-[10px] text-zinc-400 leading-relaxed">
+          <p className="text-[10px] text-zinc-500 leading-relaxed">
             By default, LocalRadar runs in a Sandbox Simulator. Paste your own keys below to fetch live maps search, call real OpenAI models, and connect to your own Supabase databases.
           </p>
 
-          <form onSubmit={handleSaveKeys} className="space-y-4 border-t border-white/[0.08] pt-4">
-            <div className="space-y-1.5 border-b border-white/[0.04] pb-4">
-              <label className="text-[10px] font-bold text-[#FF2D2D] uppercase tracking-wider block mb-1">OpenRouter (DeepSeek / alternative models)</label>
+          <form onSubmit={handleSaveKeys} className="space-y-4 border-t border-[#E5E5E8] pt-4">
+            <div className="space-y-1.5 border-b border-[#E5E5E8] pb-4">
+              <label className="text-[9px] font-bold text-[#E54D80] uppercase tracking-wider block mb-1 font-mono">OpenRouter (DeepSeek v4 Flash)</label>
               
               <div className="space-y-1.5">
-                <label className="text-[9px] font-semibold text-zinc-400">OpenRouter API Key</label>
+                <label className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest font-mono">API Key</label>
                 <input
                   type="password"
                   placeholder="sk-or-v1-..."
                   value={openrouterKey}
                   onChange={(e) => setOpenrouterKey(e.target.value)}
-                  className="w-full bg-white/[0.02] border border-white/[0.08] rounded-xl py-2 px-3 text-white text-xs focus:outline-none focus:border-[#FF2D2D] transition-all font-mono"
+                  className="w-full bg-[#F4F4F6] border border-[#E5E5E8] rounded-xl py-2 px-3 text-[#0F0F11] text-xs focus:outline-none focus:border-[#E54D80] transition-all font-mono"
                 />
               </div>
 
               <div className="space-y-1.5 mt-2.5">
-                <label className="text-[9px] font-semibold text-zinc-400">Model Name</label>
+                <label className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest font-mono">Model Name</label>
                 <input
                   type="text"
                   placeholder="e.g. deepseek/deepseek-chat"
                   value={openrouterModel}
                   onChange={(e) => setOpenrouterModel(e.target.value)}
-                  className="w-full bg-white/[0.02] border border-white/[0.08] rounded-xl py-2 px-3 text-white text-xs focus:outline-none focus:border-[#FF2D2D] transition-all font-mono"
+                  className="w-full bg-[#F4F4F6] border border-[#E5E5E8] rounded-xl py-2 px-3 text-[#0F0F11] text-xs focus:outline-none focus:border-[#E54D80] transition-all font-mono"
                 />
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-[10px] font-semibold text-zinc-400">OpenAI API Key (Direct)</label>
+              <label className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest font-mono">OpenAI API Key (Direct)</label>
               <input
                 type="password"
                 placeholder="sk-..."
                 value={openaiKey}
                 onChange={(e) => setOpenaiKey(e.target.value)}
-                className="w-full bg-white/[0.02] border border-white/[0.08] rounded-xl py-2 px-3 text-white text-xs focus:outline-none focus:border-[#FF2D2D] transition-all font-mono"
+                className="w-full bg-[#F4F4F6] border border-[#E5E5E8] rounded-xl py-2 px-3 text-[#0F0F11] text-xs focus:outline-none focus:border-[#E54D80] transition-all font-mono"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-[10px] font-semibold text-zinc-400">Supabase URL</label>
+              <label className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest font-mono">Supabase URL</label>
               <input
                 type="text"
                 placeholder="https://your-project.supabase.co"
                 value={supabaseUrl}
                 onChange={(e) => setSupabaseUrl(e.target.value)}
-                className="w-full bg-white/[0.02] border border-white/[0.08] rounded-xl py-2 px-3 text-white text-xs focus:outline-none focus:border-[#FF2D2D] transition-all font-mono"
+                className="w-full bg-[#F4F4F6] border border-[#E5E5E8] rounded-xl py-2 px-3 text-[#0F0F11] text-xs focus:outline-none focus:border-[#E54D80] transition-all font-mono"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-[10px] font-semibold text-zinc-400">Supabase Anon Key</label>
+              <label className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest font-mono">Supabase Anon Key</label>
               <input
                 type="password"
                 placeholder="eyJhbG..."
                 value={supabaseAnon}
                 onChange={(e) => setSupabaseAnon(e.target.value)}
-                className="w-full bg-white/[0.02] border border-white/[0.08] rounded-xl py-2 px-3 text-white text-xs focus:outline-none focus:border-[#FF2D2D] transition-all font-mono"
+                className="w-full bg-[#F4F4F6] border border-[#E5E5E8] rounded-xl py-2 px-3 text-[#0F0F11] text-xs focus:outline-none focus:border-[#E54D80] transition-all font-mono"
               />
             </div>
 
             <button
               type="submit"
-              className="w-full bg-[#FF2D2D] hover:bg-[#e62222] text-white text-xs font-semibold py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-[0_0_15px_rgba(255,45,45,0.2)]"
+              className="w-full bg-[#E54D80] hover:bg-[#FF5E8C] text-white font-bold text-xs py-2.5 rounded-full transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
             >
               Save Credentials
             </button>
@@ -305,7 +305,7 @@ export default function SettingsPage() {
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 15 }}
-            className="fixed bottom-6 right-6 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs px-4 py-3 rounded-xl flex items-center gap-2 shadow-lg z-50"
+            className="fixed bottom-6 right-6 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs px-4 py-3 rounded-xl flex items-center gap-2 shadow-lg z-50 font-mono"
           >
             <Check className="w-4 h-4" />
             <span>Settings saved successfully!</span>

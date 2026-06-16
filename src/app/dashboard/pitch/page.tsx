@@ -131,14 +131,14 @@ export default function PitchGeneratorPage() {
   };
 
   return (
-    <div className="space-y-8 max-w-5xl mx-auto">
+    <div className="space-y-8 max-w-5xl mx-auto font-sans">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+        <h1 className="text-2xl font-serif font-bold text-[#0F0F11] flex items-center gap-2">
           AI Pitch Generator
-          <Sparkles className="w-5 h-5 text-[#FF2D2D] fill-[#FF2D2D]/10 animate-pulse" />
+          <Sparkles className="w-5 h-5 text-[#E54D80] fill-[#E54D80]/10 animate-pulse" />
         </h1>
-        <p className="text-zinc-400 text-sm mt-1">
+        <p className="text-zinc-500 text-xs mt-1">
           Draft personalized client acquisition sequences using diagnostic data.
         </p>
       </div>
@@ -146,20 +146,20 @@ export default function PitchGeneratorPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
         
         {/* Left selector */}
-        <div className="glass-panel p-6 space-y-4 border border-white/[0.08]">
-          <h3 className="text-xs font-semibold text-zinc-300 flex items-center gap-1.5">
-            <Building className="w-4 h-4 text-[#FF2D2D]" />
+        <div className="bg-white border border-[#E5E5E8] p-6 rounded-2xl space-y-4 shadow-sm">
+          <h3 className="text-xs font-bold text-zinc-500 flex items-center gap-1.5 uppercase tracking-wider font-mono">
+            <Building className="w-4 h-4 text-[#E54D80]" />
             Target Business Lead
           </h3>
 
           <div className="space-y-3">
-            <label className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider block">
+            <label className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest block font-mono">
               Select Client
             </label>
             <select
               value={selectedBizId}
               onChange={(e) => setSelectedBizId(e.target.value)}
-              className="w-full bg-[#050505] border border-white/[0.08] rounded-xl py-3 px-4 text-white text-sm focus:outline-none focus:border-[#FF2D2D] focus:ring-1 focus:ring-[#FF2D2D] transition-all"
+              className="w-full bg-[#F4F4F6] border border-[#E5E5E8] rounded-xl py-3 px-4 text-[#0F0F11] text-sm focus:outline-none focus:border-[#E54D80] focus:ring-1 focus:ring-[#E54D80] transition-all"
             >
               {businesses.map((b) => (
                 <option key={b.id} value={b.id}>
@@ -169,10 +169,10 @@ export default function PitchGeneratorPage() {
             </select>
           </div>
 
-          <div className="border-t border-white/[0.08] pt-4 mt-2">
+          <div className="border-t border-[#E5E5E8] pt-4 mt-2">
             <button
               onClick={() => router.push('/dashboard/lead-finder')}
-              className="w-full bg-white/[0.02] hover:bg-white/[0.04] border border-white/[0.08] text-zinc-300 hover:text-white text-xs font-semibold py-2.5 rounded-xl transition-all block text-center cursor-pointer"
+              className="w-full bg-[#F4F4F6] hover:bg-[#E5E5E8] border border-[#E5E5E8] text-[#0F0F11] text-xs font-bold py-2.5 rounded-xl transition-all block text-center cursor-pointer"
             >
               Search Different Niche
             </button>
@@ -180,10 +180,10 @@ export default function PitchGeneratorPage() {
         </div>
 
         {/* Right Output panel */}
-        <div className="lg:col-span-2 glass-panel p-6 border border-white/[0.08] min-h-[400px] flex flex-col justify-between">
+        <div className="lg:col-span-2 bg-white border border-[#E5E5E8] p-6 rounded-3xl min-h-[400px] flex flex-col justify-between shadow-sm">
           <div>
             {/* Tabs Row */}
-            <div className="flex border-b border-white/[0.08] pb-3 mb-6 overflow-x-auto gap-2.5">
+            <div className="flex border-b border-[#E5E5E8] pb-3 mb-6 overflow-x-auto gap-2.5">
               {[
                 { id: 'email', name: 'Cold Email', icon: Mail },
                 { id: 'dm', name: 'Cold DM', icon: MessageSquare },
@@ -198,8 +198,8 @@ export default function PitchGeneratorPage() {
                     onClick={() => setActiveTab(tab.id as any)}
                     className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer border whitespace-nowrap ${
                       isActive 
-                        ? 'bg-[#FF2D2D]/10 border-[#FF2D2D]/25 text-white' 
-                        : 'text-zinc-500 border-transparent hover:text-zinc-300'
+                        ? 'bg-[#E54D80]/10 border-[#E54D80]/20 text-[#E54D80]' 
+                        : 'text-[#5C5C64] border-transparent hover:text-[#0F0F11]'
                     }`}
                   >
                     <TabIcon className="w-3.5 h-3.5" />
@@ -213,11 +213,11 @@ export default function PitchGeneratorPage() {
             <div className="relative">
               {loading ? (
                 <div className="h-60 flex flex-col items-center justify-center space-y-3">
-                  <Loader2 className="w-8 h-8 text-[#FF2D2D] animate-spin" />
+                  <Loader2 className="w-8 h-8 text-[#E54D80] animate-spin" />
                   <span className="text-xs text-zinc-500 font-medium">Re-writing outreach sequence...</span>
                 </div>
               ) : (
-                <pre className="text-xs text-zinc-300 font-mono leading-relaxed bg-white/[0.01] border border-white/[0.04] p-5 rounded-xl whitespace-pre-wrap overflow-x-auto select-text min-h-[220px]">
+                <pre className="text-xs text-zinc-700 font-mono leading-relaxed bg-[#F9F9FB] border border-[#E5E5E8] p-5 rounded-xl whitespace-pre-wrap overflow-x-auto select-text min-h-[220px]">
                   {getActiveContent()}
                 </pre>
               )}
@@ -226,15 +226,15 @@ export default function PitchGeneratorPage() {
 
           {/* Bottom Actions Row */}
           {!loading && pitch && (
-            <div className="flex items-center justify-between border-t border-white/[0.08] pt-6 mt-6">
-              <span className="text-[10px] text-zinc-500 font-medium flex items-center gap-1">
-                <AlertTriangle className="w-3.5 h-3.5 text-zinc-600" />
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between border-t border-[#E5E5E8] pt-6 mt-6 gap-3">
+              <span className="text-[10px] text-zinc-400 font-medium flex items-center gap-1 font-mono">
+                <AlertTriangle className="w-3.5 h-3.5 text-zinc-400" />
                 Customize variables prior to sending.
               </span>
 
               <button
                 onClick={handleCopy}
-                className="bg-[#FF2D2D] hover:bg-[#e62222] text-white text-xs font-semibold px-4.5 py-2.5 rounded-xl transition-all shadow-[0_0_15px_rgba(255,45,45,0.25)] flex items-center gap-1.5 cursor-pointer"
+                className="bg-[#E54D80] hover:bg-[#FF5E8C] text-white text-xs font-bold px-5 py-2.5 rounded-full transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
               >
                 {copied ? <Check className="w-3.5 h-3.5 text-white" /> : <Copy className="w-3.5 h-3.5" />}
                 {copied ? 'Copied' : 'Copy Pitch'}

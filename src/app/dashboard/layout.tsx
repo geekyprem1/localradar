@@ -32,10 +32,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#050505] flex items-center justify-center">
+      <div className="min-h-screen bg-[#F9F9FB] flex items-center justify-center">
         <div className="relative w-16 h-16">
-          <div className="absolute inset-0 border-4 border-[#FF2D2D]/10 rounded-full"></div>
-          <div className="absolute inset-0 border-4 border-[#FF2D2D] border-t-transparent rounded-full animate-spin"></div>
+          <div className="absolute inset-0 border-4 border-[#E54D80]/10 rounded-full"></div>
+          <div className="absolute inset-0 border-4 border-[#E54D80] border-t-transparent rounded-full animate-spin"></div>
         </div>
       </div>
     );
@@ -53,16 +53,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   ];
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white flex relative">
-      {/* Background radial glow */}
-      <div className="absolute top-0 right-0 w-[50%] h-[50%] bg-[#FF2D2D]/5 rounded-full blur-[100px] pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-[50%] h-[50%] bg-[#FF4D4D]/5 rounded-full blur-[100px] pointer-events-none" />
-
+    <div className="min-h-screen bg-[#F9F9FB] text-[#0F0F11] flex relative font-sans">
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex flex-col w-64 border-r border-white/[0.08] bg-white/[0.01] backdrop-blur-md p-6 shrink-0 relative z-20">
+      <aside className="hidden md:flex flex-col w-64 border-r border-[#E5E5E8] bg-white p-6 shrink-0 relative z-20">
         <div className="flex items-center gap-2 mb-8">
-          <Sparkles className="w-6 h-6 text-[#FF2D2D]" />
-          <span className="font-bold tracking-wider text-white">LOCALRADAR</span>
+          <svg className="w-5 h-5 text-[#E54D80]" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="3" y="3" width="7" height="7" rx="2" fill="currentColor" />
+            <rect x="14" y="3" width="7" height="7" rx="2" fill="currentColor" />
+            <rect x="3" y="14" width="7" height="7" rx="2" fill="currentColor" />
+            <rect x="14" y="14" width="7" height="7" rx="2" fill="currentColor" />
+          </svg>
+          <span className="font-serif italic font-extrabold tracking-wide text-lg text-[#0F0F11]">LocalRadar</span>
         </div>
 
         <nav className="space-y-1.5 flex-1">
@@ -73,13 +74,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <Link
                 key={item.name}
                 href={item.href}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer ${
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold tracking-wide transition-all duration-200 cursor-pointer ${
                   isActive 
-                    ? 'bg-[#FF2D2D]/10 border border-[#FF2D2D]/25 text-white shadow-[0_0_15px_rgba(255,45,45,0.05)]' 
-                    : 'text-zinc-400 hover:text-white hover:bg-white/[0.03] border border-transparent'
+                    ? 'bg-[#E54D80]/10 border border-[#E54D80]/20 text-[#E54D80] shadow-sm' 
+                    : 'text-zinc-500 hover:text-[#0F0F11] hover:bg-[#F4F4F6] border border-transparent'
                 }`}
               >
-                <Icon className={`w-4 h-4 ${isActive ? 'text-[#FF2D2D]' : 'text-zinc-400 group-hover:text-white'}`} />
+                <Icon className={`w-4 h-4 ${isActive ? 'text-[#E54D80]' : 'text-zinc-400'}`} />
                 {item.name}
               </Link>
             );
@@ -87,30 +88,30 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </nav>
 
         {/* User profile section & logout */}
-        <div className="border-t border-white/[0.08] pt-6 mt-auto space-y-4">
+        <div className="border-t border-[#E5E5E8] pt-6 mt-auto space-y-4">
           {user.subscription_tier !== 'free' && (
-            <div className="bg-gradient-to-r from-[#FF2D2D]/10 to-[#FF4D4D]/10 border border-[#FF2D2D]/25 p-3 rounded-xl flex items-center gap-2">
-              <Zap className="w-4 h-4 text-[#FF4D4D] fill-[#FF4D4D]" />
-              <div className="text-xs">
-                <p className="font-semibold text-white capitalize">{user.subscription_tier} Account</p>
-                <p className="text-zinc-400">Premium unlocked</p>
+            <div className="bg-[#E54D80]/10 border border-[#E54D80]/20 p-3 rounded-xl flex items-center gap-2">
+              <Zap className="w-4 h-4 text-[#E54D80] fill-[#E54D80]" />
+              <div className="text-[10px] font-mono">
+                <p className="font-bold text-[#E54D80] uppercase tracking-wider">{user.subscription_tier} Account</p>
+                <p className="text-zinc-500">Premium unlocked</p>
               </div>
             </div>
           )}
 
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center">
-                <User className="w-4 h-4 text-zinc-300" />
+              <div className="w-9 h-9 rounded-xl bg-[#F4F4F6] border border-[#E5E5E8] flex items-center justify-center">
+                <User className="w-4 h-4 text-zinc-500" />
               </div>
               <div className="text-left leading-tight">
-                <p className="text-sm font-medium text-white truncate max-w-[120px]">{user.full_name || 'Agency Owner'}</p>
-                <p className="text-[10px] text-zinc-500 truncate max-w-[120px]">{user.email}</p>
+                <p className="text-xs font-bold text-[#0F0F11] truncate max-w-[120px]">{user.full_name || 'Agency Owner'}</p>
+                <p className="text-[10px] text-zinc-400 truncate max-w-[120px] font-mono">{user.email}</p>
               </div>
             </div>
             <button 
               onClick={() => signOut()} 
-              className="p-2 text-zinc-500 hover:text-white hover:bg-white/[0.04] rounded-xl transition-colors cursor-pointer"
+              className="p-2 text-zinc-400 hover:text-[#E54D80] hover:bg-[#F4F4F6] rounded-xl transition-colors cursor-pointer"
               title="Sign Out"
             >
               <LogOut className="w-4 h-4" />
@@ -119,16 +120,21 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
       </aside>
 
-      {/* Mobile Header */}
-      <div className="md:hidden w-full flex flex-col min-h-screen">
-        <header className="h-16 border-b border-white/[0.08] bg-white/[0.01] backdrop-blur-md px-6 flex items-center justify-between relative z-30">
+      {/* Mobile Wrapper */}
+      <div className="flex-1 flex flex-col min-h-screen md:hidden max-w-full">
+        <header className="h-16 border-b border-[#E5E5E8] bg-white px-6 flex items-center justify-between relative z-35">
           <div className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-[#FF2D2D]" />
-            <span className="font-bold tracking-wider text-sm">LOCALRADAR</span>
+            <svg className="w-5 h-5 text-[#E54D80]" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="3" y="3" width="7" height="7" rx="2" fill="currentColor" />
+              <rect x="14" y="3" width="7" height="7" rx="2" fill="currentColor" />
+              <rect x="3" y="14" width="7" height="7" rx="2" fill="currentColor" />
+              <rect x="14" y="14" width="7" height="7" rx="2" fill="currentColor" />
+            </svg>
+            <span className="font-serif italic font-extrabold tracking-wide text-base">LocalRadar</span>
           </div>
           <button 
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 border border-white/[0.08] bg-white/[0.02] rounded-xl text-zinc-300 hover:text-white cursor-pointer"
+            className="p-2 border border-[#E5E5E8] bg-[#F4F4F6] rounded-xl text-zinc-500 hover:text-[#0F0F11] cursor-pointer"
           >
             {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
           </button>
@@ -141,7 +147,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="border-b border-white/[0.08] bg-[#050505]/95 backdrop-blur-lg relative z-20 px-6 py-4 space-y-3 md:hidden overflow-hidden"
+              className="border-b border-[#E5E5E8] bg-white relative z-30 px-6 py-4 space-y-3 overflow-hidden shadow-md"
             >
               <nav className="space-y-1">
                 {menuItems.map((item) => {
@@ -152,10 +158,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                       key={item.name}
                       href={item.href}
                       onClick={() => setMobileMenuOpen(false)}
-                      className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                      className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold tracking-wide transition-all ${
                         isActive 
-                          ? 'bg-[#FF2D2D]/10 border border-[#FF2D2D]/25 text-white' 
-                          : 'text-zinc-400 hover:text-white'
+                          ? 'bg-[#E54D80]/10 border border-[#E54D80]/20 text-[#E54D80]' 
+                          : 'text-zinc-500 hover:text-[#0F0F11] hover:bg-[#F4F4F6]'
                       }`}
                     >
                       <Icon className="w-4 h-4" />
@@ -165,19 +171,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 })}
               </nav>
 
-              <div className="border-t border-white/[0.08] pt-4 mt-2 flex items-center justify-between">
+              <div className="border-t border-[#E5E5E8] pt-4 mt-2 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-xl bg-white/[0.04] flex items-center justify-center">
-                    <User className="w-3.5 h-3.5 text-zinc-300" />
+                  <div className="w-8 h-8 rounded-xl bg-[#F4F4F6] flex items-center justify-center">
+                    <User className="w-3.5 h-3.5 text-zinc-500" />
                   </div>
                   <div className="text-left leading-none">
-                    <p className="text-xs font-medium text-white">{user.full_name}</p>
-                    <p className="text-[9px] text-zinc-500">{user.email}</p>
+                    <p className="text-xs font-bold text-[#0F0F11]">{user.full_name}</p>
+                    <p className="text-[9px] text-zinc-400 font-mono">{user.email}</p>
                   </div>
                 </div>
                 <button 
                   onClick={() => signOut()} 
-                  className="flex items-center gap-1.5 text-xs text-zinc-500 hover:text-white px-3 py-1.5 rounded-lg bg-white/[0.02] border border-white/[0.08]"
+                  className="flex items-center gap-1.5 text-xs text-zinc-500 hover:text-[#E54D80] px-3 py-1.5 rounded-lg bg-[#F4F4F6] border border-[#E5E5E8]"
                 >
                   <LogOut className="w-3.5 h-3.5" />
                   Sign Out
@@ -188,7 +194,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </AnimatePresence>
 
         {/* Content panel for Mobile */}
-        <main className="flex-1 p-6 relative z-10 overflow-y-auto max-w-full">
+        <main className="flex-1 p-4 relative z-10 overflow-y-auto max-w-full">
           {children}
         </main>
       </div>
