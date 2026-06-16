@@ -2,55 +2,72 @@ import { BusinessSignals } from '@/types/scoring';
 
 /**
  * Closing Probability™ — Deterministic (0–100%)
- *
- * Base = opportunityScore × 0.4
- * + Signal bonuses (additive)
- * Clamped to 0–95
+ * 
+ * Maps into 4 strict tiers:
+ * - Excellent Opportunity: 75–85%
+ * - Good Opportunity: 55–75%
+ * - Average Opportunity: 35–55%
+ * - Weak Opportunity: 10–35%
  */
 export function calculateClosingProbability(
   opportunityScore: number,
   signals: BusinessSignals,
   businessId?: string
 ): number {
-  // Base probability from opportunity score
-  let probability = opportunityScore * 0.4;
-
-  // No website — extremely high chance they need services
-  if (!signals.hasWebsite) {
-    probability += 25;
+  let baseProb = 40; // baseline
+  
+  if (opportunityScore >= 60) {
+    if (signals.hasPhone && signals.hasRecentActivity) {
+      // Excellent Opportunity tier (75-85%)
+      baseProb = 78;
+    } else {
+      // Good Opportunity tier (55-75%)
+      baseProb = 65;
+    }
+  } else if (opportunityScore >= 35) {
+    if (signals.hasPhone) {
+      // Good Opportunity tier
+      baseProb = 58;
+    } else {
+      // Average Opportunity tier (35-55%)
+      baseProb = 43;
+    }
+  } else {
+    // Weak Opportunity tier (10-35%)
+    baseProb = 22;
   }
 
-  // Recent reviews — business is active and reachable
-  if (signals.hasRecentReviews) {
-    probability += 20;
-  }
+  // Add small signal modifiers to create variance before applying clamps
+  if (!signals.hasWebsite) baseProb += 3;
+  if (signals.hasRecentReviews) baseProb += 2;
+  if (signals.lowRating) baseProb -= 1;
 
-  // Active listing — owner is engaged
-  if (signals.hasRecentActivity) {
-    probability += 20;
-  }
-
-  // Low competition signals — review gap means market is underserved
-  if (signals.competitorAvgReviews - signals.reviewCount > 50) {
-    probability += 15;
-  }
-
-  // Has phone — responsive, reachable contact
-  if (signals.hasPhone) {
-    probability += 20;
-  }
-
-  // Clamp between 0 and 95 (never 100% certain)
-  let finalProb = Math.min(95, Math.max(0, Math.round(probability)));
-
+  // Apply deterministic name-based/ID-based offset to avoid flat numbers
+  let variance = 0;
   if (businessId) {
     let hash = 0;
     for (let i = 0; i < businessId.length; i++) {
       hash = businessId.charCodeAt(i) + ((hash << 5) - hash);
     }
-    // create a realistic variance between -20 and +10
-    const variance = (Math.abs(hash) % 31) - 20;
-    finalProb = Math.min(94, Math.max(35, finalProb + variance));
+    // Yields an offset between -4 and +4
+    variance = (Math.abs(hash) % 9) - 4;
+  }
+
+  let finalProb = baseProb + variance;
+
+  // Enforce strict tier ranges
+  if (opportunityScore >= 60 && signals.hasPhone && signals.hasRecentActivity) {
+    // Excellent range: 75% to 85%
+    finalProb = Math.min(85, Math.max(75, finalProb));
+  } else if (opportunityScore >= 60 || (opportunityScore >= 35 && signals.hasPhone)) {
+    // Good range: 55% to 75%
+    finalProb = Math.min(74, Math.max(55, finalProb));
+  } else if (opportunityScore >= 35 || opportunityScore >= 20) {
+    // Average range: 35% to 55%
+    finalProb = Math.min(54, Math.max(35, finalProb));
+  } else {
+    // Weak range: 10% to 35%
+    finalProb = Math.min(34, Math.max(10, finalProb));
   }
 
   return finalProb;

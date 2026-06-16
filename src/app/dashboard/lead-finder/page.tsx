@@ -110,7 +110,7 @@ export default function LeadFinderPage() {
     const map: Record<string, ScoredOpportunity> = {};
     leads.forEach(biz => {
       const competitors = generateMockCompetitors(biz);
-      map[biz.id] = scoreBusinessOpportunity(biz, competitors);
+      map[biz.id] = scoreBusinessOpportunity(biz, competitors, niche);
     });
     setScoredMap(map);
     refreshHotLeadsMap();

@@ -12,6 +12,8 @@ interface CompetitorGapProps {
   noBookingSystem: boolean;
   competitorAvgReviews: number;
   competitorAvgRating: number;
+  competitorWebsiteRatio?: number;
+  competitorBookingRatio?: number;
 }
 
 export default function CompetitorGap({
@@ -21,7 +23,9 @@ export default function CompetitorGap({
   hasWebsite,
   noBookingSystem,
   competitorAvgReviews,
-  competitorAvgRating
+  competitorAvgRating,
+  competitorWebsiteRatio,
+  competitorBookingRatio
 }: CompetitorGapProps) {
   
   const parameters = [
@@ -48,8 +52,8 @@ export default function CompetitorGap({
       label: 'Website Domain',
       bizVal: hasWebsite ? 100 : 0,
       bizText: hasWebsite ? 'Active' : 'Missing',
-      compVal: 85, // Competitors benchmark
-      compText: '85% Active',
+      compVal: competitorWebsiteRatio ?? 85,
+      compText: `${competitorWebsiteRatio ?? 85}% Active`,
       max: 100,
       type: 'boolean'
     },
@@ -57,8 +61,8 @@ export default function CompetitorGap({
       label: 'Booking System',
       bizVal: noBookingSystem ? 0 : 100,
       bizText: noBookingSystem ? 'Missing' : 'Active',
-      compVal: 70, // Competitors benchmark
-      compText: '70% Active',
+      compVal: competitorBookingRatio ?? 70,
+      compText: `${competitorBookingRatio ?? 70}% Active`,
       max: 100,
       type: 'boolean'
     },

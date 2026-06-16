@@ -3,143 +3,135 @@ import { BusinessSignals, ServiceFitResult } from '@/types/scoring';
 /**
  * Service Fit Score™ — Deterministic
  *
- * Determines how suitable a lead is for a specific service provider.
- * Returns scores for all 4 agency types.
+ * Calculates realistic, granular fit percentages for all 4 agency types.
+ * Applies a seed-based offset to prevent flat values and clamps maximum fit below 90%.
  */
 
-function calcWebDesignFit(signals: BusinessSignals): ServiceFitResult {
+function seededRandom(str: string) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return Math.abs(Math.sin(hash)) % 1;
+}
+
+function calcWebDesignFit(signals: BusinessSignals, offset: number): ServiceFitResult {
   let score = 0;
   const reasons: string[] = [];
 
-  // No Website = +50
   if (!signals.hasWebsite) {
-    score += 50;
-    reasons.push('No website — needs full web design (+50)');
+    score = 83 + offset;
+    reasons.push('No website domain — full web design opportunity (+83%)');
+  } else if (signals.isInstagramOnly || signals.isFacebookOnly) {
+    score = 71 + offset;
+    reasons.push('Social-media-only presence — needs professional website (+71%)');
+  } else if (signals.isOldWebsite) {
+    score = 58 + offset;
+    reasons.push('Outdated website detected — redesign opportunity (+58%)');
+  } else {
+    score = 23 + offset;
+    reasons.push('Existing website looks stable, minor design tweaks (+23%)');
   }
 
-  // Old Website = +30
-  if (signals.hasWebsite && signals.isOldWebsite) {
-    score += 30;
-    reasons.push('Outdated website — redesign opportunity (+30)');
-  }
-
-  // Instagram/Facebook only = +20
-  if (signals.isInstagramOnly || signals.isFacebookOnly) {
-    score += 20;
-    reasons.push('Social-media-only presence — needs proper site (+20)');
-  }
+  score = Math.min(89, Math.max(10, score));
 
   return {
     agencyType: 'Web Design',
-    score: Math.min(100, score),
+    score,
     level: getFitLevel(score),
     reasons,
   };
 }
 
-function calcSEOFit(signals: BusinessSignals): ServiceFitResult {
-  let score = 0;
+function calcSEOFit(signals: BusinessSignals, offset: number): ServiceFitResult {
+  let score = 25; // base
   const reasons: string[] = [];
 
-  // Weak SEO Signals = +50
-  if (!signals.hasWebsite || signals.isOldWebsite) {
-    score += 50;
-    reasons.push('Weak/no web presence — critical SEO gap (+50)');
+  const gap = signals.competitorAvgReviews - signals.reviewCount;
+  if (gap > 100) {
+    score += 42;
+    reasons.push(`Significant competitor review gap of ${gap} (+42%)`);
+  } else if (gap > 30) {
+    score += 28;
+    reasons.push(`Moderate competitor review gap of ${gap} (+28%)`);
   }
 
-  // Weak Reviews = +20
   if (signals.fewReviews || signals.lowRating) {
-    score += 20;
-    reasons.push('Low reviews/rating — hurting local SEO ranking (+20)');
-  }
-
-  // Review gap with competitors = +15
-  if (signals.competitorAvgReviews - signals.reviewCount > 50) {
     score += 15;
-    reasons.push('Major review gap vs competitors — losing map pack (+15)');
+    reasons.push('Low review count or below-average rating hurts Map Pack (+15%)');
   }
 
-  // No phone = +10
-  if (!signals.hasPhone) {
+  if (!signals.hasPhone || !signals.hasAddress) {
     score += 10;
-    reasons.push('No phone on listing — incomplete NAP data (+10)');
+    reasons.push('Incomplete directory NAP listings (+10%)');
   }
+
+  score = score + offset;
+  score = Math.min(88, Math.max(10, score));
 
   return {
     agencyType: 'SEO',
-    score: Math.min(100, score),
+    score,
     level: getFitLevel(score),
     reasons,
   };
 }
 
-function calcAIAutomationFit(signals: BusinessSignals): ServiceFitResult {
-  let score = 0;
+function calcAIAutomationFit(signals: BusinessSignals, offset: number): ServiceFitResult {
+  let score = 20; // base
   const reasons: string[] = [];
 
-  // No Booking System = +40
   if (signals.noBookingSystem) {
-    score += 40;
-    reasons.push('No booking system — AI scheduling opportunity (+40)');
+    score += 36;
+    reasons.push('Missing booking integration — AI appointment scheduling opportunity (+36%)');
   }
-
-  // No Chatbot = +30
-  if (!signals.hasWebsite || signals.noLeadForm) {
-    score += 30;
-    reasons.push('No chatbot/live chat — AI assistant opportunity (+30)');
-  }
-
-  // No Lead Capture = +30
   if (signals.noLeadForm) {
-    score += 30;
-    reasons.push('No lead capture — AI funnel opportunity (+30)');
+    score += 24;
+    reasons.push('No conversational lead capture — AI agent opportunity (+24%)');
   }
+  if (signals.noWhatsApp) {
+    score += 14;
+    reasons.push('No instant chat funnel — WhatsApp chatbot integration (+14%)');
+  }
+
+  score = score + offset;
+  score = Math.min(84, Math.max(10, score));
 
   return {
     agencyType: 'AI Automation',
-    score: Math.min(100, score),
+    score,
     level: getFitLevel(score),
     reasons,
   };
 }
 
-function calcMarketingFit(signals: BusinessSignals): ServiceFitResult {
-  let score = 0;
+function calcMarketingFit(signals: BusinessSignals, offset: number): ServiceFitResult {
+  let score = 20; // base
   const reasons: string[] = [];
 
-  // Low reviews = +25
   if (signals.fewReviews) {
-    score += 25;
-    reasons.push('Low review count — reputation marketing needed (+25)');
+    score += 24;
+    reasons.push('Low review volume — reputation marketing setup needed (+24%)');
   }
-
-  // Low rating = +20
   if (signals.lowRating) {
-    score += 20;
-    reasons.push('Below 4.0 rating — brand perception campaign needed (+20)');
+    score += 21;
+    reasons.push('Rating below 4.0 ⭐ — customer perception campaign needed (+21%)');
   }
-
-  // No social presence = +25
-  if (!signals.isInstagramOnly && !signals.isFacebookOnly && !signals.hasWebsite) {
-    score += 25;
-    reasons.push('No social presence — needs full marketing setup (+25)');
+  if (!signals.hasWebsite) {
+    score += 14;
+    reasons.push('Lacks domain authority — needs full-stack local marketing launch (+14%)');
   }
-
-  // No WhatsApp = +15
   if (signals.noWhatsApp) {
-    score += 15;
-    reasons.push('No WhatsApp marketing — missing direct channel (+15)');
+    score += 9;
+    reasons.push('Lacks direct mobile channel — WhatsApp marketing setup (+9%)');
   }
 
-  // Review gap = +15
-  if (signals.competitorAvgReviews - signals.reviewCount > 20) {
-    score += 15;
-    reasons.push('Behind competitors in reviews — needs review campaign (+15)');
-  }
+  score = score + offset;
+  score = Math.min(81, Math.max(10, score));
 
   return {
     agencyType: 'Marketing Agency',
-    score: Math.min(100, score),
+    score,
     level: getFitLevel(score),
     reasons,
   };
@@ -152,15 +144,24 @@ function getFitLevel(score: number): 'Perfect Fit' | 'Strong Fit' | 'Moderate Fi
   return 'Weak Fit';
 }
 
-export function calculateServiceFit(signals: BusinessSignals): {
+export function calculateServiceFit(
+  signals: BusinessSignals,
+  businessId?: string
+): {
   scores: ServiceFitResult[];
   bestFit: ServiceFitResult;
 } {
+  let offset = 0;
+  if (businessId) {
+    const r = seededRandom(businessId);
+    offset = Math.floor(r * 6) - 3; // yields -3, -2, -1, 0, 1, 2
+  }
+
   const scores = [
-    calcWebDesignFit(signals),
-    calcSEOFit(signals),
-    calcAIAutomationFit(signals),
-    calcMarketingFit(signals),
+    calcWebDesignFit(signals, offset),
+    calcSEOFit(signals, offset),
+    calcAIAutomationFit(signals, offset),
+    calcMarketingFit(signals, offset),
   ];
 
   // Sort by score descending to find best fit

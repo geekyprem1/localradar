@@ -71,7 +71,7 @@ export async function POST(request: Request) {
 
       // Use the Intelligence Engine™ for deterministic scoring
       const competitors = generateMockCompetitors(business);
-      const scored = scoreBusinessOpportunity(business, competitors);
+      const scored = scoreBusinessOpportunity(business, competitors, niche);
 
       const opportunity: Opportunity = {
         id: `opp-${bizId}`,

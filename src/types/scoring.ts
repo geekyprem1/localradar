@@ -59,12 +59,29 @@ export interface DealValueResult {
   services: string[];
 }
 
+export interface CompetitorBenchmark {
+  currentReviews: number;
+  competitorAvgReviews: number;
+  currentRating: number;
+  competitorAvgRating: number;
+  hasWebsite: boolean;
+  competitorWebsiteRatio: number; // 0-100 percentage
+  hasBooking: boolean;
+  competitorBookingRatio: number; // 0-100 percentage
+}
+
 export interface ScoredOpportunity {
   // Core metrics
   opportunityScore: number;
   opportunityLevel: 'High' | 'Medium' | 'Low';
   closingProbability: number;
   dealValue: DealValueResult;
+  
+  // New Revenue Intelligence fields
+  confidenceScore: number;
+  businessSize: 'Solo Practice' | 'Small Clinic' | 'Growing Business' | 'Multi-location Business' | 'Enterprise Local Brand';
+  competitorBenchmark: CompetitorBenchmark;
+  category: string;
   
   // Service Fit Score™
   serviceFitScores: ServiceFitResult[];

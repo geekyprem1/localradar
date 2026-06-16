@@ -99,7 +99,7 @@ export function generateLeads(category: string, city: string, country: string): 
 
     // Use the Intelligence Engine™ for scoring
     const competitors = generateMockCompetitors(business);
-    const scored = scoreBusinessOpportunity(business, competitors);
+    const scored = scoreBusinessOpportunity(business, competitors, category);
 
     const opportunity: Opportunity = {
       id: `opp-${bizId}`,
