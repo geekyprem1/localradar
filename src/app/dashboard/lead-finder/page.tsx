@@ -182,6 +182,7 @@ export default function LeadFinderPage() {
               className="w-full bg-[#F4F4F6] border border-[#E5E5E8] rounded-xl py-3 px-4 text-[#0F0F11] text-sm focus:outline-none focus:border-[#E54D80] focus:ring-1 focus:ring-[#E54D80] transition-all"
             >
               <option value="United States">United States</option>
+              <option value="India">India</option>
               <option value="Canada">Canada</option>
               <option value="United Kingdom">United Kingdom</option>
               <option value="Australia">Australia</option>
