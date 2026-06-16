@@ -163,7 +163,7 @@ export default function LeadFinderPage() {
             </label>
             <input
               type="text"
-              placeholder="e.g. Dallas, Austin, Chicago"
+              placeholder="e.g. Dallas, TX or Mehrauli, Delhi"
               value={city}
               onChange={(e) => setCity(e.target.value)}
               className="w-full bg-[#F4F4F6] border border-[#E5E5E8] rounded-xl py-3 px-4 text-[#0F0F11] placeholder-zinc-400 text-sm focus:outline-none focus:border-[#E54D80] focus:ring-1 focus:ring-[#E54D80] transition-all"
