@@ -13,7 +13,8 @@ import {
   AlertTriangle,
   Layers,
   Target,
-  DollarSign
+  DollarSign,
+  Zap
 } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth';
@@ -73,7 +74,7 @@ export default function DashboardOverviewPage() {
         setLiveStats({
           found: leads.length,
           high,
-          pipeline: `₹${totalPipeline.toLocaleString()}`,
+          pipeline: `₹${totalPipeline.toLocaleString('en-IN')}`,
           avgScore,
           topFit,
         });
@@ -98,10 +99,10 @@ export default function DashboardOverviewPage() {
   }, []);
 
   const stats = [
-    { name: 'Total Leads Discovered', value: liveStats?.found.toString() || '148', change: '+24%', icon: Search, color: '#E54D80' },
-    { name: 'High Opportunities', value: liveStats?.high.toString() || '42', change: '+12%', icon: AlertTriangle, color: '#FF5E8C' },
+    { name: 'Total Leads Discovered', value: liveStats?.found.toString() || '148', change: '+24%', icon: Search, color: '#A1A1AA' },
+    { name: 'High Opportunity Engine™ Leads', value: liveStats?.high.toString() || '42', change: '+12%', icon: AlertTriangle, color: '#10B981' },
     { name: 'AI Audits Generated', value: '29', change: '+8%', icon: ShieldCheck, color: '#22C55E' },
-    { name: 'Pipeline Value (Est.)', value: liveStats?.pipeline || '₹5,82,000', change: '+15%', icon: DollarSign, color: '#FACC15' },
+    { name: 'Pipeline (Revenue Potential™)', value: liveStats?.pipeline || '₹5,82,000', change: '+15%', icon: DollarSign, color: '#F59E0B' },
   ];
 
   const recentLeads = recentLeadsData.length > 0 ? recentLeadsData : [
@@ -112,22 +113,22 @@ export default function DashboardOverviewPage() {
   ];
 
   return (
-    <div className="space-y-8 font-sans">
+    <div className="space-y-8 font-sans text-white">
       {/* Header and Welcome */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-serif font-bold text-[#0F0F11] flex items-center gap-2">
-            Welcome back, {user?.full_name?.split(' ')[0] || 'Agency Owner'} 
-            <Sparkles className="w-5 h-5 text-[#E54D80] animate-pulse" />
+          <h1 className="text-2xl font-serif font-semibold text-white flex items-center gap-2">
+            Welcome back, {user?.full_name?.split(' ')[0] || 'Agency Partner'} 
+            <Sparkles className="w-5 h-5 text-[#10B981] animate-pulse" />
           </h1>
-          <p className="text-zinc-500 text-xs mt-1">Intelligence Engine™ dashboard overview.</p>
+          <p className="text-[#A1A1AA] text-xs mt-1">LocalRadar Intelligence Engine™ dashboard overview.</p>
         </div>
         <Link 
           href="/dashboard/lead-finder" 
-          className="bg-[#E54D80] hover:bg-[#FF5E8C] text-white text-xs font-bold px-4 py-3 rounded-full transition-all shadow-sm flex items-center gap-2 cursor-pointer w-fit"
+          className="bg-[#10B981] hover:bg-[#059669] text-white text-xs font-bold px-5 py-3 rounded-xl transition-all shadow-[0_0_15px_rgba(16,185,129,0.15)] flex items-center gap-2 cursor-pointer w-fit uppercase tracking-wider font-mono"
         >
           <Search className="w-4 h-4" />
-          Find New Leads
+          Find Opportunities
         </Link>
       </div>
 
@@ -141,20 +142,20 @@ export default function DashboardOverviewPage() {
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: idx * 0.1 }}
-              className="bg-white border border-[#E5E5E8] p-5 rounded-2xl relative overflow-hidden shadow-sm"
+              className="bg-[#141517] border border-[#26282D] p-5 rounded-2xl relative overflow-hidden shadow-lg group transition-all duration-300"
             >
               <div className="flex items-center justify-between">
-                <span className="text-zinc-400 text-xs font-semibold uppercase tracking-wider font-mono">{stat.name}</span>
+                <span className="text-[#A1A1AA] text-xs font-semibold uppercase tracking-wider font-mono">{stat.name}</span>
                 <div 
-                  className="p-2 rounded-lg bg-zinc-50 border border-[#E5E5E8]"
+                  className="p-2 rounded-lg bg-[#0B0B0C] border border-[#26282D] transition-colors"
                   style={{ color: stat.color }}
                 >
                   <Icon className="w-4 h-4" />
                 </div>
               </div>
               <div className="mt-4 flex items-baseline gap-2">
-                <span className="text-2xl font-serif font-bold text-[#0F0F11] tracking-tight">{stat.value}</span>
-                <span className="text-[10px] font-semibold text-emerald-600 flex items-center font-mono">
+                <span className="text-2xl font-serif font-semibold text-white tracking-tight">{stat.value}</span>
+                <span className="text-[10px] font-semibold text-[#22C55E] flex items-center font-mono">
                   <ArrowUpRight className="w-3 h-3" />
                   {stat.change}
                 </span>
@@ -167,13 +168,13 @@ export default function DashboardOverviewPage() {
       {/* Chart & Recent Activity Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Custom SVG Performance Chart */}
-        <div className="bg-white border border-[#E5E5E8] p-6 lg:col-span-2 rounded-2xl space-y-6 shadow-sm">
+        <div className="bg-[#141517] border border-[#26282D] p-6 lg:col-span-2 rounded-2xl space-y-6 shadow-xl relative overflow-hidden">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-sm font-bold text-[#0F0F11]">Lead Discovery Trends</h3>
-              <p className="text-zinc-500 text-xs mt-0.5">Discovered leads by week over the last month</p>
+              <h3 className="text-sm font-bold text-white">Lead Discovery Trends</h3>
+              <p className="text-[#A1A1AA] text-xs mt-0.5">Discovered leads by week over the last month</p>
             </div>
-            <span className="text-[10px] font-bold text-zinc-500 bg-[#F4F4F6] border border-[#E5E5E8] px-2.5 py-1 rounded-full font-mono uppercase">
+            <span className="text-[10px] font-bold text-[#A1A1AA] bg-[#0B0B0C] border border-[#26282D] px-2.5 py-1 rounded-full font-mono uppercase">
               Last 30 Days
             </span>
           </div>
@@ -184,15 +185,15 @@ export default function DashboardOverviewPage() {
               {/* Gradients */}
               <defs>
                 <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#E54D80" stopOpacity="0.25" />
-                  <stop offset="100%" stopColor="#E54D80" stopOpacity="0" />
+                  <stop offset="0%" stopColor="#10B981" stopOpacity="0.2" />
+                  <stop offset="100%" stopColor="#10B981" stopOpacity="0" />
                 </linearGradient>
               </defs>
 
               {/* Grid lines */}
-              <line x1="0" y1="50" x2="500" y2="50" stroke="rgba(15,15,17,0.04)" strokeWidth="1" />
-              <line x1="0" y1="100" x2="500" y2="100" stroke="rgba(15,15,17,0.04)" strokeWidth="1" />
-              <line x1="0" y1="150" x2="500" y2="150" stroke="rgba(15,15,17,0.04)" strokeWidth="1" />
+              <line x1="0" y1="50" x2="500" y2="50" stroke="rgba(255,255,255,0.03)" strokeWidth="1" />
+              <line x1="0" y1="100" x2="500" y2="100" stroke="rgba(255,255,255,0.03)" strokeWidth="1" />
+              <line x1="0" y1="150" x2="500" y2="150" stroke="rgba(255,255,255,0.03)" strokeWidth="1" />
 
               {/* Graph Line Area */}
               <path
@@ -204,21 +205,21 @@ export default function DashboardOverviewPage() {
               <path
                 d="M 10 180 Q 120 120 220 140 T 400 60 T 490 30"
                 fill="none"
-                stroke="#E54D80"
-                strokeWidth="3.5"
+                stroke="#10B981"
+                strokeWidth="3"
                 strokeLinecap="round"
               />
 
               {/* Data Dots */}
-              <circle cx="10" cy="180" r="5" fill="#E54D80" stroke="#FFFFFF" strokeWidth="2" />
-              <circle cx="150" cy="130" r="5" fill="#E54D80" stroke="#FFFFFF" strokeWidth="2" />
-              <circle cx="280" cy="110" r="5" fill="#E54D80" stroke="#FFFFFF" strokeWidth="2" />
-              <circle cx="400" cy="60" r="5" fill="#FF5E8C" stroke="#FFFFFF" strokeWidth="2" />
-              <circle cx="490" cy="30" r="6" fill="#FFFFFF" stroke="#E54D80" strokeWidth="2.5" />
+              <circle cx="10" cy="180" r="4" fill="#10B981" stroke="#141517" strokeWidth="2" />
+              <circle cx="150" cy="130" r="4" fill="#10B981" stroke="#141517" strokeWidth="2" />
+              <circle cx="280" cy="110" r="4" fill="#10B981" stroke="#141517" strokeWidth="2" />
+              <circle cx="400" cy="60" r="4" fill="#10B981" stroke="#141517" strokeWidth="2" />
+              <circle cx="490" cy="30" r="5" fill="#FFFFFF" stroke="#10B981" strokeWidth="2.5" />
             </svg>
             
             {/* Chart X Labels */}
-            <div className="w-full flex justify-between text-[10px] text-zinc-400 pt-2 absolute bottom-[-24px] font-mono">
+            <div className="w-full flex justify-between text-[10px] text-zinc-500 pt-2 absolute bottom-[-24px] font-mono">
               <span>Week 1</span>
               <span>Week 2</span>
               <span>Week 3</span>
@@ -229,47 +230,42 @@ export default function DashboardOverviewPage() {
 
           <div className="pt-4 flex gap-6 text-[10px] text-zinc-500 font-mono">
             <div className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#E54D80]" />
+              <span className="w-2.5 h-2.5 rounded-full bg-[#10B981]" />
               <span>Scanned Lead Velocity</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#FF5E8C]" />
-              <span>Closing Conversion Rate (Avg: 38%)</span>
+              <span className="w-2.5 h-2.5 rounded-full bg-[#A1A1AA]" />
+              <span>Closing Conversion Rate</span>
             </div>
           </div>
         </div>
 
         {/* Recent Activity List */}
-        <div className="bg-white border border-[#E5E5E8] p-6 rounded-2xl flex flex-col justify-between shadow-sm">
+        <div className="bg-[#141517] border border-[#26282D] p-6 rounded-2xl flex flex-col justify-between shadow-xl">
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold text-[#0F0F11]">Recent Opportunities</h3>
-              <Activity className="w-4 h-4 text-[#E54D80]" />
+              <h3 className="text-sm font-bold text-white">Recent Opportunities</h3>
+              <Activity className="w-4 h-4 text-[#A1A1AA]" />
             </div>
             
             <div className="space-y-4">
               {recentLeads.map((lead) => (
-                <div key={lead.name} className="flex items-center justify-between border-b border-[#E5E5E8] pb-3 last:border-0 last:pb-0">
+                <div key={lead.name} className="flex items-center justify-between border-b border-[#26282D] pb-3 last:border-0 last:pb-0">
                   <div className="max-w-[55%]">
-                    <p className="text-xs font-bold text-[#0F0F11] truncate">{lead.name}</p>
-                    <p className="text-[10px] text-zinc-400 mt-0.5 font-mono">{lead.city} • {lead.date}</p>
+                    <p className="text-xs font-bold text-white truncate">{lead.name}</p>
+                    <p className="text-[10px] text-[#A1A1AA] mt-0.5 font-mono">{lead.city} • {lead.date}</p>
                   </div>
                   <div className="text-right space-y-1">
                     <div className="flex items-center gap-1.5 justify-end">
-                      <span className={`inline-block text-[9px] font-bold px-2 py-0.5 rounded-full border font-mono ${
+                      <span className={`inline-block text-[9px] font-bold px-2 py-0.5 rounded border font-mono ${
                         lead.opportunity === 'High' 
-                          ? 'bg-[#E54D80]/10 text-[#E54D80] border-[#E54D80]/20' 
-                          : lead.opportunity === 'Medium'
-                            ? 'bg-amber-500/10 text-amber-600 border-amber-500/20'
-                            : 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
+                          ? 'bg-[#10B981]/10 text-[#10B981] border-[#10B981]/25' 
+                          : 'bg-[#F59E0B]/10 text-[#F59E0B] border-[#F59E0B]/25'
                       }`}>
                         {lead.score}pts
                       </span>
-                      <span className="text-[8px] font-bold text-violet-600 bg-violet-500/10 border border-violet-500/20 px-1.5 py-0.5 rounded font-mono">
-                        {lead.bestFit}
-                      </span>
                     </div>
-                    <p className="text-[9px] text-[#059669] font-mono font-bold">{lead.dealValue}</p>
+                    <p className="text-[9px] text-[#22C55E] font-mono font-bold">{lead.dealValue}</p>
                   </div>
                 </div>
               ))}
@@ -278,7 +274,7 @@ export default function DashboardOverviewPage() {
 
           <Link 
             href="/dashboard/lead-finder" 
-            className="w-full mt-6 bg-[#F4F4F6] hover:bg-[#E5E5E8] border border-[#E5E5E8] text-zinc-600 hover:text-[#0F0F11] font-bold text-xs py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer group font-mono"
+            className="w-full mt-6 bg-[#0B0B0C] hover:bg-[#141517] border border-[#26282D] text-white font-bold text-xs py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer group font-mono"
           >
             Scan More Businesses
             <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />

@@ -1,0 +1,390 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  X, 
+  MapPin, 
+  Tag, 
+  Flame, 
+  Bookmark, 
+  Send, 
+  FileText, 
+  PenTool, 
+  Check, 
+  TrendingUp, 
+  DollarSign, 
+  Building2, 
+  Zap 
+} from 'lucide-react';
+import WhyThisLead from './WhyThisLead';
+import OpportunityBreakdown from './OpportunityBreakdown';
+import RevenueLeakCards from './RevenueLeakCards';
+import CompetitorGap from './CompetitorGap';
+import RecommendedServices from './RecommendedServices';
+import SalesStrategy from './SalesStrategy';
+
+import { Business } from '@/types';
+import { ScoredOpportunity } from '@/types/scoring';
+
+interface OpportunityIntelligenceDrawerProps {
+  isOpen: boolean;
+  onClose: () => void;
+  business: Business;
+  scored: ScoredOpportunity;
+  isSaved: boolean;
+  onToggleSave: (biz: Business) => void;
+  onOpenPitch: (bizId: string) => void;
+  onOpenAudit: (bizId: string) => void;
+  categoryName?: string; // Optional niche category name e.g. Dentists
+}
+
+export default function OpportunityIntelligenceDrawer({
+  isOpen,
+  onClose,
+  business,
+  scored,
+  isSaved,
+  onToggleSave,
+  onOpenPitch,
+  onOpenAudit,
+  categoryName = 'Agency Lead'
+}: OpportunityIntelligenceDrawerProps) {
+  
+  // Local states for persistence of hot lead and notes
+  const [isHotLead, setIsHotLead] = useState(false);
+  const [notes, setNotes] = useState('');
+  const [noteSavedFeedback, setNoteSavedFeedback] = useState(false);
+
+  useEffect(() => {
+    if (business.id) {
+      setIsHotLead(localStorage.getItem(`localradar_hot_${business.id}`) === 'true');
+      setNotes(localStorage.getItem(`localradar_notes_${business.id}`) || '');
+    }
+  }, [business.id]);
+
+  const toggleHotLead = () => {
+    const nextVal = !isHotLead;
+    setIsHotLead(nextVal);
+    localStorage.setItem(`localradar_hot_${business.id}`, nextVal ? 'true' : 'false');
+  };
+
+  const handleSaveNotes = () => {
+    localStorage.setItem(`localradar_notes_${business.id}`, notes);
+    setNoteSavedFeedback(true);
+    setTimeout(() => setNoteSavedFeedback(false), 2000);
+  };
+
+  const getScoreBadgeColor = (score: number) => {
+    if (score >= 60) return 'text-[#10B981] bg-[#10B981]/10 border-[#10B981]/20';
+    if (score >= 35) return 'text-[#F59E0B] bg-[#F59E0B]/10 border-[#F59E0B]/20';
+    return 'text-[#A1A1AA] bg-[#141517] border-[#26282D]';
+  };
+
+  const formatCurrency = (val: number) => {
+    return `₹${val.toLocaleString('en-IN')}`;
+  };
+
+  // Extract variables for sub-components
+  const signals = {
+    hasWebsite: scored.breakdown.websiteOpportunity.score < 20,
+    reviewGap: scored.breakdown.reviewGap.score * 10, // heuristic representation of gap
+    noBookingSystem: scored.breakdown.revenueLeakage.reasons.some(r => r.includes('booking')),
+    noWhatsApp: scored.breakdown.revenueLeakage.reasons.some(r => r.includes('WhatsApp') || r.includes('chat')),
+    noLeadForm: scored.breakdown.revenueLeakage.reasons.some(r => r.includes('lead')),
+  };
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          {/* Drawer Backdrop with blur */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 0.6 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="fixed inset-0 bg-[#000000] backdrop-blur-sm z-40 cursor-pointer"
+          />
+
+          {/* Drawer Main Body */}
+          <motion.div
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 220 }}
+            className="fixed right-0 top-0 h-full w-full md:w-[650px] bg-[#0B0B0C] border-l border-[#26282D] shadow-[0_0_50px_rgba(0,0,0,0.8)] z-50 overflow-y-auto p-6 font-sans text-white flex flex-col justify-between"
+          >
+            <div>
+              {/* Header section */}
+              <div className="flex items-start justify-between border-b border-[#26282D] pb-5">
+                <div className="space-y-1.5 max-w-[85%]">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-[9px] font-normal text-[#10B981] bg-[#10B981]/10 border border-[#10B981]/20 px-2 py-0.5 rounded font-mono uppercase tracking-wider">
+                      Opportunity Intelligence Dossier
+                    </span>
+                    <span className="text-[9px] text-[#A1A1AA] bg-[#141517] border border-[#26282D] px-2 py-0.5 rounded font-mono uppercase font-normal">
+                      {categoryName}
+                    </span>
+                  </div>
+                  
+                  <h2 className="text-xl font-serif font-semibold tracking-tight text-white">
+                    {business.name}
+                  </h2>
+                  
+                  <div className="text-[10px] text-[#A1A1AA] font-mono font-normal">
+                    Generated by <span className="text-white font-semibold">LocalRadar Intelligence Engine™</span>
+                  </div>
+                  
+                  <div className="flex items-center gap-1.5 text-xs text-[#71717A] font-mono truncate">
+                    <MapPin className="w-3.5 h-3.5 text-[#71717A] shrink-0" />
+                    <span>{business.address}</span>
+                  </div>
+                </div>
+
+                <button 
+                  onClick={onClose}
+                  className="p-1.5 rounded-lg border border-[#26282D] bg-[#141517] text-[#A1A1AA] hover:text-white cursor-pointer transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Dynamic Header Metrics Grid */}
+              <div className="grid grid-cols-3 gap-3 my-5 font-mono">
+                <div className="p-3 bg-[#0B0B0C] border border-[#26282D] rounded-xl relative">
+                  <span className="text-[8px] font-normal text-[#71717A] uppercase tracking-widest block">Opportunity Engine™</span>
+                  <div className="flex items-baseline gap-1.5 mt-2">
+                    <span className="text-xl font-semibold text-[#10B981]">{scored.opportunityScore}</span>
+                    <span className="text-[8px] text-[#71717A] font-normal">/100</span>
+                  </div>
+                  <span className={`text-[8px] font-normal px-1.5 py-0.5 rounded absolute bottom-2.5 right-2.5 ${getScoreBadgeColor(scored.opportunityScore)}`}>
+                    {scored.opportunityLevel}
+                  </span>
+                </div>
+
+                <div className="p-3 bg-[#0B0B0C] border border-[#26282D] rounded-xl">
+                  <span className="text-[8px] font-normal text-[#71717A] uppercase tracking-widest block">Closing Probability™</span>
+                  <div className="flex items-baseline gap-1 mt-2">
+                    <span className="text-xl font-semibold text-[#10B981]">{scored.closingProbability}%</span>
+                  </div>
+                  <span className="text-[8px] text-[#71717A] block mt-0.5 font-normal">Velocity Target</span>
+                </div>
+
+                <div className="p-3 bg-[#0B0B0C] border border-[#26282D] rounded-xl">
+                  <span className="text-[8px] font-normal text-[#71717A] uppercase tracking-widest block">Revenue Potential™</span>
+                  <div className="flex items-baseline gap-1 mt-2">
+                    <span className="text-sm font-semibold text-white truncate max-w-full">
+                      {formatCurrency(scored.dealValue.max)}
+                    </span>
+                  </div>
+                  <span className="text-[8px] text-[#10B981] block mt-0.5 font-normal">Est. Margin Cap</span>
+                </div>
+              </div>
+
+              {/* Main Sections Stack */}
+              <div className="space-y-6">
+                
+                {/* SECTION 1: Why This Lead? */}
+                <WhyThisLead
+                  businessName={business.name}
+                  hasWebsite={!signals.hasWebsite}
+                  reviewGap={business.reviews_count < 40 ? 50 : 10}
+                  noBookingSystem={signals.noBookingSystem}
+                  recommendedService={scored.bestFit.agencyType}
+                  dealValueMin={scored.dealValue.min}
+                  dealValueMax={scored.dealValue.max}
+                />
+
+                {/* SECTION 2: Opportunity Breakdown */}
+                <OpportunityBreakdown
+                  score={scored.opportunityScore}
+                  websiteOpportunity={scored.breakdown.websiteOpportunity}
+                  reviewGap={scored.breakdown.reviewGap}
+                  gbpWeakness={scored.breakdown.gbpWeakness}
+                  revenueLeakage={scored.breakdown.revenueLeakage}
+                  growthIntent={scored.breakdown.growthIntent}
+                />
+
+                {/* SECTION 3: Revenue Leaks Checklist */}
+                <RevenueLeakCards
+                  hasWebsite={!signals.hasWebsite}
+                  noBookingSystem={signals.noBookingSystem}
+                  noWhatsApp={signals.noWhatsApp}
+                  noLeadForm={signals.noLeadForm}
+                  reviewsCount={business.reviews_count}
+                  rating={business.rating}
+                />
+
+                {/* SECTION 4: Competitor Gap Analysis */}
+                <CompetitorGap
+                  businessName={business.name}
+                  rating={business.rating}
+                  reviewsCount={business.reviews_count}
+                  hasWebsite={!signals.hasWebsite}
+                  noBookingSystem={signals.noBookingSystem}
+                  competitorAvgReviews={Math.round(business.reviews_count * 2.5 + 40)}
+                  competitorAvgRating={4.5}
+                />
+
+                {/* SECTION 5: Recommended Services */}
+                <RecommendedServices
+                  hasWebsite={!signals.hasWebsite}
+                  noBookingSystem={signals.noBookingSystem}
+                  noWhatsApp={signals.noWhatsApp}
+                  noLeadForm={signals.noLeadForm}
+                  reviewsCount={business.reviews_count}
+                  rating={business.rating}
+                />
+
+                {/* SECTION 6: Closing Probability Detail */}
+                <div className="bg-[#0B0B0C] border border-[#26282D] p-5 rounded-xl space-y-3">
+                  <h4 className="text-xs font-semibold text-[#A1A1AA] uppercase tracking-wider font-mono flex items-center gap-1.5">
+                    <TrendingUp className="w-4 h-4 text-[#10B981]" />
+                    Closing Probability™
+                  </h4>
+                  <div className="flex items-center gap-6 font-mono">
+                    <div className="text-3xl font-semibold text-[#10B981]">
+                      {scored.closingProbability}%
+                    </div>
+                    <div className="text-[10px] text-[#A1A1AA] space-y-1.5 flex-1 leading-normal">
+                      <div className="flex justify-between border-b border-[#26282D] pb-1 font-normal">
+                        <span>Base (Opportunity Score factor)</span>
+                        <span className="text-white font-semibold">+{Math.round(scored.opportunityScore * 0.4)}%</span>
+                      </div>
+                      {!signals.hasWebsite && (
+                        <div className="flex justify-between border-b border-[#26282D] pb-1 font-normal">
+                          <span>Vulnerability Index (No Website)</span>
+                          <span className="text-[#10B981] font-semibold">+25%</span>
+                        </div>
+                      )}
+                      {business.reviews_count > 5 && (
+                        <div className="flex justify-between border-b border-[#26282D] pb-1 font-normal">
+                          <span>Operational Signal (Recent Activity)</span>
+                          <span className="text-[#10B981] font-semibold">+20%</span>
+                        </div>
+                      )}
+                      {business.phone && (
+                        <div className="flex justify-between font-normal">
+                          <span>Direct Outreach Factor (Contactability)</span>
+                          <span className="text-[#10B981] font-semibold">+20%</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* SECTION 7: Estimated Deal Value Details */}
+                <div className="bg-[#0B0B0C] border border-[#26282D] p-5 rounded-xl space-y-4">
+                  <h4 className="text-xs font-semibold text-[#A1A1AA] uppercase tracking-wider font-mono flex items-center gap-1.5">
+                    <DollarSign className="w-4 h-4 text-[#10B981]" />
+                    Revenue Potential™
+                  </h4>
+                  <div className="grid grid-cols-3 gap-3 font-mono text-center">
+                    <div className="p-2.5 bg-[#141517] border border-[#26282D] rounded-lg">
+                      <span className="text-[#71717A] block text-[8px] uppercase tracking-widest mb-1 font-normal">Minimum Contract</span>
+                      <span className="text-white font-semibold text-xs">{formatCurrency(scored.dealValue.min)}</span>
+                    </div>
+
+                    <div className="p-2.5 bg-[#141517] border border-[#26282D] rounded-lg">
+                      <span className="text-[#71717A] block text-[8px] uppercase tracking-widest mb-1 font-normal">Maximum Contract</span>
+                      <span className="text-white font-semibold text-xs">{formatCurrency(scored.dealValue.max)}</span>
+                    </div>
+
+                    <div className="p-2.5 bg-[#10B981]/5 border border-[#10B981]/30 rounded-lg">
+                      <span className="text-[#10B981] block text-[8px] uppercase tracking-widest mb-1 font-normal">Recommended Proposal</span>
+                      <span className="text-[#10B981] font-semibold text-xs">
+                        {formatCurrency(Math.round((scored.dealValue.min + scored.dealValue.max) / 2))}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* SECTION 8: AI Sales Strategy */}
+                <SalesStrategy
+                  hasWebsite={!signals.hasWebsite}
+                  noBookingSystem={signals.noBookingSystem}
+                  reviewsCount={business.reviews_count}
+                />
+
+                {/* SECTION 9: Notes & Lead Status configuration */}
+                <div className="bg-[#0B0B0C] border border-[#26282D] p-5 rounded-xl space-y-4">
+                  <h4 className="text-xs font-semibold text-[#A1A1AA] uppercase tracking-wider font-mono flex items-center gap-1.5">
+                    <PenTool className="w-4 h-4 text-[#10B981]" />
+                    Agency Notes & Intel Markers
+                  </h4>
+                  
+                  <div className="space-y-3 font-sans text-xs">
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={toggleHotLead}
+                        className={`px-3 py-1.5 rounded-lg border transition-all flex items-center gap-1.5 font-mono text-[10px] font-semibold cursor-pointer ${
+                          isHotLead 
+                            ? 'bg-[#10B981]/10 border-[#10B981] text-[#10B981]' 
+                            : 'bg-[#141517] border-[#26282D] text-[#A1A1AA] hover:text-white'
+                        }`}
+                      >
+                        <Flame className={`w-3.5 h-3.5 ${isHotLead ? 'fill-[#10B981] text-[#10B981]' : 'text-[#71717A]'}`} />
+                        {isHotLead ? 'HOT LEAD ACTIVE' : 'MARK AS HOT LEAD'}
+                      </button>
+                    </div>
+
+                    <div className="space-y-1.5 font-normal">
+                      <textarea
+                        value={notes}
+                        onChange={(e) => setNotes(e.target.value)}
+                        placeholder="Add custom notes about phone calls, owner names, or meeting schedules..."
+                        rows={3}
+                        className="w-full bg-[#141517] border border-[#26282D] rounded-lg p-3 text-white placeholder-zinc-600 text-xs focus:outline-none focus:border-[#10B981] transition-colors font-mono font-normal"
+                      />
+                      <button
+                        onClick={handleSaveNotes}
+                        className="bg-[#141517] hover:bg-[#22242a] border border-[#26282D] text-white text-[10px] font-semibold px-3 py-1.5 rounded-lg transition-all flex items-center gap-1 ml-auto font-mono cursor-pointer"
+                      >
+                        {noteSavedFeedback ? <Check className="w-3 h-3 text-[#22C55E]" /> : null}
+                        {noteSavedFeedback ? 'Notes Saved' : 'Save Notes'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            {/* Quick Actions Panel at bottom of Drawer */}
+            <div className="mt-8 pt-4 border-t border-[#26282D] grid grid-cols-1 sm:grid-cols-3 gap-2.5 bg-[#0B0B0C]">
+              <button
+                onClick={() => onToggleSave(business)}
+                className={`w-full py-3 rounded-xl border font-mono text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                  isSaved 
+                    ? 'bg-[#10B981]/10 border-[#10B981]/30 text-[#10B981]' 
+                    : 'bg-[#141517] border-[#26282D] text-white hover:text-[#10B981] hover:border-[#10B981]/35'
+                }`}
+              >
+                <Bookmark className={`w-4 h-4 ${isSaved ? 'fill-[#10B981]' : ''}`} />
+                {isSaved ? 'Lead Saved' : 'Save Lead'}
+              </button>
+
+              <button
+                onClick={() => onOpenAudit(business.id)}
+                className="w-full bg-[#141517] hover:bg-[#22242a] border border-[#26282D] text-white py-3 rounded-xl font-mono text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <FileText className="w-4 h-4 text-[#71717A]" />
+                Audit & Proposal
+              </button>
+
+              <button
+                onClick={() => onOpenPitch(business.id)}
+                className="w-full bg-[#10B981] hover:bg-[#059669] text-white py-3 rounded-xl font-mono text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-[0_0_15px_rgba(16,185,129,0.15)]"
+              >
+                <Send className="w-4 h-4 text-white" />
+                Generate Pitch
+              </button>
+            </div>
+
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+}

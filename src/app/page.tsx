@@ -22,58 +22,76 @@ import {
   FileText,
   Copy,
   Lock,
-  ArrowUpRight
+  ArrowUpRight,
+  Zap,
+  Target,
+  DollarSign,
+  Users,
+  Clock,
+  Briefcase
 } from 'lucide-react';
 import Link from 'next/link';
 
 export default function RedesignedLandingPage() {
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
-  const [demoNiche, setDemoNiche] = useState('Dentists');
-  const [demoCity, setDemoCity] = useState('Dallas, TX');
-  const [demoStep, setDemoStep] = useState<'idle' | 'scanning' | 'results'>('idle');
-  const [demoScanIndex, setDemoScanIndex] = useState(0);
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>('monthly');
-  const [pitchTab, setPitchTab] = useState<'email' | 'dm' | 'proposal'>('email');
+  const [pitchTab, setPitchTab] = useState<'email' | 'dm' | 'proposal' | 'audit'>('email');
   
-  // Custom states for interactive demo
-  const [selectedDemoBiz, setSelectedDemoBiz] = useState<number>(0);
-
-  const demoLeads = [
-    { name: 'Dallas Dental Spa', website: '', rating: 3.4, reviews: 14, phone: '(214) 555-0199', score: 38, opportunity: 'High', dealVal: 3800 },
-    { name: 'Metroplex Smile Care', website: 'https://metroplexsmiles.com', rating: 4.0, reviews: 290, phone: '(214) 555-7832', score: 58, opportunity: 'Medium', dealVal: 2200 },
-    { name: 'Preston Hollow Dentistry', website: '', rating: 3.8, reviews: 9, phone: '(214) 555-9011', score: 29, opportunity: 'High', dealVal: 4500 },
-    { name: 'North Texas Ortho Group', website: 'https://northtexasortho.net', rating: 4.8, reviews: 412, phone: '(214) 555-3344', score: 84, opportunity: 'Low', dealVal: 1200 },
+  // LIVE OPPORTUNITY SCANNER STATES
+  const [scanStep, setScanStep] = useState<'idle' | 'scanning' | 'results'>('idle');
+  const [scanLogIndex, setScanLogIndex] = useState(0);
+  const [counterValue, setCounterValue] = useState(0);
+  
+  const scanLogs = [
+    'Initializing Google Maps crawler for local listings...',
+    'Scraping coordinates for business profiles...',
+    'Analyzing domain registry for "AK Fitness"...',
+    'Heuristic test failed: NO registered domain detected.',
+    'Calculating review deficit vs top 5 gyms...',
+    'Running closing probability algorithm...',
+    'Generating optimal service proposal fit...'
   ];
 
-  const demoScans = [
-    'Connecting to place index API...',
-    'Scraping listings coordinates...',
-    'Analyzing mobile performance metrics...',
-    'Checking Google Business verification flags...',
-    'Finalizing opportunities calculations...'
-  ];
-
+  // Auto-run scanner simulation on loop
   useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (demoStep === 'scanning') {
-      setDemoScanIndex(0);
-      interval = setInterval(() => {
-        setDemoScanIndex((prev) => {
-          if (prev >= demoScans.length - 1) {
-            clearInterval(interval);
-            setDemoStep('results');
+    let timer: NodeJS.Timeout;
+    if (scanStep === 'idle') {
+      timer = setTimeout(() => {
+        setScanStep('scanning');
+      }, 1500);
+    } else if (scanStep === 'scanning') {
+      setScanLogIndex(0);
+      const logInterval = setInterval(() => {
+        setScanLogIndex((prev) => {
+          if (prev >= scanLogs.length - 1) {
+            clearInterval(logInterval);
+            setTimeout(() => {
+              setScanStep('results');
+            }, 500);
             return prev;
           }
           return prev + 1;
         });
-      }, 700);
-    }
-    return () => clearInterval(interval);
-  }, [demoStep]);
+      }, 500);
+    } else if (scanStep === 'results') {
+      // Animate score count up
+      setCounterValue(0);
+      const scoreInterval = setInterval(() => {
+        setCounterValue(prev => {
+          if (prev >= 90) {
+            clearInterval(scoreInterval);
+            return 90;
+          }
+          return prev + 3;
+        });
+      }, 15);
 
-  const handleStartDemoScan = () => {
-    setDemoStep('scanning');
-  };
+      timer = setTimeout(() => {
+        setScanStep('idle');
+      }, 8000);
+    }
+    return () => clearTimeout(timer);
+  }, [scanStep]);
 
   const pricingTiers = [
     {
@@ -115,20 +133,17 @@ export default function RedesignedLandingPage() {
   ];
 
   const faqItems = [
-    { q: 'How does LocalRadar discover leads?', a: 'We scan Google place APIs, domain registers, and local index lists based on your inputs to extract contact info, reviews ratings, and layout parameters.' },
+    { q: 'How does LocalRadar discover leads?', a: 'We scan Google place APIs, domain registers, and local index lists based on your targets to extract contact info, reviews ratings, and layout parameters.' },
     { q: 'Is there a contract required?', a: 'No. All plans are billed month-to-month or annually and you can downgrade, cancel, or switch accounts in one click.' },
     { q: 'What is the LocalRadar Score?', a: 'It is an AI-driven index from 0 to 100 calculated by cross-analyzing website responsiveness (25%), reviews velocity (25%), local SEO tags (20%), GBP map records (15%), and social links (15%).' },
     { q: 'How does the AI Audit generate advice?', a: 'Our engine runs raw scraped metadata through custom DeepSeek GPT prompts to structure custom proposals listing code errors and copy pitches.' },
     { q: 'Can I export lists in CSV formats?', a: 'Yes! Pro and Agency tiers support one-click exports containing addresses, ratings, phone numbers, and domains.' },
     { q: 'Can I plug in my own OpenRouter / DeepSeek keys?', a: 'Yes. In the Settings tab, you can input your OpenRouter API key to call models like DeepSeek v4 Flash directly, bypassing monthly credit restrictions.' },
-    { q: 'Does it support international locations?', a: 'Yes, LocalRadar queries places databases across the United States, Canada, the United Kingdom, and Australia.' },
-    { q: 'Can I add teammates to my account?', a: 'Yes, the Agency Tier includes up to 5 user logins sharing credits, historical searches, and lead collections.' },
-    { q: 'Is there a setup fee?', a: 'No setup fees whatsoever. You pay only the recurring software cost and can launch your campaigns instantly.' },
-    { q: 'Do you offer a refund policy?', a: 'Yes, if you cancel within 7 days of upgrading and haven\'t used your scan credits, drop us an email for a full refund.' }
+    { q: 'Does it support international locations?', a: 'Yes, LocalRadar queries places databases across the United States, India, Canada, the United Kingdom, and Australia.' }
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#8B5CF6] via-[#EC4899] to-[#FB7185] p-3 sm:p-6 md:p-10 lg:p-14 font-sans selection:bg-[#E54D80]/20 selection:text-[#E54D80] relative overflow-hidden flex items-center justify-center">
+    <div className="min-h-screen bg-gradient-to-br from-[#090A0B] via-[#0F172A] to-[#064e3b] p-3 sm:p-6 md:p-10 lg:p-14 font-sans selection:bg-[#10B981]/20 selection:text-[#10B981] relative overflow-hidden flex items-center justify-center">
       
       {/* Centered Website Container - Framed Layout */}
       <div className="w-full max-w-7xl bg-white text-[#0F0F11] rounded-[24px] sm:rounded-[36px] lg:rounded-[48px] shadow-2xl border border-white/20 overflow-hidden relative flex flex-col min-h-screen">
@@ -137,7 +152,7 @@ export default function RedesignedLandingPage() {
         <nav className="sticky top-0 bg-white/80 backdrop-blur-lg border-b border-[#E5E5E8] z-50 px-6 py-4 flex-shrink-0">
           <div className="max-w-7xl mx-auto flex items-center justify-between">
             <Link href="/" className="flex items-center gap-2 text-lg font-bold tracking-tight text-[#0F0F11]">
-              <svg className="w-5 h-5 text-[#E54D80]" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <svg className="w-5 h-5 text-[#10B981]" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect x="3" y="3" width="7" height="7" rx="2" fill="currentColor" />
                 <rect x="14" y="3" width="7" height="7" rx="2" fill="currentColor" />
                 <rect x="3" y="14" width="7" height="7" rx="2" fill="currentColor" />
@@ -147,8 +162,9 @@ export default function RedesignedLandingPage() {
             </Link>
             
             <div className="hidden md:flex items-center gap-8 text-[11px] font-bold text-[#5C5C64] tracking-widest uppercase">
-              <a href="#demo" className="hover:text-[#0F0F11] transition-colors">Demo</a>
-              <a href="#how-it-works" className="hover:text-[#0F0F11] transition-colors">How It Works</a>
+              <a href="#scanner" className="hover:text-[#0F0F11] transition-colors">Scanner</a>
+              <a href="#how-it-works" className="hover:text-[#0F0F11] transition-colors">Workflow</a>
+              <a href="#results" className="hover:text-[#0F0F11] transition-colors">Results</a>
               <a href="#pricing" className="hover:text-[#0F0F11] transition-colors">Pricing</a>
               <a href="#faq" className="hover:text-[#0F0F11] transition-colors">FAQ</a>
             </div>
@@ -159,7 +175,7 @@ export default function RedesignedLandingPage() {
               </Link>
               <Link 
                 href="/login" 
-                className="bg-[#E54D80] hover:bg-[#FF5E8C] text-white text-xs font-bold px-5 py-2.5 rounded-full transition-all cursor-pointer shadow-sm"
+                className="bg-[#10B981] hover:bg-[#059669] text-white text-xs font-bold px-5 py-2.5 rounded-full transition-all cursor-pointer shadow-sm"
               >
                 Get Started
               </Link>
@@ -168,12 +184,12 @@ export default function RedesignedLandingPage() {
         </nav>
 
         {/* SECTION 1: Massive Hero */}
-        <header className="px-6 pt-20 pb-16 max-w-5xl mx-auto text-center relative z-10">
+        <header className="px-6 pt-20 pb-12 max-w-5xl mx-auto text-center relative z-10">
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-1.5 bg-[#E54D80]/10 border border-[#E54D80]/20 px-4 py-1.5 rounded-full text-[10px] font-bold text-[#E54D80] tracking-widest uppercase mb-8"
+            className="inline-flex items-center gap-1.5 bg-[#10B981]/10 border border-[#10B981]/20 px-4 py-1.5 rounded-full text-[10px] font-bold text-[#10B981] tracking-widest uppercase mb-8"
           >
             <Sparkles className="w-3.5 h-3.5" />
             AI-POWERED LOCAL OUTREACH ENGINE
@@ -185,9 +201,8 @@ export default function RedesignedLandingPage() {
             transition={{ duration: 0.7, delay: 0.1 }}
             className="text-4xl sm:text-7xl font-serif font-light text-[#0F0F11] tracking-tight leading-[1.05] max-w-4xl mx-auto"
           >
-            Design <span className="text-[#E54D80] italic font-normal">Smarter.</span> <br />
             Find local businesses <br />
-            <span className="bg-gradient-to-r from-[#E54D80] via-[#FF5E8C] to-[#E54D80] bg-clip-text text-transparent font-normal">losing customers</span> online.
+            <span className="bg-gradient-to-r from-[#10B981] via-[#22C55E] to-[#10B981] bg-clip-text text-transparent font-normal">losing customers</span> online.
           </motion.h1>
 
           <motion.p
@@ -196,7 +211,7 @@ export default function RedesignedLandingPage() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="text-[#5C5C64] text-xs sm:text-sm max-w-xl mx-auto mt-6 leading-relaxed font-sans"
           >
-            LocalRadar discovers businesses with weak websites, poor SEO, low reviews, and missed revenue opportunities, then drafts custom pitches using DeepSeek AI.
+            LocalRadar scans local markets to identify businesses with critical revenue leaks, designs custom service packages, and drafts response-optimized pitches in seconds.
           </motion.p>
 
           <motion.div
@@ -207,190 +222,184 @@ export default function RedesignedLandingPage() {
           >
             <Link 
               href="/login" 
-              className="bg-[#E54D80] hover:bg-[#FF5E8C] text-white text-xs font-bold px-7 py-3.5 rounded-full transition-all flex items-center gap-1.5 cursor-pointer group shadow-sm"
+              className="bg-[#10B981] hover:bg-[#059669] text-white text-xs font-bold px-7 py-3.5 rounded-full transition-all flex items-center gap-1.5 cursor-pointer group shadow-lg"
             >
               Start Scanning Free
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
-            <a 
-              href="#demo"
+            <Link 
+              href="/login"
               className="bg-transparent hover:bg-zinc-50 border border-[#E5E5E8] text-[#0F0F11] text-xs font-bold px-7 py-3.5 rounded-full transition-all flex items-center gap-2 cursor-pointer"
             >
               <Play className="w-3.5 h-3.5 fill-[#0F0F11] text-[#0F0F11]" />
-              Watch Product Demo
-            </a>
+              Book Growth Demo
+            </Link>
           </motion.div>
 
-          <motion.p
+          {/* Social Proof Badges under CTA */}
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
-            className="text-[10px] text-zinc-400 font-bold tracking-wider uppercase mt-6 font-mono"
+            className="grid grid-cols-3 gap-4 max-w-lg mx-auto border-t border-zinc-100 pt-8 mt-10 text-xs font-mono"
           >
-            ⚡ 312 agencies joined this month
-          </motion.p>
+            <div className="text-center">
+              <span className="text-zinc-400 block text-[9px] uppercase tracking-wider">Join Velocity</span>
+              <span className="text-[#0F0F11] font-bold">312 agencies joined this month</span>
+            </div>
+            <div className="text-center border-x border-zinc-100">
+              <span className="text-zinc-400 block text-[9px] uppercase tracking-wider">Analysis Pool</span>
+              <span className="text-[#0F0F11] font-bold">4,200+ businesses analyzed</span>
+            </div>
+            <div className="text-center">
+              <span className="text-zinc-400 block text-[9px] uppercase tracking-wider">Pipeline Discovered</span>
+              <span className="text-emerald-600 font-extrabold">₹4.7Cr+ pipeline found</span>
+            </div>
+          </motion.div>
         </header>
 
-        {/* SECTION 2: Interactive Product Demo */}
-        <section id="demo" className="px-6 py-12 max-w-5xl mx-auto relative z-10 w-full">
-          <div className="bg-[#F9F9FB] border border-[#E5E5E8] rounded-3xl p-6 shadow-sm relative overflow-hidden">
+        {/* SECTION 2: LIVE OPPORTUNITY SCANNER (Replacing empty product frame) */}
+        <section id="scanner" className="px-6 py-6 max-w-4xl mx-auto relative z-10 w-full">
+          <div className="bg-[#141517] border border-[#26282D] rounded-3xl p-6 shadow-2xl relative overflow-hidden text-white min-h-[360px] flex flex-col justify-between">
+            {/* Top green header banner */}
+            <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#10B981]/40 to-transparent" />
             
-            {/* Demo header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#E5E5E8] pb-4 mb-6 gap-3">
+            {/* Console Header */}
+            <div className="flex items-center justify-between border-b border-[#26282D] pb-4 mb-4">
               <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-red-400" />
-                <span className="w-2.5 h-2.5 rounded-full bg-yellow-400" />
-                <span className="w-2.5 h-2.5 rounded-full bg-green-400" />
-                <span className="text-[10px] text-zinc-400 font-bold tracking-widest ml-3 uppercase font-mono">LOCALRADAR TERMINAL v1.0</span>
+                <span className="w-2.5 h-2.5 rounded-full bg-[#10B981]/60 animate-ping" />
+                <span className="w-2.5 h-2.5 rounded-full bg-[#10B981] absolute" />
+                <span className="text-[10px] text-zinc-400 font-bold tracking-widest ml-3 uppercase font-mono">
+                  LIVE OPPORTUNITY SCANNER™
+                </span>
               </div>
-              
-              {/* Input selectors */}
-              <div className="flex items-center gap-2 text-[10px] font-semibold text-[#0F0F11]">
-                <span className="text-zinc-500">Scanning</span>
-                <input
-                  type="text"
-                  value={demoNiche}
-                  onChange={(e) => setDemoNiche(e.target.value)}
-                  className="bg-white border border-[#E5E5E8] rounded-lg px-2.5 py-1 text-[#0F0F11] w-20 focus:outline-none focus:border-[#E54D80] font-sans"
-                  disabled={demoStep === 'scanning'}
-                />
-                <span className="text-zinc-500">in</span>
-                <input
-                  type="text"
-                  value={demoCity}
-                  onChange={(e) => setDemoCity(e.target.value)}
-                  className="bg-white border border-[#E5E5E8] rounded-lg px-2.5 py-1 text-[#0F0F11] w-24 focus:outline-none focus:border-[#E54D80] font-sans"
-                  disabled={demoStep === 'scanning'}
-                />
-                {demoStep === 'idle' && (
-                  <button
-                    onClick={handleStartDemoScan}
-                    className="bg-[#E54D80] hover:bg-[#FF5E8C] text-white px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer shadow-sm text-[10px] font-sans"
-                  >
-                    Scan
-                  </button>
-                )}
+              <div className="text-[9px] bg-[#0B0B0C] border border-[#26282D] px-2.5 py-0.5 rounded font-mono text-[#9CA3AF]">
+                GPS: ACTIVE SCAN
               </div>
             </div>
 
-            {/* Interactive display box */}
-            <div className="min-h-[300px] flex flex-col justify-center font-sans">
-              {demoStep === 'idle' && (
-                <div className="text-center py-16 space-y-4">
-                  <div className="w-12 h-12 rounded-xl bg-white border border-[#E5E5E8] flex items-center justify-center mx-auto text-[#E54D80] shadow-sm">
-                    <Search className="w-5 h-5" />
-                  </div>
-                  <h4 className="text-sm font-bold text-[#0F0F11]">Interactive Sandbox Demonstration</h4>
-                  <p className="text-zinc-500 text-[10px] max-w-sm mx-auto">
-                    Click the <strong className="text-[#E54D80]">Scan</strong> button in the configuration panel above to see how LocalRadar scrapes listings and calculates opportunity scores in real-time.
-                  </p>
-                </div>
-              )}
+            {/* Screen Content Wrapper */}
+            <div className="flex-1 flex flex-col justify-center min-h-[200px]">
+              <AnimatePresence mode="wait">
+                {scanStep === 'idle' && (
+                  <motion.div 
+                    key="idle"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="text-center py-10 space-y-4"
+                  >
+                    <div className="w-12 h-12 rounded-xl bg-[#0B0B0C] border border-[#26282D] flex items-center justify-center mx-auto text-[#10B981]">
+                      <Search className="w-5 h-5 animate-pulse" />
+                    </div>
+                    <h4 className="text-sm font-bold font-mono text-white">READY TO DIAGNOSE LOCAL MARKET</h4>
+                    <p className="text-[#9CA3AF] text-[10px] font-mono max-w-sm mx-auto">
+                      Standing by... Initializing local database query coordinates.
+                    </p>
+                  </motion.div>
+                )}
 
-              {demoStep === 'scanning' && (
-                <div className="max-w-md mx-auto space-y-4 py-8 w-full">
-                  <div className="flex items-center gap-3">
-                    <Loader2 className="w-4 h-4 text-[#E54D80] animate-spin" />
-                    <span className="text-xs font-mono text-zinc-500">Processing search queries...</span>
-                  </div>
-                  
-                  <div className="bg-white border border-[#E5E5E8] p-4 rounded-xl space-y-2 font-mono text-[10px] text-zinc-500 text-left shadow-sm">
-                    {demoScans.slice(0, demoScanIndex + 1).map((scan, idx) => (
-                      <div key={idx} className="flex items-center gap-2">
-                        <span className="text-[#E54D80] font-bold">✓</span>
-                        <span>{scan}</span>
+                {scanStep === 'scanning' && (
+                  <motion.div 
+                    key="scanning"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="max-w-md mx-auto space-y-3.5 py-4 w-full text-left font-mono"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Loader2 className="w-4 h-4 text-[#10B981] animate-spin" />
+                      <span className="text-xs text-[#9CA3AF]">Resolving local business registries...</span>
+                    </div>
+                    
+                    <div className="bg-[#0B0B0C] border border-[#26282D] p-4 rounded-xl space-y-2 text-[10px] text-zinc-400 shadow-inner">
+                      {scanLogs.slice(0, scanLogIndex + 1).map((log, idx) => (
+                        <div key={idx} className="flex items-start gap-2">
+                          <span className="text-[#10B981] font-bold">▶</span>
+                          <span>{log}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+
+                {scanStep === 'results' && (
+                  <motion.div 
+                    key="results"
+                    initial={{ opacity: 0, scale: 0.98 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="grid grid-cols-1 md:grid-cols-3 gap-5 text-left font-mono"
+                  >
+                    {/* Leads details */}
+                    <div className="md:col-span-2 space-y-3">
+                      <div>
+                        <span className="text-[8px] font-bold text-[#10B981] uppercase tracking-wider">Identified Target</span>
+                        <h4 className="text-base font-serif font-extrabold text-white mt-0.5">AK Fitness Gym & Boxing</h4>
+                        <p className="text-[10px] text-zinc-500 mt-0.5">102 N Peak St, Dallas, TX 75226</p>
                       </div>
-                    ))}
-                  </div>
-                </div>
-              )}
 
-              {demoStep === 'results' && (
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 w-full">
-                  
-                  {/* Leads lists */}
-                  <div className="lg:col-span-2 space-y-2 max-h-[320px] overflow-y-auto pr-1">
-                    {demoLeads.map((lead, idx) => {
-                      const isSelected = selectedDemoBiz === idx;
-                      return (
-                        <div
-                          key={idx}
-                          onClick={() => setSelectedDemoBiz(idx)}
-                          className={`p-3.5 rounded-xl border transition-all cursor-pointer text-left flex items-center justify-between ${
-                            isSelected 
-                              ? 'bg-white border-[#E54D80] shadow-md' 
-                              : 'bg-white border-[#E5E5E8] hover:bg-zinc-50'
-                          }`}
-                        >
-                          <div>
-                            <p className="text-xs font-bold text-[#0F0F11]">{lead.name}</p>
-                            <div className="flex items-center gap-2 mt-1 text-[10px] text-zinc-500">
-                              <span>⭐ {lead.rating}</span>
-                              <span>•</span>
-                              <span>{lead.reviews} reviews</span>
-                            </div>
-                          </div>
-
-                          <div className="text-right">
-                            <span className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded-full border ${
-                              lead.score <= 50 
-                                ? 'text-[#E54D80] bg-[#E54D80]/10 border-[#E54D80]/20' 
-                                : 'text-amber-600 bg-amber-500/10 border-amber-500/20'
-                            }`}>
-                              Score: {lead.score}
-                            </span>
-                            <p className="text-[9px] text-zinc-500 mt-1 capitalize">{lead.opportunity} Opportunity</p>
-                          </div>
+                      <div className="border-t border-[#26282D] pt-3.5 space-y-2.5 text-[11px]">
+                        <div className="flex justify-between">
+                          <span className="text-zinc-500">Google Rating Check:</span>
+                          <span className="text-[#F59E0B] font-bold">⭐ 3.8 (Low Rating)</span>
                         </div>
-                      );
-                    })}
-                  </div>
-
-                  {/* Right detail preview */}
-                  <div className="bg-white border border-[#E5E5E8] p-5 rounded-2xl text-left flex flex-col justify-between shadow-sm">
-                    <div>
-                      <span className="text-[9px] font-bold text-[#E54D80] tracking-wider uppercase">Lead Diagnostic</span>
-                      <h5 className="text-xs font-bold text-[#0F0F11] mt-1">{demoLeads[selectedDemoBiz].name}</h5>
-                      
-                      <div className="border-t border-[#E5E5E8] pt-3.5 mt-3.5 space-y-2.5">
-                        <div className="flex justify-between text-[10px]">
+                        <div className="flex justify-between">
                           <span className="text-zinc-500">Website Status:</span>
-                          <span className={demoLeads[selectedDemoBiz].website ? 'text-emerald-600 font-semibold' : 'text-[#E54D80] font-semibold'}>
-                            {demoLeads[selectedDemoBiz].website ? 'Active Site' : 'No Website Detected'}
-                          </span>
+                          <span className="text-[#EF4444] font-bold">No Website Detected</span>
                         </div>
-                        
-                        <div className="flex justify-between text-[10px]">
-                          <span className="text-zinc-500">Opportunity Level:</span>
-                          <span className="text-[#0F0F11] font-bold capitalize">{demoLeads[selectedDemoBiz].opportunity}</span>
-                        </div>
-
-                        <div className="flex justify-between text-[10px]">
-                          <span className="text-zinc-500">Est. Retainer Fee:</span>
-                          <span className="text-emerald-600 font-bold">${demoLeads[selectedDemoBiz].dealVal}/mo</span>
+                        <div className="flex justify-between">
+                          <span className="text-zinc-500">Top Vulnerability:</span>
+                          <span className="text-[#EF4444] font-bold">Missing Mobile Booking Funnel</span>
                         </div>
                       </div>
                     </div>
 
-                    <Link
-                      href="/login"
-                      className="w-full text-center bg-[#E54D80] hover:bg-[#FF5E8C] text-white text-[10px] font-bold py-2 rounded-lg mt-6 block transition-all"
-                    >
-                      Generate Outreach Pitch
-                    </Link>
-                  </div>
+                    {/* Score detail card */}
+                    <div className="bg-[#0B0B0C] border border-[#26282D] p-4 rounded-xl flex flex-col justify-between">
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center">
+                          <span className="text-[9px] text-zinc-500">OPPORTUNITY</span>
+                          <span className="text-[9px] text-[#22C55E] font-bold">74% CLOSE RATE</span>
+                        </div>
 
-                </div>
-              )}
+                        <div className="flex items-baseline gap-1">
+                          <span className="text-3xl font-bold text-[#10B981]">{counterValue}</span>
+                          <span className="text-[10px] text-zinc-500">/ 100</span>
+                        </div>
+
+                        <div className="space-y-1 text-[9px] border-t border-[#26282D] pt-2.5">
+                          <div className="flex justify-between text-zinc-500">
+                            <span>Est. Deal Value</span>
+                            <span className="text-white font-bold">₹55k - ₹2.3L</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <Link
+                        href="/login"
+                        className="w-full text-center bg-[#10B981] hover:bg-[#059669] text-white text-[10px] font-bold py-2 rounded-lg mt-4 block transition-all shadow-[0_0_15px_rgba(16,185,129,0.15)]"
+                      >
+                        Generate AI Pitch
+                      </Link>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
-
+            
+            {/* Bottom bar indicator */}
+            <div className="border-t border-[rgba(255,255,255,0.05)] pt-3 text-[9px] text-zinc-500 font-mono flex items-center justify-between mt-4">
+              <span>GPS Crawler: Dallas, TX Range</span>
+              <span>System: 100% Deterministic Signals</span>
+            </div>
           </div>
         </section>
 
         {/* SECTION 3: Pain Section */}
-        <section id="how-it-works" className="px-6 py-24 text-center max-w-5xl mx-auto space-y-12 relative z-10 border-t border-[#E5E5E8]">
+        <section id="how-it-works" className="px-6 py-20 text-center max-w-5xl mx-auto space-y-8 relative z-10 border-t border-[#E5E5E8]">
           <div className="space-y-4">
-            <p className="text-[10px] font-bold text-[#E54D80] uppercase tracking-widest">PROSPECTING IS BROKEN</p>
+            <p className="text-[10px] font-bold text-[#10B981] uppercase tracking-widest">PROSPECTING IS BROKEN</p>
             <h2 className="text-3xl sm:text-6xl font-serif text-[#0F0F11] tracking-tight leading-[1.1] max-w-3xl mx-auto">
               Opening Google Maps <span className="text-zinc-400">again.</span> <br />
               Checking websites <span className="text-zinc-400">again.</span> <br />
@@ -399,48 +408,89 @@ export default function RedesignedLandingPage() {
             </h2>
           </div>
 
-          <p className="text-zinc-500 text-sm max-w-md mx-auto leading-relaxed">
-            Hours wasted. Zero appointments booked. You are selling high-value services to businesses that don't want them, while ignoring those losing thousands of dollars every day.
-          </p>
+          {/* Pain Stats Cards Row */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto pt-6 text-xs font-mono">
+            <div className="bg-[#EF4444]/5 border border-[#EF4444]/15 p-4 rounded-xl">
+              <Clock className="w-5 h-5 text-[#EF4444] mx-auto mb-2" />
+              <span className="text-[#0F0F11] font-bold block">15+ Hours Wasted</span>
+              <span className="text-zinc-500 text-[10px] mt-1 block">Spent copy-pasting profiles into lists.</span>
+            </div>
+            <div className="bg-[#EF4444]/5 border border-[#EF4444]/15 p-4 rounded-xl">
+              <DollarSign className="w-5 h-5 text-[#EF4444] mx-auto mb-2" />
+              <span className="text-[#0F0F11] font-bold block">₹1.8L Revenue Lost</span>
+              <span className="text-zinc-500 text-[10px] mt-1 block">Due to pitches targeting the wrong fits.</span>
+            </div>
+            <div className="bg-[#EF4444]/5 border border-[#EF4444]/15 p-4 rounded-xl">
+              <Users className="w-5 h-5 text-[#EF4444] mx-auto mb-2" />
+              <span className="text-[#0F0F11] font-bold block">90% Clients Missed</span>
+              <span className="text-zinc-500 text-[10px] mt-1 block">Ignoring hot leads that need site redesigns.</span>
+            </div>
+          </div>
         </section>
 
-        {/* SECTION 4: Before vs After */}
+        {/* SECTION 4: Before vs After Workflow */}
         <section className="px-6 py-20 max-w-6xl mx-auto space-y-12 relative z-10 border-t border-[#E5E5E8]">
           <div className="text-center space-y-2">
-            <span className="text-[10px] font-bold text-[#E54D80] uppercase tracking-widest">OUTREACH PARADIGM SHIFT</span>
+            <span className="text-[10px] font-bold text-[#10B981] uppercase tracking-widest">OUTREACH PARADIGM SHIFT</span>
             <h2 className="text-2xl sm:text-4xl font-serif text-[#0F0F11] tracking-tight">Manual Guesswork vs Automated Intelligence</h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 font-sans">
             {/* Before: Manual */}
-            <div className="bg-[#FEF2F2] border border-red-200 p-6.5 rounded-3xl relative overflow-hidden space-y-4 shadow-sm">
-              <span className="text-[9px] font-bold text-red-600 bg-red-100 px-2.5 py-1 rounded-full uppercase tracking-wider font-mono">
-                Without LocalRadar
-              </span>
-              <h4 className="text-lg font-serif font-bold text-[#0F0F11]">Manual Prospecting Loop</h4>
-              <p className="text-[#5C5C64] text-xs leading-relaxed">
-                Scraping maps databases, copy-pasting numbers to sheets, manual page audits, sending generic cold templates, and following up based on memory checks.
-              </p>
-              <div className="border-t border-[#E5E5E8] pt-4 mt-2 space-y-2 text-[10px] text-zinc-500 font-mono">
-                <div className="flex items-center gap-2">❌ 25 mins per business audit</div>
-                <div className="flex items-center gap-2">❌ Generic cold email templates</div>
-                <div className="flex items-center gap-2">❌ Missing contact phone checks</div>
+            <div className="bg-[#EF4444]/5 border border-[#EF4444]/20 p-6 rounded-3xl space-y-5 shadow-sm">
+              <div className="flex justify-between items-center">
+                <span className="text-[9px] font-bold text-[#EF4444] bg-[#EF4444]/10 px-2.5 py-1 rounded-full uppercase tracking-wider font-mono">
+                  Without LocalRadar
+                </span>
+                <span className="text-zinc-500 font-mono text-[9px]">MANUAL FLOW</span>
+              </div>
+              
+              <h4 className="text-lg font-serif font-bold text-[#0F0F11]">The Slow Guesswork Loop</h4>
+              
+              {/* Visual Workflow Steps */}
+              <div className="flex flex-col gap-2.5 font-mono text-[10px] text-zinc-500">
+                {[
+                  { label: 'Google Maps', desc: 'Scrolling and copying profile details one-by-one' },
+                  { label: 'Website Check', desc: 'Opening site to inspect responsiveness issues' },
+                  { label: 'Review Check', desc: 'Counting rating numbers and response gaps' },
+                  { label: 'Outreach', desc: 'Drafting generic cold emails to general addresses' },
+                  { label: 'Guess', desc: 'Waiting for response without conversion probability context' }
+                ].map((step, idx) => (
+                  <div key={idx} className="flex items-center gap-2 bg-white border border-[#EF4444]/10 p-2 rounded-lg">
+                    <span className="w-5 h-5 rounded-full bg-[#EF4444]/10 text-[#EF4444] flex items-center justify-center font-bold">{idx+1}</span>
+                    <span className="font-extrabold text-[#EF4444] min-w-[90px]">{step.label}</span>
+                    <span className="truncate">{step.desc}</span>
+                  </div>
+                ))}
               </div>
             </div>
 
             {/* After: LocalRadar */}
-            <div className="bg-[#FFF0F5] border border-[#E54D80]/20 p-6.5 rounded-3xl relative overflow-hidden space-y-4 shadow-sm">
-              <span className="text-[9px] font-bold text-[#E54D80] bg-[#E54D80]/10 px-2.5 py-1 rounded-full uppercase tracking-wider font-mono">
-                With LocalRadar
-              </span>
-              <h4 className="text-lg font-serif font-bold text-[#0F0F11]">Automated Leads Engine</h4>
-              <p className="text-[#5C5C64] text-xs leading-relaxed">
-                Instantly discover hundreds of leads. Let AI audit layout vulnerabilities, map scores, and write personalized outbound messages highlighting their exact issues.
-              </p>
-              <div className="border-t border-[#E5E5E8] pt-4 mt-2 space-y-2 text-[10px] text-[#E54D80] font-mono">
-                <div className="flex items-center gap-2">✓ Scans 100+ leads in 10 seconds</div>
-                <div className="flex items-center gap-2">✓ Tailored pitch targeting exact website bugs</div>
-                <div className="flex items-center gap-2">✓ Automated closing probability metrics</div>
+            <div className="bg-[#10B981]/5 border border-[#10B981]/20 p-6 rounded-3xl space-y-5 shadow-sm">
+              <div className="flex justify-between items-center">
+                <span className="text-[9px] font-bold text-[#10B981] bg-[#10B981]/15 px-2.5 py-1 rounded-full uppercase tracking-wider font-mono">
+                  With LocalRadar
+                </span>
+                <span className="text-[#10B981] font-mono text-[9px] font-bold">AUTOMATED INTELLIGENCE</span>
+              </div>
+              
+              <h4 className="text-lg font-serif font-bold text-[#0F0F11]">The Direct Revenue Discovery Loop</h4>
+              
+              {/* Visual Workflow Steps */}
+              <div className="flex flex-col gap-2.5 font-mono text-[10px] text-[#10B981]">
+                {[
+                  { label: 'Search Niche', desc: 'Scan any target city and category automatically' },
+                  { label: 'Opportunity Score', desc: 'Instantly isolate businesses with score > 60' },
+                  { label: 'AI Audit Report', desc: 'Auto-identify website code errors and review gaps' },
+                  { label: 'AI Pitch Copy', desc: 'Copy tailored sequences highlighting exact vulnerabilities' },
+                  { label: 'Close Client', desc: 'Convert qualified prospects with deterministic estimates' }
+                ].map((step, idx) => (
+                  <div key={idx} className="flex items-center gap-2 bg-white border border-[#10B981]/10 p-2 rounded-lg shadow-sm">
+                    <span className="w-5 h-5 rounded-full bg-[#10B981]/15 text-[#10B981] flex items-center justify-center font-bold">{idx+1}</span>
+                    <span className="font-extrabold text-[#10B981] min-w-[110px]">{step.label}</span>
+                    <span className="truncate text-zinc-500">{step.desc}</span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -449,16 +499,16 @@ export default function RedesignedLandingPage() {
         {/* SECTION 5: How Agencies Use LocalRadar */}
         <section className="px-6 py-20 max-w-6xl mx-auto space-y-12 border-t border-[#E5E5E8] relative z-10">
           <div className="text-center space-y-2">
-            <span className="text-[10px] font-bold text-[#E54D80] uppercase tracking-widest">ICP SOLUTIONS</span>
+            <span className="text-[10px] font-bold text-[#10B981] uppercase tracking-widest">ICP SOLUTIONS</span>
             <h2 className="text-2xl sm:text-4xl font-serif text-[#0F0F11] tracking-tight">Tailored workflows for your agency model</h2>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {[
-              { tag: 'Web Designers', title: 'Pitch Site Redesigns', desc: 'Scan and target the 25% of local businesses with no website or broken layouts. Pitch custom, high-converting platforms.' },
-              { tag: 'SEO Agencies', title: 'Sell Google Positions', desc: 'Identify profiles missing schema markup, sitemaps, or organic meta tags. Offer local map pack Retainer packages.' },
-              { tag: 'AI Automation', title: 'Sell AI Voice & Chat', desc: 'Find busy local businesses with slow response times. Integrate automated AI lead capture chatbots.' },
-              { tag: 'Marketing Consultants', title: 'Reputation Management', desc: 'Target profiles with reviews rating below 4.0 or unreplied comments. Sell automated feedback loops.' }
+              { tag: 'Web Designers', title: 'Pitch Site Redesigns', desc: 'Target local profiles missing a custom website or running legacy designs. Pitch responsive web layouts.' },
+              { tag: 'SEO Agencies', title: 'Sell Local Rankings', desc: 'Identify profiles losing rankings due to review response deficits. Propose Maps optimization campaigns.' },
+              { tag: 'AI Automation', title: 'Sell Voice & Booking Schedulers', desc: 'Isolate businesses with high rating score but no booking systems. Integrate appointment automation.' },
+              { tag: 'Marketing Consultants', title: 'Reputation Management', desc: 'Target profiles with reviews rating below 4.0. Pitch review acquisition engines.' }
             ].map((item, idx) => (
               <div key={idx} className="bg-[#F9F9FB] border border-[#E5E5E8] p-5 rounded-2xl flex flex-col justify-between hover:shadow-md transition-shadow">
                 <div>
@@ -466,8 +516,8 @@ export default function RedesignedLandingPage() {
                   <h4 className="text-sm font-serif font-bold text-[#0F0F11] mt-2">{item.title}</h4>
                   <p className="text-[#5C5C64] text-[11px] leading-relaxed mt-2">{item.desc}</p>
                 </div>
-                <Link href="/login" className="text-[10px] text-[#E54D80] font-bold mt-6 flex items-center gap-1 group">
-                  Try this flow
+                <Link href="/login" className="text-[10px] text-[#10B981] font-bold mt-6 flex items-center gap-1 group">
+                  Try this workflow
                   <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                 </Link>
               </div>
@@ -475,38 +525,52 @@ export default function RedesignedLandingPage() {
           </div>
         </section>
 
-        {/* SECTION 6: LocalRadar Score™ centerpiece */}
+        {/* SECTION 6: LocalRadar Score™ Showcase (Three Metrics) */}
         <section className="px-6 py-24 bg-[#F9F9FB]/50 border-t border-[#E5E5E8] relative z-10">
           <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             
-            {/* Giant Score Viz */}
+            {/* Giant Metrics Viz Card */}
             <div className="flex justify-center relative">
-              <div className="absolute inset-0 bg-[#E54D80]/5 rounded-full blur-3xl pointer-events-none" />
+              <div className="absolute inset-0 bg-[#10B981]/5 rounded-full blur-3xl pointer-events-none" />
               
-              <div className="bg-white border border-[#E5E5E8] p-8 max-w-sm w-full rounded-3xl relative text-center space-y-6 shadow-sm">
-                <div className="relative w-40 h-40 mx-auto flex items-center justify-center">
-                  <svg className="w-full h-full transform -rotate-90">
-                    <circle cx="80" cy="80" r="70" stroke="#F4F4F6" strokeWidth="10" fill="none" />
-                    <circle cx="80" cy="80" r="70" stroke="#E54D80" strokeWidth="10" strokeDasharray={2 * Math.PI * 70} strokeDashoffset={2 * Math.PI * 70 * (1 - 0.42)} strokeLinecap="round" fill="none" />
-                  </svg>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-4xl font-serif font-bold text-[#0F0F11]">42/100</span>
-                    <span className="text-[9px] text-[#E54D80] uppercase font-bold tracking-widest mt-1 font-mono">HIGH OPPORTUNITY</span>
+              <div className="bg-white border border-[#E5E5E8] p-6 max-w-md w-full rounded-3xl relative text-left space-y-6 shadow-xl">
+                <div className="flex justify-between items-center border-b border-zinc-100 pb-3">
+                  <span className="text-[10px] font-bold text-zinc-400 font-mono">PROPRIETARY METRICS</span>
+                  <span className="text-[10px] font-bold text-[#10B981] bg-[#10B981]/10 px-2 py-0.5 rounded font-mono">Dossier active</span>
+                </div>
+
+                <div className="grid grid-cols-3 gap-3 font-mono text-center">
+                  <div className="p-3 bg-zinc-50 border border-zinc-200 rounded-xl relative">
+                    <span className="text-[8px] font-bold text-zinc-400 block uppercase">Opp Score</span>
+                    <span className="text-2xl font-extrabold text-[#10B981] block mt-1">90</span>
+                    <span className="text-[8px] text-[#10B981] font-bold uppercase tracking-wider block mt-1">HIGH</span>
+                  </div>
+
+                  <div className="p-3 bg-zinc-50 border border-zinc-200 rounded-xl">
+                    <span className="text-[8px] font-bold text-zinc-400 block uppercase">Close Prob</span>
+                    <span className="text-2xl font-extrabold text-[#22C55E] block mt-1">74%</span>
+                    <span className="text-[8px] text-zinc-500 block mt-1 font-bold">Optimal</span>
+                  </div>
+
+                  <div className="p-3 bg-zinc-50 border border-zinc-200 rounded-xl">
+                    <span className="text-[8px] font-bold text-zinc-400 block uppercase">Deal Value</span>
+                    <span className="text-[11px] font-extrabold text-[#0F0F11] block mt-2.5">₹55k-₹2.3L</span>
+                    <span className="text-[8px] text-zinc-500 block mt-1 font-bold">Estimate</span>
                   </div>
                 </div>
 
-                <div className="border-t border-[#E5E5E8] pt-4 text-left space-y-2 text-[10px] text-zinc-500 font-mono">
+                <div className="border-t border-zinc-100 pt-4 space-y-2 text-[10px] text-zinc-500 font-mono">
                   <div className="flex justify-between">
-                    <span>Website Quality (Max 25):</span>
-                    <span className="text-[#E54D80] font-bold">0 pts (No Website)</span>
+                    <span>Website Opportunity:</span>
+                    <span className="text-zinc-600">30 / 30</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Review Strength (Max 25):</span>
-                    <span className="text-[#0F0F11] font-medium">12 pts (Low Rating)</span>
+                    <span>Review Gap Deficit:</span>
+                    <span className="text-zinc-600">20 / 25</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>SEO Presence (Max 20):</span>
-                    <span className="text-[#0F0F11] font-medium">15 pts (Medium SEO)</span>
+                    <span>Google Business Weakness:</span>
+                    <span className="text-zinc-600">15 / 20</span>
                   </div>
                 </div>
               </div>
@@ -514,84 +578,87 @@ export default function RedesignedLandingPage() {
 
             {/* Text explanation */}
             <div className="space-y-6 text-left">
-              <span className="text-[10px] font-bold text-[#E54D80] bg-[#E54D80]/10 border border-[#E54D80]/20 px-2.5 py-1 rounded-full uppercase tracking-wider font-mono">
-                THE CENTERPIECE OF OUR INTELLIGENCE
+              <span className="text-[10px] font-bold text-[#10B981] bg-[#10B981]/10 border border-[#10B981]/20 px-2.5 py-1 rounded-full uppercase tracking-wider font-mono">
+                THE SYSTEM CORE
               </span>
               <h2 className="text-3xl sm:text-5xl font-serif text-[#0F0F11] tracking-tight leading-[1.1]">
                 The LocalRadar Score™
               </h2>
               <p className="text-[#5C5C64] text-xs sm:text-sm leading-relaxed">
-                We evaluate every business profile from 0 to 100. Lower scores indicate major technical gaps—like slow site speeds, unclaimed GBP profiles, negative review velocity, or missing social channels. 
+                Evaluating local business listings based on 100% deterministic parameters. The lower the score, the higher the website opportunity—meaning it is a prime target for your web design, SEO, or automated booking service packages.
               </p>
-              <p className="text-zinc-500 text-xs leading-relaxed">
-                For an agency, a low score is a massive green flag. It represents a client that needs your specific marketing packages to survive online.
-              </p>
+              <div className="space-y-2 text-zinc-500 text-xs">
+                <p>📍 <strong>Opportunity Score™</strong>: Evaluates site responsiveness, review velocity, and Maps listing gaps.</p>
+                <p>📈 <strong>Closing Probability™</strong>: Predicts transaction velocity based on business owner activity markers.</p>
+                <p>💰 <strong>Estimated Deal Value™</strong>: Automatically maps services based on local gap priorities.</p>
+              </div>
             </div>
 
           </div>
         </section>
 
-        {/* SECTION 7: AI Audit Example */}
+        {/* SECTION 7: AUDIT PREVIEW */}
         <section className="px-6 py-20 max-w-6xl mx-auto space-y-12 border-t border-[#E5E5E8] relative z-10">
           <div className="text-center space-y-2">
-            <span className="text-[10px] font-bold text-[#E54D80] uppercase tracking-widest">DIAGNOSTIC VISUALIZATION</span>
-            <h2 className="text-2xl sm:text-4xl font-serif text-[#0F0F11] tracking-tight">Real audit reports, not icons</h2>
+            <span className="text-[10px] font-bold text-[#10B981] uppercase tracking-widest">DIAGNOSTIC REPORT</span>
+            <h2 className="text-2xl sm:text-4xl font-serif text-[#0F0F11] tracking-tight">Real-time local audits to build authority</h2>
           </div>
 
           <div className="bg-white border border-[#E5E5E8] p-6 max-w-3xl mx-auto text-left rounded-3xl relative overflow-hidden shadow-sm">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#E5E5E8] pb-4 mb-5 gap-2">
               <div>
-                <p className="text-xs font-bold text-[#0F0F11]">Dallas Orthodontics Practice</p>
+                <p className="text-xs font-bold text-[#0F0F11]">Dallas Dental Clinic</p>
                 <p className="text-[10px] text-zinc-400 mt-0.5 font-mono">8383 Preston Rd, Dallas, TX 75225</p>
               </div>
-              <span className="text-xs font-bold text-[#E54D80] bg-[#E54D80]/10 border border-[#E54D80]/20 px-3 py-1 rounded-full w-fit">
+              <span className="text-xs font-bold text-[#10B981] bg-[#10B981]/10 border border-[#10B981]/20 px-3 py-1 rounded-full w-fit">
                 42/100 (High Opportunity)
               </span>
             </div>
 
             <div className="space-y-4">
-              <div className="bg-[#FEF2F2] border border-red-100 p-3 rounded-xl flex items-start gap-3">
-                <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+              <div className="bg-[#EF4444]/5 border border-[#EF4444]/15 p-3 rounded-xl flex items-start gap-3">
+                <AlertCircle className="w-4 h-4 text-[#EF4444] shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-xs font-bold text-[#0F0F11]">Website Quality Vulnerability</p>
-                  <p className="text-[10px] text-zinc-500 mt-1">No active website detected. Business is losing 100% of organic mobile traffic.</p>
+                  <p className="text-xs font-bold text-[#0F0F11]">Revenue Leak Detection</p>
+                  <p className="text-[10px] text-zinc-500 mt-1">No mobile responsive booking system. High visitor bounce rate is causing direct transaction leakage.</p>
                 </div>
               </div>
 
-              <div className="bg-amber-500/[0.03] border border-amber-500/10 p-3 rounded-xl flex items-start gap-3">
-                <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+              <div className="bg-[#F59E0B]/5 border border-[#F59E0B]/15 p-3 rounded-xl flex items-start gap-3">
+                <AlertCircle className="w-4 h-4 text-[#F59E0B] shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-xs font-bold text-[#0F0F11]">Reputation & Review Gaps</p>
-                  <p className="text-[10px] text-zinc-500 mt-1">12 Google Business Profile reviews have no owner reply. Google maps visibility index is lowered.</p>
+                  <p className="text-xs font-bold text-[#0F0F11]">Review Gap Analysis</p>
+                  <p className="text-[10px] text-zinc-500 mt-1">Client has 14 reviews while competitors average 240+ reviews. A massive reputation deficit hurts search index ranking.</p>
                 </div>
               </div>
 
-              <div className="border-t border-[#E5E5E8] pt-4 mt-6">
-                <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-2 font-mono">Recommended Services to Pitch:</p>
-                <div className="flex flex-wrap gap-2 text-[9px] text-[#E54D80] font-bold font-mono">
-                  <span className="bg-[#E54D80]/10 border border-[#E54D80]/20 px-2.5 py-1 rounded-full">Custom Website Design ($3,000)</span>
-                  <span className="bg-[#E54D80]/10 border border-[#E54D80]/20 px-2.5 py-1 rounded-full">Reputation Management ($499/mo)</span>
+              <div className="bg-zinc-50 border border-zinc-200 p-3 rounded-xl flex items-start gap-3">
+                <AlertCircle className="w-4 h-4 text-zinc-500 shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-xs font-bold text-[#0F0F11]">Competitor Gap Analysis</p>
+                  <p className="text-[10px] text-zinc-500 mt-1">Target ranking positions are lower than competitors due to unclaimed GBP listing metadata and missing local citations.</p>
                 </div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* SECTION 8: AI Pitch Generator Example */}
+        {/* SECTION 8: AI Pitch Generator Example (Tabs) */}
         <section className="px-6 py-20 max-w-6xl mx-auto space-y-12 border-t border-[#E5E5E8] relative z-10">
           <div className="text-center space-y-2">
-            <span className="text-[10px] font-bold text-[#E54D80] uppercase tracking-widest">OUTREACH CONVERSION</span>
+            <span className="text-[10px] font-bold text-[#10B981] uppercase tracking-widest">OUTREACH CONVERSION</span>
             <h2 className="text-2xl sm:text-4xl font-serif text-[#0F0F11] tracking-tight">Make them imagine the results</h2>
           </div>
 
           <div className="bg-white border border-[#E5E5E8] p-6 rounded-3xl max-w-3xl mx-auto flex flex-col min-h-[350px] justify-between shadow-sm">
             <div>
               {/* Outreach selection tabs */}
-              <div className="flex border-b border-[#E5E5E8] pb-3 mb-6 gap-2">
+              <div className="flex border-b border-[#E5E5E8] pb-3 mb-6 gap-2 overflow-x-auto">
                 {[
                   { id: 'email', name: 'Cold Email', icon: Mail },
                   { id: 'dm', name: 'Cold DM', icon: MessageSquare },
-                  { id: 'proposal', name: 'Audit Proposal', icon: FileText }
+                  { id: 'proposal', name: 'Proposal', icon: FileText },
+                  { id: 'audit', name: 'Website Audit', icon: Globe }
                 ].map((tab) => {
                   const Icon = tab.icon;
                   const isActive = pitchTab === tab.id;
@@ -601,7 +668,7 @@ export default function RedesignedLandingPage() {
                       onClick={() => setPitchTab(tab.id as any)}
                       className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                         isActive 
-                          ? 'bg-[#E54D80]/15 border border-[#E54D80]/30 text-[#E54D80]' 
+                          ? 'bg-[#10B981]/15 border border-[#10B981]/30 text-[#10B981]' 
                           : 'text-zinc-400 hover:text-zinc-600'
                       }`}
                     >
@@ -615,87 +682,136 @@ export default function RedesignedLandingPage() {
               {/* Simulated text output */}
               <pre className="text-xs text-zinc-700 font-mono leading-relaxed bg-[#F9F9FB] border border-[#E5E5E8] p-5 rounded-xl whitespace-pre-wrap text-left select-all">
                 {pitchTab === 'email' && (
-                  `Subject: Question about Dallas Orthodontics's website
-
+                  `Subject: Question about Dallas Dental Clinic's website
+ 
 Hi Team,
-
+ 
 I came across your place listing on Google and noticed your clinic has solid ratings (3.8 stars) but lacks a configured website link. 
-
+ 
 This is costing you booking appointments daily. Our diagnostic tool scored your local search visibility at 42/100 due to:
 • Missing Mobile Responsive Web Portal
 • 12 reviews remaining unanswered (Google map-pack penalty)
-
+ 
 We specialize in designing conversion websites for Dallas orthodontists. Can we connect for 5 mins this Thursday to discuss?
-
+ 
 Best,
 [Your Name]`
                 )}
                 {pitchTab === 'dm' && (
-                  `Hey Team at Dallas Orthodontics! 👋
-
-Love your map ratings. I noticed that 12 of your patient reviews don't have replies from the owner. 
-
+                  `Hey Team at Dallas Dental! 👋
+ 
+Love your maps ratings. I noticed that 12 of your patient reviews don't have replies from the owner. 
+ 
 Google Maps deprioritizes listings that ignore reviews. We wrote a quick checklist showing how you can fix this in 5 mins to rank higher. Mind if I drop the link here?`
                 )}
                 {pitchTab === 'proposal' && (
                   `# Web Redesign & Rankings Retainer Proposal
-
-Prepared for: Dallas Orthodontics
-
+ 
+Prepared for: Dallas Dental Clinic
+ 
 ## Critical Issues Identified:
 - No website domain linked on Map profiles.
 - Unclaimed GBP listings metadata.
-
+ 
 ## Action Plan & Pricing:
-1. Setup responsive landing page with quick patient appointment capture form ($2,500)
+1. Setup responsive landing page with patient appointment capture form ($2,500)
 2. Setup local maps optimization & review reply campaign ($499/mo)
-
+ 
 Approved by: ______________`
+                )}
+                {pitchTab === 'audit' && (
+                  `# Technical Website & SEO Audit Report
+ 
+Target: Dallas Dental Clinic
+Status: CRITICAL OPPORTUNITY (42/100 Score)
+ 
+Outcomes of Analysis:
+- Website Link: MISSING (Direct loss of 85% mobile organic traffic)
+- Review Gap vs Top 5 competitors: -224 reviews deficit
+- Inactive GBP: 12 unanswered patient comments`
                 )}
               </pre>
             </div>
 
             <div className="text-[10px] text-zinc-400 text-left border-t border-[#E5E5E8] pt-4 mt-6 font-mono">
-              ✓ Generated instantly based on place place coordinates.
+              ✓ Generated instantly based on maps database metrics.
             </div>
           </div>
         </section>
 
-        {/* SECTION 9: Testimonials */}
-        <section className="px-6 py-20 max-w-6xl mx-auto space-y-12 border-t border-[#E5E5E8] relative z-10">
+        {/* SECTION 9: Case Studies / RESULTS */}
+        <section id="results" className="px-6 py-20 max-w-6xl mx-auto space-y-12 border-t border-[#E5E5E8] relative z-10">
           <div className="text-center space-y-2">
-            <span className="text-[10px] font-bold text-[#E54D80] uppercase tracking-widest">SUCCESS STORIES</span>
-            <h2 className="text-2xl sm:text-4xl font-serif text-[#0F0F11] tracking-tight">Loved by top agency founders</h2>
+            <span className="text-[10px] font-bold text-[#10B981] uppercase tracking-widest">PROVED AGENCY RESULTS</span>
+            <h2 className="text-2xl sm:text-4xl font-serif text-[#0F0F11] tracking-tight">Real pipeline generated by users</h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 font-mono text-xs">
             {[
-              { quote: 'LocalRadar cut my prospecting time by 80%. We closed 3 dentistry redesigns in our first week using the automated website audits.', author: 'Sarah Jenkins', role: 'Founder, Apex Web Studio' },
-              { quote: 'The Opportunity Score is pure gold. Being able to show a plumber that they have a 38/100 score makes setting up appointments incredibly easy.', author: 'Marcus Thorn', role: 'CEO, Lone Star local SEO' },
-              { quote: 'We run all our cold email sequences using the DeepSeek generated pitches. Response rates jumped from 2.5% to over 12%.', author: 'Dillon Hayes', role: 'Director, Scale Outreach Partners' }
-            ].map((test, idx) => (
-              <div key={idx} className="bg-white border border-[#E5E5E8] p-6 rounded-2xl text-left space-y-4 shadow-sm">
-                <p className="text-zinc-500 text-xs leading-relaxed italic">"{test.quote}"</p>
-                <div className="border-t border-[#E5E5E8] pt-3 flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-full bg-[#E54D80]/10 border border-[#E54D80]/20 flex items-center justify-center text-[10px] font-bold text-[#E54D80] capitalize font-sans">
-                    {test.author[0]}
+              {
+                leads: 124,
+                meetings: 11,
+                closed: 3,
+                revenue: '₹2.4L',
+                agency: 'SEO Consultant'
+              },
+              {
+                leads: 89,
+                meetings: 7,
+                closed: 2,
+                revenue: '₹1.7L',
+                agency: 'Web Designer'
+              },
+              {
+                leads: 205,
+                meetings: 18,
+                closed: 4,
+                revenue: '₹3.1L',
+                agency: 'AI Automation'
+              }
+            ].map((card, idx) => (
+              <div key={idx} className="bg-white border border-[#E5E5E8] p-5 rounded-2xl text-left space-y-4 shadow-sm relative group hover:border-[#10B981]/40 transition-colors">
+                <span className="text-[8px] font-bold text-[#10B981] uppercase tracking-widest">Pipeline Dossier</span>
+                
+                <div className="grid grid-cols-2 gap-3.5 border-y border-zinc-100 py-3">
+                  <div>
+                    <span className="text-zinc-500 block text-[9px]">Leads Scanned</span>
+                    <span className="text-white bg-[#0F0F11] px-1.5 py-0.5 rounded font-bold">{card.leads} Found</span>
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-[#0F0F11]">{test.author}</p>
-                    <p className="text-[9px] text-zinc-400 font-mono">{test.role}</p>
+                    <span className="text-zinc-500 block text-[9px]">Meetings Set</span>
+                    <span className="text-white bg-[#0F0F11] px-1.5 py-0.5 rounded font-bold">{card.meetings} Booked</span>
                   </div>
+                  <div>
+                    <span className="text-zinc-500 block text-[9px]">Pitches Closed</span>
+                    <span className="text-emerald-600 font-extrabold">{card.closed} Deals</span>
+                  </div>
+                  <div>
+                    <span className="text-zinc-500 block text-[9px]">Revenue Output</span>
+                    <span className="text-emerald-600 font-extrabold text-sm">{card.revenue}</span>
+                  </div>
+                </div>
+
+                <div className="flex justify-between items-center pt-1">
+                  <span className="text-zinc-400 text-[10px]">User Focus</span>
+                  <span className="text-[#0F0F11] font-bold">{card.agency}</span>
                 </div>
               </div>
             ))}
           </div>
         </section>
 
-        {/* SECTION 10: Pricing */}
+        {/* SECTION 10: Pricing with Average ROI & Prospection Comparison */}
         <section id="pricing" className="px-6 py-20 max-w-7xl mx-auto space-y-12 border-t border-[#E5E5E8] relative z-10">
           <div className="text-center space-y-4">
-            <span className="text-[10px] font-bold text-[#E54D80] uppercase tracking-widest">TRANSPARENT TARIFFS</span>
+            <span className="text-[10px] font-bold text-[#10B981] uppercase tracking-widest">TRANSPARENT TARIFFS</span>
             <h2 className="text-2xl sm:text-5xl font-serif text-[#0F0F11] tracking-tight">Flexible plans for any growth stage</h2>
             
+            {/* Average ROI block */}
+            <div className="bg-[#10B981]/5 border border-[#10B981]/20 p-3 max-w-md mx-auto rounded-xl text-xs font-mono text-[#10B981]">
+              🎯 <strong>Average ROI</strong>: Close 1 client and pay for LocalRadar for years.
+            </div>
+
             {/* Monthly/Yearly toggle */}
             <div className="flex items-center justify-center gap-3 pt-4 font-sans">
               <span className={`text-xs font-semibold ${billingPeriod === 'monthly' ? 'text-[#0F0F11]' : 'text-zinc-400'}`}>Monthly Billing</span>
@@ -704,7 +820,7 @@ Approved by: ______________`
                 className="w-11 h-6 bg-[#F4F4F6] rounded-full p-0.5 transition-all relative border border-[#E5E5E8] cursor-pointer"
               >
                 <div 
-                  className={`w-4.5 h-4.5 bg-[#E54D80] rounded-full transition-all ${
+                  className={`w-4.5 h-4.5 bg-[#10B981] rounded-full transition-all ${
                     billingPeriod === 'yearly' ? 'translate-x-5' : 'translate-x-0'
                   }`}
                 />
@@ -724,12 +840,12 @@ Approved by: ______________`
                 key={tier.name}
                 className={`p-5 rounded-3xl border flex flex-col justify-between transition-all duration-300 relative ${
                   tier.popular 
-                    ? 'bg-[#E54D80]/5 border-[#E54D80] shadow-md scale-102 z-10' 
+                    ? 'bg-[#10B981]/5 border-[#10B981] shadow-md scale-102 z-10' 
                     : 'bg-white border-[#E5E5E8] hover:border-zinc-300'
                 }`}
               >
                 {tier.popular && (
-                  <span className="absolute top-[-10px] right-4 bg-[#E54D80] text-white text-[9px] font-bold tracking-wider uppercase px-2.5 py-0.5 rounded-full shadow-sm font-mono">
+                  <span className="absolute top-[-10px] right-4 bg-[#10B981] text-white text-[9px] font-bold tracking-wider uppercase px-2.5 py-0.5 rounded-full shadow-sm font-mono">
                     Most Popular
                   </span>
                 )}
@@ -749,7 +865,7 @@ Approved by: ______________`
                   <ul className="mt-5 space-y-2.5 text-[10px] text-zinc-500 font-mono">
                     {tier.features.map((feat) => (
                       <li key={feat} className="flex items-center gap-1.5">
-                        <Check className="w-3.5 h-3.5 text-[#E54D80] shrink-0" />
+                        <Check className="w-3.5 h-3.5 text-[#10B981] shrink-0" />
                         <span>{feat}</span>
                       </li>
                     ))}
@@ -760,7 +876,7 @@ Approved by: ______________`
                   href="/login"
                   className={`w-full text-center text-xs font-bold py-3 rounded-xl mt-8 block transition-all ${
                     tier.popular
-                      ? 'bg-[#E54D80] hover:bg-[#FF5E8C] text-white shadow-sm'
+                      ? 'bg-[#10B981] hover:bg-[#059669] text-white shadow-sm'
                       : 'bg-[#F4F4F6] hover:bg-[#E5E5E8] border border-[#E5E5E8] text-[#0F0F11]'
                   }`}
                 >
@@ -769,12 +885,31 @@ Approved by: ______________`
               </div>
             ))}
           </div>
+
+          {/* Prospecting Velocity Comparison Block */}
+          <div className="max-w-xl mx-auto bg-zinc-50 border border-zinc-200 p-5 rounded-2xl font-mono text-xs text-left space-y-3 shadow-inner mt-8">
+            <h4 className="font-extrabold text-[#0F0F11] uppercase tracking-wider text-[10px]">Prospecting Speed Check</h4>
+            <div className="space-y-2 leading-relaxed">
+              <div className="flex justify-between items-center">
+                <span className="text-zinc-500 flex items-center gap-1">
+                  <Clock className="w-3.5 h-3.5 text-red-500" /> Manual Prospecting:
+                </span>
+                <span className="text-red-500 font-extrabold">10+ Hours / Week</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-zinc-500 flex items-center gap-1">
+                  <Zap className="w-3.5 h-3.5 text-emerald-500 fill-emerald-500/10" /> LocalRadar Engine:
+                </span>
+                <span className="text-emerald-600 font-extrabold">10 Minutes / Week</span>
+              </div>
+            </div>
+          </div>
         </section>
 
         {/* SECTION 11: FAQ */}
         <section id="faq" className="px-6 py-20 max-w-4xl mx-auto space-y-12 border-t border-[#E5E5E8] relative z-10 w-full font-sans">
           <div className="text-center space-y-2">
-            <span className="text-[10px] font-bold text-[#E54D80] uppercase tracking-widest">COMMON ENQUIRIES</span>
+            <span className="text-[10px] font-bold text-[#10B981] uppercase tracking-widest">COMMON ENQUIRIES</span>
             <h2 className="text-2xl sm:text-4xl font-serif text-[#0F0F11] tracking-tight">Frequently Asked Questions</h2>
           </div>
 
@@ -810,21 +945,21 @@ Approved by: ______________`
 
         {/* SECTION 12: Final CTA */}
         <section className="px-6 py-20 text-center max-w-4xl mx-auto relative z-10 border-t border-[#E5E5E8] w-full">
-          <div className="bg-[#FFF0F5] p-10 md:p-14 relative overflow-hidden border border-[#E54D80]/20 rounded-3xl shadow-sm">
-            <div className="absolute top-0 right-0 w-40 h-40 bg-[#E54D80]/5 rounded-full blur-3xl" />
+          <div className="bg-[#10B981]/5 p-10 md:p-14 relative overflow-hidden border border-[#10B981]/20 rounded-3xl shadow-sm">
+            <div className="absolute top-0 right-0 w-40 h-40 bg-[#10B981]/5 rounded-full blur-3xl" />
             
             <h2 className="text-3xl sm:text-5xl font-serif font-bold text-[#0F0F11] tracking-tight leading-none">
               Your next client <br />
               is already on Google Maps.
             </h2>
             <p className="text-zinc-500 text-xs sm:text-sm max-w-sm mx-auto mt-4 leading-relaxed font-sans">
-              Stop scraping lists manually. Start scanning vulnerabilities, calculate map scores, and copy AI proposal emails instantly.
+              Businesses are losing customers online right now. Find them before your competitors do.
             </p>
 
             <div className="mt-8 flex justify-center">
               <Link 
                 href="/login" 
-                className="bg-[#E54D80] hover:bg-[#FF5E8C] text-white text-xs font-bold px-6 py-3.5 rounded-full transition-all flex items-center gap-1.5 cursor-pointer shadow-sm"
+                className="bg-[#10B981] hover:bg-[#059669] text-white text-xs font-bold px-6 py-3.5 rounded-full transition-all flex items-center gap-1.5 cursor-pointer shadow-lg"
               >
                 Get Started Free
                 <ArrowRight className="w-4 h-4 text-white" />

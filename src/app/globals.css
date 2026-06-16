@@ -1,17 +1,17 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Fragment+Mono:ital@0;1&family=Hedvig+Letters+Serif&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
 @import "tailwindcss";
 
 :root {
-  --background: #F9F9FB;
-  --foreground: #0F0F11;
-  --primary: #E54D80;
-  --accent: #FF5E8C;
-  --secondary-text: #5C5C64;
-  --secondary-bg: #FFFFFF;
-  --border: #E5E5E8;
-  --font-serif: "Hedvig Letters Serif", Georgia, serif;
-  --font-sans: "Inter", "DM Sans", system-ui, sans-serif;
-  --font-mono: "Fragment Mono", monospace;
+  --background: #0B0B0C;
+  --foreground: #FAFAF9;
+  --primary: #10B981;
+  --accent: #10B981;
+  --secondary-text: #A1A1AA;
+  --secondary-bg: #141517;
+  --border: #26282D;
+  --font-serif: "Instrument Serif", Georgia, serif;
+  --font-sans: "Inter", sans-serif;
+  --font-mono: "Inter", sans-serif;
 }
 
 @theme {
@@ -37,7 +37,7 @@ body {
 
 /* Light Kavi Glassmorphism panel utility */
 .glass-panel {
-  background: rgba(255, 255, 255, 0.7);
+  background: rgba(20, 21, 23, 0.7);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--border);
@@ -49,9 +49,9 @@ body {
 }
 
 .glass-panel-hover:hover {
-  background: rgba(255, 255, 255, 0.95);
-  border-color: rgba(229, 77, 128, 0.25);
-  box-shadow: 0 10px 30px rgba(229, 77, 128, 0.05);
+  background: rgba(20, 21, 23, 0.95);
+  border-color: rgba(16, 185, 129, 0.25);
+  box-shadow: 0 10px 30px rgba(16, 185, 129, 0.05);
 }
 
 /* Custom scrollbars */
@@ -60,10 +60,10 @@ body {
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #F9F9FB;
+  background: #0B0B0C;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(15, 15, 17, 0.1);
+  background: #26282D;
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {

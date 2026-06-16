@@ -93,11 +93,11 @@ export default function SettingsPage() {
   ];
 
   return (
-    <div className="space-y-8 max-w-6xl mx-auto pb-12 font-sans text-[#0F0F11]">
+    <div className="space-y-8 max-w-6xl mx-auto pb-16 font-sans text-white">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-serif font-bold text-[#0F0F11]">Settings & Billing</h1>
-        <p className="text-zinc-500 text-xs mt-1">
+      <div className="border-b border-[rgba(255,255,255,0.08)] pb-6">
+        <h1 className="text-2xl font-serif font-bold text-white">Settings & Billing</h1>
+        <p className="text-[#9CA3AF] text-xs mt-1">
           Manage your account profile, upgrade subscription plans, or configure live API credentials.
         </p>
       </div>
@@ -107,47 +107,47 @@ export default function SettingsPage() {
         {/* Left Column forms */}
         <div className="lg:col-span-2 space-y-6">
           {/* Profile form */}
-          <div className="bg-white border border-[#E5E5E8] p-6 rounded-2xl space-y-4 shadow-sm">
-            <h3 className="text-sm font-bold text-[#0F0F11] flex items-center gap-2 uppercase tracking-wider font-mono">
-              <User className="w-4 h-4 text-[#E54D80]" />
+          <div className="bg-[#141517] border border-[#26282D] p-6 rounded-2xl space-y-4 shadow-xl">
+            <h3 className="text-sm font-bold text-white flex items-center gap-2 uppercase tracking-wider font-mono">
+              <User className="w-4 h-4 text-[#10B981]" />
               Agency Profile Details
             </h3>
 
             <form onSubmit={handleSaveProfile} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest font-mono">Full Name</label>
+                  <label className="text-[9px] font-bold text-[#A1A1AA] uppercase tracking-widest font-mono">Full Name</label>
                   <input
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full bg-[#F4F4F6] border border-[#E5E5E8] rounded-xl py-2.5 px-4 text-[#0F0F11] text-xs focus:outline-none focus:border-[#E54D80] focus:ring-1 focus:ring-[#E54D80] transition-all font-mono"
+                    className="w-full bg-[#0B0B0C] border border-[#26282D] rounded-xl py-2.5 px-4 text-white text-xs focus:outline-none focus:border-[#10B981] transition-all font-mono"
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest font-mono">Email Address</label>
+                  <label className="text-[9px] font-bold text-[#A1A1AA] uppercase tracking-widest font-mono">Email Address</label>
                   <input
                     type="email"
                     value={email}
                     disabled
-                    className="w-full bg-[#F4F4F6]/50 border border-[#E5E5E8] text-zinc-400 rounded-xl py-2.5 px-4 text-xs cursor-not-allowed font-mono"
+                    className="w-full bg-[#0B0B0C]/50 border border-[#26282D]/40 text-zinc-500 rounded-xl py-2.5 px-4 text-xs cursor-not-allowed font-mono"
                   />
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest font-mono">Agency Organization Name</label>
+                <label className="text-[9px] font-bold text-[#A1A1AA] uppercase tracking-widest font-mono">Agency Organization Name</label>
                 <input
                   type="text"
                   value={orgName}
                   onChange={(e) => setOrgName(e.target.value)}
-                  className="w-full bg-[#F4F4F6] border border-[#E5E5E8] rounded-xl py-2.5 px-4 text-[#0F0F11] text-xs focus:outline-none focus:border-[#E54D80] focus:ring-1 focus:ring-[#E54D80] transition-all font-mono"
+                  className="w-full bg-[#0B0B0C] border border-[#26282D] rounded-xl py-2.5 px-4 text-white text-xs focus:outline-none focus:border-[#10B981] transition-all font-mono"
                 />
               </div>
 
               <button
                 type="submit"
-                className="bg-[#F4F4F6] hover:bg-[#E5E5E8] border border-[#E5E5E8] text-[#0F0F11] text-xs font-bold px-4 py-2.5 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ml-auto shadow-sm font-mono"
+                className="bg-[#0B0B0C] hover:bg-[#141517] border border-[#26282D] text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ml-auto shadow-sm font-mono"
               >
                 <Save className="w-3.5 h-3.5" />
                 Save Changes
@@ -156,13 +156,13 @@ export default function SettingsPage() {
           </div>
 
           {/* Pricing Billing Section */}
-          <div className="bg-white border border-[#E5E5E8] p-6 rounded-2xl space-y-6 shadow-sm">
+          <div className="bg-[#141517] border border-[#26282D] p-6 rounded-2xl space-y-6 shadow-xl">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-              <h3 className="text-sm font-bold text-[#0F0F11] flex items-center gap-2 uppercase tracking-wider font-mono">
-                <CreditCard className="w-4 h-4 text-[#E54D80]" />
+              <h3 className="text-sm font-bold text-white flex items-center gap-2 uppercase tracking-wider font-mono">
+                <CreditCard className="w-4 h-4 text-[#10B981]" />
                 Subscription Plans
               </h3>
-              <span className="text-[9px] text-zinc-500 font-bold bg-[#F4F4F6] border border-[#E5E5E8] px-2.5 py-1 rounded-full uppercase tracking-wider font-mono">
+              <span className="text-[9px] text-zinc-400 font-bold bg-[#0B0B0C] border border-[#26282D] px-2.5 py-1 rounded-full uppercase tracking-wider font-mono">
                 Active Tier: {user?.subscription_tier}
               </span>
             </div>
@@ -175,21 +175,21 @@ export default function SettingsPage() {
                     key={tier.id} 
                     className={`p-4 rounded-xl border flex flex-col justify-between ${
                       isActive 
-                        ? 'bg-[#E54D80]/5 border-[#E54D80] shadow-sm' 
-                        : 'bg-[#F9F9FB] border-[#E5E5E8]'
+                        ? 'bg-[#10B981]/5 border-[#10B981] shadow-lg' 
+                        : 'bg-[#0B0B0C] border-[#26282D]'
                     }`}
                   >
                     <div>
-                      <h4 className="text-xs font-bold text-[#0F0F11]">{tier.name}</h4>
+                      <h4 className="text-xs font-bold text-white">{tier.name}</h4>
                       <div className="mt-2 flex items-baseline">
-                        <span className="text-xl font-serif font-extrabold text-[#0F0F11]">{tier.price}</span>
-                        <span className="text-[10px] text-zinc-500 font-semibold ml-1">/{tier.period}</span>
+                        <span className="text-xl font-serif font-extrabold text-white">{tier.price}</span>
+                        <span className="text-[10px] text-[#A1A1AA] font-semibold ml-1">/{tier.period}</span>
                       </div>
 
-                      <ul className="mt-4 space-y-2 text-[10px] text-zinc-500 font-mono">
+                      <ul className="mt-4 space-y-2 text-[10px] text-[#A1A1AA] font-mono">
                         {tier.features.map((feat, i) => (
                           <li key={i} className="flex items-center gap-1.5">
-                            <Check className="w-3.5 h-3.5 text-[#E54D80]" />
+                            <Check className="w-3.5 h-3.5 text-[#10B981]" />
                             <span>{feat}</span>
                           </li>
                         ))}
@@ -201,8 +201,8 @@ export default function SettingsPage() {
                       disabled={isActive}
                       className={`w-full text-center text-xs font-bold py-2.5 rounded-xl mt-6 transition-all cursor-pointer font-mono ${
                         isActive 
-                          ? 'bg-[#E54D80]/15 border border-[#E54D80]/30 text-[#E54D80] cursor-default' 
-                          : 'bg-[#E54D80] hover:bg-[#FF5E8C] text-white shadow-sm'
+                          ? 'bg-[#10B981]/10 border border-[#10B981]/20 text-[#10B981] cursor-default' 
+                          : 'bg-[#10B981] hover:bg-[#059669] text-white shadow-md'
                       }`}
                     >
                       {isActive ? 'Active' : tier.buttonText}
@@ -215,24 +215,24 @@ export default function SettingsPage() {
         </div>
 
         {/* Right Column: API credentials key inputs */}
-        <div className="bg-white border border-[#E5E5E8] p-6 rounded-2xl space-y-4 shadow-sm">
+        <div className="bg-[#141517] border border-[#26282D] p-6 rounded-2xl space-y-4 shadow-xl">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-[#0F0F11] flex items-center gap-2 uppercase tracking-wider font-mono">
-              <Key className="w-4 h-4 text-[#E54D80]" />
+            <h3 className="text-sm font-bold text-white flex items-center gap-2 uppercase tracking-wider font-mono">
+              <Key className="w-4 h-4 text-[#10B981]" />
               Developer Keys
             </h3>
-            <span className="p-1.5 rounded-lg bg-[#F4F4F6] border border-[#E5E5E8]" title="Encrypted Local Storage">
-              <Lock className="w-3.5 h-3.5 text-zinc-400" />
+            <span className="p-1.5 rounded-lg bg-[#0B0B0C] border border-[#26282D]" title="Encrypted Local Storage">
+              <Lock className="w-3.5 h-3.5 text-zinc-500" />
             </span>
           </div>
 
-          <p className="text-[10px] text-zinc-500 leading-relaxed">
+          <p className="text-[10px] text-[#A1A1AA] leading-relaxed">
             By default, LocalRadar runs in a Sandbox Simulator. Paste your own keys below to fetch live maps search, call real OpenAI models, and connect to your own Supabase databases.
           </p>
 
-          <form onSubmit={handleSaveKeys} className="space-y-4 border-t border-[#E5E5E8] pt-4">
-            <div className="space-y-1.5 border-b border-[#E5E5E8] pb-4">
-              <label className="text-[9px] font-bold text-[#E54D80] uppercase tracking-wider block mb-1 font-mono">OpenRouter (DeepSeek v4 Flash)</label>
+          <form onSubmit={handleSaveKeys} className="space-y-4 border-t border-[#26282D] pt-4">
+            <div className="space-y-1.5 border-b border-[#26282D] pb-4">
+              <label className="text-[9px] font-bold text-[#10B981] uppercase tracking-wider block mb-1 font-mono">OpenRouter (DeepSeek v4 Flash)</label>
               
               <div className="space-y-1.5">
                 <label className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest font-mono">API Key</label>
@@ -241,7 +241,7 @@ export default function SettingsPage() {
                   placeholder="sk-or-v1-..."
                   value={openrouterKey}
                   onChange={(e) => setOpenrouterKey(e.target.value)}
-                  className="w-full bg-[#F4F4F6] border border-[#E5E5E8] rounded-xl py-2 px-3 text-[#0F0F11] text-xs focus:outline-none focus:border-[#E54D80] focus:ring-1 focus:ring-[#E54D80] transition-all font-mono"
+                  className="w-full bg-[#0B0B0C] border border-[#26282D] rounded-xl py-2 px-3 text-white text-xs focus:outline-none focus:border-[#10B981] transition-all font-mono"
                 />
               </div>
 
@@ -252,7 +252,7 @@ export default function SettingsPage() {
                   placeholder="e.g. deepseek/deepseek-chat"
                   value={openrouterModel}
                   onChange={(e) => setOpenrouterModel(e.target.value)}
-                  className="w-full bg-[#F4F4F6] border border-[#E5E5E8] rounded-xl py-2 px-3 text-[#0F0F11] text-xs focus:outline-none focus:border-[#E54D80] focus:ring-1 focus:ring-[#E54D80] transition-all font-mono"
+                  className="w-full bg-[#0B0B0C] border border-[#26282D] rounded-xl py-2 px-3 text-white text-xs focus:outline-none focus:border-[#10B981] transition-all font-mono"
                 />
               </div>
             </div>
@@ -264,7 +264,7 @@ export default function SettingsPage() {
                 placeholder="AIzaSy..."
                 value={googlePlacesKey}
                 onChange={(e) => setGooglePlacesKey(e.target.value)}
-                className="w-full bg-[#F4F4F6] border border-[#E5E5E8] rounded-xl py-2 px-3 text-[#0F0F11] text-xs focus:outline-none focus:border-[#E54D80] focus:ring-1 focus:ring-[#E54D80] transition-all font-mono"
+                className="w-full bg-[#0B0B0C] border border-[#26282D] rounded-xl py-2 px-3 text-white text-xs focus:outline-none focus:border-[#10B981] transition-all font-mono"
               />
             </div>
 
@@ -275,7 +275,7 @@ export default function SettingsPage() {
                 placeholder="sk-..."
                 value={openaiKey}
                 onChange={(e) => setOpenaiKey(e.target.value)}
-                className="w-full bg-[#F4F4F6] border border-[#E5E5E8] rounded-xl py-2 px-3 text-[#0F0F11] text-xs focus:outline-none focus:border-[#E54D80] focus:ring-1 focus:ring-[#E54D80] transition-all font-mono"
+                className="w-full bg-[#0B0B0C] border border-[#26282D] rounded-xl py-2 px-3 text-white text-xs focus:outline-none focus:border-[#10B981] transition-all font-mono"
               />
             </div>
 
@@ -286,7 +286,7 @@ export default function SettingsPage() {
                 placeholder="https://your-project.supabase.co"
                 value={supabaseUrl}
                 onChange={(e) => setSupabaseUrl(e.target.value)}
-                className="w-full bg-[#F4F4F6] border border-[#E5E5E8] rounded-xl py-2 px-3 text-[#0F0F11] text-xs focus:outline-none focus:border-[#E54D80] focus:ring-1 focus:ring-[#E54D80] transition-all font-mono"
+                className="w-full bg-[#0B0B0C] border border-[#26282D] rounded-xl py-2 px-3 text-white text-xs focus:outline-none focus:border-[#10B981] transition-all font-mono"
               />
             </div>
 
@@ -297,13 +297,13 @@ export default function SettingsPage() {
                 placeholder="eyJhbG..."
                 value={supabaseAnon}
                 onChange={(e) => setSupabaseAnon(e.target.value)}
-                className="w-full bg-[#F4F4F6] border border-[#E5E5E8] rounded-xl py-2 px-3 text-[#0F0F11] text-xs focus:outline-none focus:border-[#E54D80] focus:ring-1 focus:ring-[#E54D80] transition-all font-mono"
+                className="w-full bg-[#0B0B0C] border border-[#26282D] rounded-xl py-2 px-3 text-white text-xs focus:outline-none focus:border-[#10B981] transition-all font-mono"
               />
             </div>
 
             <button
               type="submit"
-              className="w-full bg-[#E54D80] hover:bg-[#FF5E8C] text-white font-bold text-xs py-2.5 rounded-full transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm font-mono"
+              className="w-full bg-[#10B981] hover:bg-[#059669] text-white font-bold text-xs py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-md font-mono"
             >
               Save Credentials
             </button>
@@ -319,7 +319,7 @@ export default function SettingsPage() {
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 15 }}
-            className="fixed bottom-6 right-6 bg-emerald-500/10 border border-emerald-500/20 text-[#059669] text-xs px-4 py-3 rounded-xl flex items-center gap-2 shadow-lg z-50 font-mono"
+            className="fixed bottom-6 right-6 bg-[#22C55E]/10 border border-[#22C55E]/20 text-[#22C55E] text-xs px-4 py-3 rounded-xl flex items-center gap-2 shadow-lg z-50 font-mono"
           >
             <Check className="w-4 h-4" />
             <span>Settings saved successfully!</span>

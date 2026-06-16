@@ -12,7 +12,8 @@ import {
   Loader2, 
   MessageSquare,
   AlertTriangle,
-  Building
+  Building,
+  Zap
 } from 'lucide-react';
 import { generateMockAudit, generateMockPitch, calculateLocalRadarScore } from '@/lib/mockData';
 import { Business, Opportunity, Pitch, Audit } from '@/types';
@@ -26,9 +27,31 @@ export default function PitchGeneratorPage() {
   const [selectedBizId, setSelectedBizId] = useState<string>('');
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
   
-  const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'email' | 'dm' | 'website' | 'seo'>('email');
-  const [pitch, setPitch] = useState<Pitch | null>(null);
+  const [pitches, setPitches] = useState<{
+    email: string | null;
+    dm: string | null;
+    website: string | null;
+    seo: string | null;
+  }>({
+    email: null,
+    dm: null,
+    website: null,
+    seo: null
+  });
+
+  const [loadingStates, setLoadingStates] = useState<{
+    email: boolean;
+    dm: boolean;
+    website: boolean;
+    seo: boolean;
+  }>({
+    email: false,
+    dm: false,
+    website: false,
+    seo: false
+  });
+
   const [copied, setCopied] = useState(false);
 
   // Load leads from cache
@@ -78,11 +101,26 @@ export default function PitchGeneratorPage() {
     }
   }, [preselectedBizId]);
 
-  // Generate pitch when selected business changes
+  // Reset pitch when selected business changes
   useEffect(() => {
+    setPitches({
+      email: null,
+      dm: null,
+      website: null,
+      seo: null
+    });
+    setLoadingStates({
+      email: false,
+      dm: false,
+      website: false,
+      seo: false
+    });
+  }, [selectedBizId]);
+
+  const handleGenerateTabPitch = async (tab: 'email' | 'dm' | 'website' | 'seo') => {
     if (!selectedBizId) return;
 
-    setLoading(true);
+    setLoadingStates(prev => ({ ...prev, [tab]: true }));
     
     // Retrieve associated opportunity score from cache or compute it
     const cachedOppsStr = localStorage.getItem('localradar_latest_opps');
@@ -121,48 +159,166 @@ export default function PitchGeneratorPage() {
 
     if (currentBiz && opp) {
       const audit = generateMockAudit(currentBiz, opp);
+      const mockPitches = generateMockPitch(currentBiz, opp, audit);
       
-      // Simulate API load times for realistic feel
-      setTimeout(() => {
-        const generatedPitch = generateMockPitch(currentBiz, opp!, audit);
-        setPitch(generatedPitch);
-        setLoading(false);
-      }, 1000);
+      let mockValue = '';
+      let jsonKey = '';
+      let systemPrompt = '';
+
+      if (tab === 'email') {
+        mockValue = mockPitches.cold_email;
+        jsonKey = 'cold_email';
+        systemPrompt = `You are a Conversion Rate Optimization expert, Senior Product Designer, and SaaS Growth Copywriter.
+Your task is to generate a highly personalized, high-converting Cold Email for a local business based on their scanned diagnostic details and web/GBP vulnerabilities.
+Respond with a JSON object containing exactly one key "cold_email":
+{
+  "cold_email": "A professional and compelling cold email with a Subject line, customized for the business. Mention specific website issues. Keep it brief, and end with a direct call to action."
+}
+Ensure the output is clean JSON. Do not write any markdown code block wrappers (like \`\`\`json or \`\`\`) in your response. Just return the raw JSON text.`;
+      } else if (tab === 'dm') {
+        mockValue = mockPitches.cold_dm;
+        jsonKey = 'cold_dm';
+        systemPrompt = `You are a Conversion Rate Optimization expert, Senior Product Designer, and SaaS Growth Copywriter.
+Your task is to generate a friendly, casual, and short social media direct message (Cold DM) for a local business offering value first based on their scanned diagnostic details and web/GBP vulnerabilities.
+Respond with a JSON object containing exactly one key "cold_dm":
+{
+  "cold_dm": "A friendly, casual, and short social media direct message (Instagram/Facebook) offering value first. Mention one critical vulnerability."
+}
+Ensure the output is clean JSON. Do not write any markdown code block wrappers (like \`\`\`json or \`\`\`) in your response. Just return the raw JSON text.`;
+      } else if (tab === 'website') {
+        mockValue = mockPitches.website_proposal;
+        jsonKey = 'website_proposal';
+        systemPrompt = `You are a Conversion Rate Optimization expert, Senior Product Designer, and SaaS Growth Copywriter.
+Your task is to generate a structured website proposal in Markdown formatting detailing the website redesign action plan, benefits, and investment for a local business.
+Respond with a JSON object containing exactly one key "website_proposal":
+{
+  "website_proposal": "A structured proposal in Markdown formatting detailing the website redesign action plan, benefits, and investment."
+}
+Ensure the output is clean JSON. Do not write any markdown code block wrappers (like \`\`\`json or \`\`\`) in your response. Just return the raw JSON text.`;
+      } else if (tab === 'seo') {
+        mockValue = mockPitches.seo_proposal;
+        jsonKey = 'seo_proposal';
+        systemPrompt = `You are a Conversion Rate Optimization expert, Senior Product Designer, and SaaS Growth Copywriter.
+Your task is to generate a structured local SEO proposal in Markdown formatting detailing the local SEO action plan, ranking benefits, and monthly retainer for a local business.
+Respond with a JSON object containing exactly one key "seo_proposal":
+{
+  "seo_proposal": "A structured proposal in Markdown formatting detailing the local SEO action plan, ranking benefits, and monthly retainer."
+}
+Ensure the output is clean JSON. Do not write any markdown code block wrappers (like \`\`\`json or \`\`\`) in your response. Just return the raw JSON text.`;
+      }
+
+      try {
+        const orKey = localStorage.getItem('localradar_dev_openrouter_key') || '';
+        const orModel = localStorage.getItem('localradar_dev_openrouter_model') || 'deepseek/deepseek-chat';
+        const oaKey = localStorage.getItem('localradar_dev_openai_key') || '';
+        
+        const apiKey = orKey || oaKey || '';
+        const modelName = orKey ? orModel : (oaKey ? 'gpt-4o-mini' : '');
+
+        if (!apiKey) {
+          // No API Key, fallback to mock after small delay for Sandbox feel
+          await new Promise((resolve) => setTimeout(resolve, 850));
+          setPitches(prev => ({ ...prev, [tab]: mockValue }));
+          setLoadingStates(prev => ({ ...prev, [tab]: false }));
+          return;
+        }
+
+        const userPrompt = `Generate the ${tab} proposal/sequence for:
+Business Name: ${currentBiz.name}
+Website: ${currentBiz.website || 'No website detected'}
+Rating: ${currentBiz.rating}/5 stars (${currentBiz.reviews_count} reviews)
+Phone: ${currentBiz.phone || 'None'}
+Address: ${currentBiz.address || 'None'}
+Opportunity Score: ${opp.total_score}/100
+Opportunity Level: ${opp.opportunity_level}
+
+Website Issues:
+${audit.website_issues.map(i => `- ${i}`).join('\n')}
+
+SEO & Google Business Profile Issues:
+${audit.seo_issues.map(i => `- ${i}`).join('\n')}
+
+Revenue Leakage / Other Issues:
+${audit.gbp_issues.map(i => `- ${i}`).join('\n')}`;
+
+        const res = await fetch('/api/generate-pitch', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            systemPrompt,
+            userPrompt,
+            fallbackData: { [jsonKey]: mockValue },
+            clientApiKey: apiKey,
+            clientModel: modelName
+          })
+        });
+
+        if (!res.ok) {
+          throw new Error(`API failed with status ${res.status}`);
+        }
+
+        const responseData = await res.json();
+        if (responseData.success && responseData.data) {
+          const data = responseData.data;
+          setPitches(prev => ({
+            ...prev,
+            [tab]: data[jsonKey] || mockValue
+          }));
+        } else {
+          setPitches(prev => ({ ...prev, [tab]: mockValue }));
+        }
+      } catch (err) {
+        console.error(`Error generating pitch for ${tab} via AI:`, err);
+        setPitches(prev => ({ ...prev, [tab]: mockValue }));
+      } finally {
+        setLoadingStates(prev => ({ ...prev, [tab]: false }));
+      }
     }
-  }, [selectedBizId, businesses]);
+  };
+
+  const getActiveContent = () => {
+    const val = pitches[activeTab] as any;
+    if (!val) return '';
+
+    if (val && typeof val === 'object') {
+      if (val.Subject || val.Body || val.subject || val.body) {
+        const sub = val.Subject || val.subject || '';
+        const body = val.Body || val.body || '';
+        return `Subject: ${sub}\n\n${body}`;
+      }
+      return JSON.stringify(val, null, 2);
+    }
+    return typeof val === 'string' ? val : '';
+  };
 
   const handleCopy = () => {
-    if (!pitch) return;
-    
-    let textToCopy = '';
-    if (activeTab === 'email') textToCopy = pitch.cold_email;
-    if (activeTab === 'dm') textToCopy = pitch.cold_dm;
-    if (activeTab === 'website') textToCopy = pitch.website_proposal;
-    if (activeTab === 'seo') textToCopy = pitch.seo_proposal;
+    const textToCopy = getActiveContent();
+    if (!textToCopy) return;
 
     navigator.clipboard.writeText(textToCopy);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const getActiveContent = () => {
-    if (!pitch) return '';
-    if (activeTab === 'email') return pitch.cold_email;
-    if (activeTab === 'dm') return pitch.cold_dm;
-    if (activeTab === 'website') return pitch.website_proposal;
-    if (activeTab === 'seo') return pitch.seo_proposal;
-    return '';
+  const getTabLabel = (tab: 'email' | 'dm' | 'website' | 'seo') => {
+    if (tab === 'email') return 'Cold Email';
+    if (tab === 'dm') return 'Cold DM';
+    if (tab === 'website') return 'Website Proposal';
+    if (tab === 'seo') return 'SEO Proposal';
+    return 'Pitch';
   };
 
   return (
-    <div className="space-y-8 max-w-5xl mx-auto font-sans text-[#0F0F11] pb-12">
+    <div className="space-y-8 max-w-5xl mx-auto font-sans text-white pb-16">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-serif font-bold text-[#0F0F11] flex items-center gap-2">
-          AI Pitch Generator
-          <Sparkles className="w-5 h-5 text-[#E54D80] fill-[#E54D80]/10 animate-pulse" />
+      <div className="border-b border-[#26282D] pb-6">
+        <h1 className="text-2xl font-serif font-bold text-white flex items-center gap-2">
+          AI Pitch Engine
+          <Sparkles className="w-5 h-5 text-[#10B981] fill-[#10B981]/10 animate-pulse" />
         </h1>
-        <p className="text-zinc-500 text-xs mt-1">
+        <p className="text-[#A1A1AA] text-xs mt-1">
           Draft personalized client acquisition sequences using diagnostic data.
         </p>
       </div>
@@ -170,44 +326,44 @@ export default function PitchGeneratorPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
         
         {/* Left selector */}
-        <div className="bg-white border border-[#E5E5E8] p-6 rounded-2xl space-y-4 shadow-sm">
-          <h3 className="text-xs font-bold text-zinc-500 flex items-center gap-1.5 uppercase tracking-wider font-mono">
-            <Building className="w-4 h-4 text-[#E54D80]" />
+        <div className="bg-[#141517] border border-[#26282D] p-6 rounded-2xl space-y-4 shadow-xl">
+          <h3 className="text-xs font-bold text-[#A1A1AA] flex items-center gap-1.5 uppercase tracking-wider font-mono">
+            <Building className="w-4 h-4 text-[#A1A1AA]" />
             Target Business Lead
           </h3>
 
           <div className="space-y-3">
-            <label className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest block font-mono">
+            <label className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest block font-mono">
               Select Client
             </label>
             <select
               value={selectedBizId}
               onChange={(e) => setSelectedBizId(e.target.value)}
-              className="w-full bg-[#F4F4F6] border border-[#E5E5E8] rounded-xl py-3 px-4 text-[#0F0F11] text-sm focus:outline-none focus:border-[#E54D80] focus:ring-1 focus:ring-[#E54D80] transition-all font-mono cursor-pointer"
+              className="w-full bg-[#0B0B0C] border border-[#26282D] rounded-xl py-3 px-4 text-white text-sm focus:outline-none focus:border-[#10B981] transition-all font-mono cursor-pointer"
             >
               {businesses.map((b) => (
-                <option key={b.id} value={b.id}>
+                <option key={b.id} value={b.id} className="bg-[#0B0B0C]">
                   {b.name} {savedIds.has(b.id) ? '★' : ''}
                 </option>
               ))}
             </select>
           </div>
 
-          <div className="border-t border-[#E5E5E8] pt-4 mt-2">
+          <div className="border-t border-[#26282D] pt-4 mt-2">
             <button
               onClick={() => router.push('/dashboard/lead-finder')}
-              className="w-full bg-[#F4F4F6] hover:bg-[#E5E5E8] border border-[#E5E5E8] text-[#0F0F11] text-xs font-bold py-2.5 rounded-xl transition-all block text-center cursor-pointer font-mono"
+              className="w-full bg-[#0B0B0C] hover:bg-[#141517] border border-[#26282D] text-white text-xs font-bold py-2.5 rounded-xl transition-all block text-center cursor-pointer font-mono"
             >
-              Search Different Niche
+              Back to Opportunity Finder
             </button>
           </div>
         </div>
 
         {/* Right Output panel */}
-        <div className="lg:col-span-2 bg-white border border-[#E5E5E8] p-6 rounded-3xl min-h-[400px] flex flex-col justify-between shadow-sm">
+        <div className="lg:col-span-2 bg-[#141517] border border-[#26282D] p-6 rounded-2xl min-h-[400px] flex flex-col justify-between shadow-xl">
           <div>
             {/* Tabs Row */}
-            <div className="flex border-b border-[#E5E5E8] pb-3 mb-6 overflow-x-auto gap-2.5">
+            <div className="flex border-b border-[#26282D] pb-3 mb-6 overflow-x-auto gap-2.5">
               {[
                 { id: 'email', name: 'Cold Email', icon: Mail },
                 { id: 'dm', name: 'Cold DM', icon: MessageSquare },
@@ -222,8 +378,8 @@ export default function PitchGeneratorPage() {
                     onClick={() => setActiveTab(tab.id as any)}
                     className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer border whitespace-nowrap font-mono ${
                       isActive 
-                        ? 'bg-[#E54D80]/10 border-[#E54D80]/20 text-[#E54D80]' 
-                        : 'text-zinc-500 border-transparent hover:text-[#0F0F11]'
+                        ? 'bg-[#10B981]/10 border-[#10B981]/20 text-[#10B981]' 
+                        : 'text-[#A1A1AA] border-transparent hover:text-white'
                     }`}
                   >
                     <TabIcon className="w-3.5 h-3.5" />
@@ -235,22 +391,39 @@ export default function PitchGeneratorPage() {
 
             {/* Generated Content Box */}
             <div className="relative">
-              {loading ? (
+              {loadingStates[activeTab] ? (
                 <div className="h-60 flex flex-col items-center justify-center space-y-3">
-                  <Loader2 className="w-8 h-8 text-[#E54D80] animate-spin" />
-                  <span className="text-xs text-zinc-500 font-medium font-mono">Re-writing outreach sequence...</span>
+                  <Loader2 className="w-8 h-8 text-[#10B981] animate-spin" />
+                  <span className="text-xs text-[#A1A1AA] font-medium font-mono">Re-writing outreach sequence...</span>
                 </div>
-              ) : (
-                <pre className="text-xs text-[#0F0F11] font-mono leading-relaxed bg-[#F9F9FB] border border-[#E5E5E8] p-5 rounded-xl whitespace-pre-wrap overflow-x-auto select-text min-h-[220px]">
+              ) : pitches[activeTab] ? (
+                <pre className="text-xs text-white font-mono leading-relaxed bg-[#0B0B0C] border border-[#26282D] p-5 rounded-xl whitespace-pre-wrap overflow-x-auto select-text min-h-[220px]">
                   {getActiveContent()}
                 </pre>
+              ) : (
+                <div className="h-60 flex flex-col items-center justify-center space-y-4 border border-dashed border-[#26282D] bg-[#0B0B0C]/40 rounded-xl p-6">
+                  <Sparkles className="w-8 h-8 text-[#10B981] animate-pulse" />
+                  <div className="text-center">
+                    <p className="text-xs font-semibold text-white font-mono">{getTabLabel(activeTab)} Not Generated</p>
+                    <p className="text-[10px] text-[#71717A] font-mono mt-1">
+                      Click the button below to generate personalized copy using AI diagnostic tools.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => handleGenerateTabPitch(activeTab)}
+                    className="bg-[#10B981] hover:bg-[#059669] text-white text-xs font-mono font-bold px-5 py-2.5 rounded-xl transition-all shadow-md flex items-center gap-1.5 cursor-pointer uppercase tracking-wider"
+                  >
+                    <Sparkles className="w-3.5 h-3.5" />
+                    Generate {getTabLabel(activeTab)}
+                  </button>
+                </div>
               )}
             </div>
           </div>
 
           {/* Bottom Actions Row */}
-          {!loading && pitch && (
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between border-t border-[#E5E5E8] pt-6 mt-6 gap-3">
+          {!loadingStates[activeTab] && pitches[activeTab] && (
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between border-t border-[#26282D] pt-6 mt-6 gap-3">
               <span className="text-[10px] text-zinc-500 font-medium flex items-center gap-1 font-mono">
                 <AlertTriangle className="w-3.5 h-3.5 text-zinc-500" />
                 Customize variables prior to sending.
@@ -258,7 +431,7 @@ export default function PitchGeneratorPage() {
 
               <button
                 onClick={handleCopy}
-                className="bg-[#E54D80] hover:bg-[#FF5E8C] text-white text-xs font-bold px-5 py-2.5 rounded-full transition-all shadow-sm flex items-center gap-1.5 cursor-pointer font-mono"
+                className="bg-[#10B981] hover:bg-[#059669] text-white text-xs font-bold px-5 py-2.5 rounded-xl transition-all shadow-sm flex items-center gap-1.5 cursor-pointer font-mono"
               >
                 {copied ? <Check className="w-3.5 h-3.5 text-white" /> : <Copy className="w-3.5 h-3.5" />}
                 {copied ? 'Copied' : 'Copy Pitch'}

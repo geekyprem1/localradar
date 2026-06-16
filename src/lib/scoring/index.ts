@@ -67,7 +67,7 @@ export function scoreBusinessOpportunity(
   const { score: opportunityScore, level, breakdown, reasons } = calculateOpportunityScore(signals);
   
   // 2. Closing Probability™
-  const closingProbability = calculateClosingProbability(opportunityScore, signals);
+  const closingProbability = calculateClosingProbability(opportunityScore, signals, business.id);
   
   // 3. Deal Value Engine™
   const dealValue = calculateDealValue(signals, opportunityScore);

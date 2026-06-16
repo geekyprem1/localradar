@@ -18,7 +18,8 @@ import {
   Check,
   Building2,
   ListTodo,
-  Layers
+  Layers,
+  Zap
 } from 'lucide-react';
 import { generateMockAudit, generateMockCompetitors } from '@/lib/mockData';
 import { scoreBusinessOpportunity } from '@/lib/scoring';
@@ -131,15 +132,15 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
   };
 
   const getFitColor = (level: string) => {
-    if (level === 'Perfect Fit') return 'text-[#E54D80] bg-[#E54D80]/10 border-[#E54D80]/20';
-    if (level === 'Strong Fit') return 'text-violet-600 bg-violet-500/10 border-violet-500/20';
-    if (level === 'Moderate Fit') return 'text-amber-600 bg-amber-500/10 border-amber-500/20';
-    return 'text-zinc-500 bg-zinc-100 border-zinc-200';
+    if (level === 'Perfect Fit') return 'text-[#10B981] bg-[#10B981]/10 border-[#10B981]/20';
+    if (level === 'Strong Fit') return 'text-[#10B981]/90 bg-[#10B981]/5 border-[#10B981]/10';
+    if (level === 'Moderate Fit') return 'text-[#F59E0B] bg-[#F59E0B]/10 border-[#F59E0B]/20';
+    return 'text-[#A1A1AA] bg-[#141517] border-[#26282D]';
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#F9F9FB] flex items-center justify-center">
+      <div className="min-h-screen bg-[#0B0B0C] flex items-center justify-center">
         <LoaderComponent />
       </div>
     );
@@ -147,10 +148,10 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
 
   if (!business || !opportunity || !audit || !scored) {
     return (
-      <div className="p-8 text-center space-y-4 font-mono text-xs text-[#0F0F11] bg-[#F9F9FB]">
-        <p className="text-[#E54D80]">Error loading audit details.</p>
-        <button onClick={() => router.push('/dashboard/lead-finder')} className="text-zinc-500 hover:text-[#0F0F11] underline">
-          Back to Lead Finder
+      <div className="p-8 text-center space-y-4 font-mono text-xs text-white bg-[#0B0B0C]">
+        <p className="text-[#EF4444]">Error loading audit details.</p>
+        <button onClick={() => router.push('/dashboard/lead-finder')} className="text-[#71717A] hover:text-white underline">
+          Back to Opportunity Finder
         </button>
       </div>
     );
@@ -165,54 +166,54 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
   ];
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto pb-12 font-sans text-[#0F0F11]">
+    <div className="space-y-8 max-w-7xl mx-auto pb-16 font-sans text-white">
       {/* Back link */}
       <button 
         onClick={() => router.push('/dashboard/lead-finder')}
-        className="flex items-center gap-2 text-zinc-500 hover:text-[#0F0F11] text-xs font-bold transition-colors cursor-pointer font-mono"
+        className="flex items-center gap-2 text-[#A1A1AA] hover:text-white text-xs font-bold transition-colors cursor-pointer font-mono"
       >
         <ArrowLeft className="w-4 h-4" />
-        Back to Lead Finder
+        Back to Opportunity Finder
       </button>
 
       {/* Hero Overview Row */}
       <div className="flex flex-col lg:flex-row gap-6">
         {/* Left main info */}
-        <div className="bg-white border border-[#E5E5E8] p-6 flex-1 flex flex-col justify-between relative overflow-hidden rounded-3xl shadow-sm">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-[#E54D80]/5 rounded-full blur-3xl pointer-events-none" />
+        <div className="bg-[#141517] border border-[#26282D] p-6 flex-1 flex flex-col justify-between relative overflow-hidden rounded-2xl shadow-xl">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-[#10B981]/5 rounded-full blur-3xl pointer-events-none" />
           
           <div className="space-y-4">
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-[9px] font-bold text-[#E54D80] bg-[#E54D80]/10 border border-[#E54D80]/20 px-2.5 py-0.5 rounded-full uppercase tracking-wider font-mono">
+                <span className="text-[9px] font-normal text-[#10B981] bg-[#10B981]/10 border border-[#10B981]/20 px-2.5 py-0.5 rounded-full uppercase tracking-wider font-mono">
                   Intelligence Engine™ Scanned
                 </span>
-                <span className="text-[9px] font-bold text-zinc-500 bg-[#F4F4F6] border border-[#E5E5E8] px-2.5 py-0.5 rounded-full font-mono">
+                <span className="text-[9px] font-normal text-[#A1A1AA] bg-[#0B0B0C] border border-[#26282D] px-2.5 py-0.5 rounded-full font-mono">
                   ID: {business.id.slice(0, 8)}
                 </span>
               </div>
-              <h1 className="text-2xl font-serif font-bold text-[#0F0F11] mt-3">{business.name}</h1>
-              <p className="text-zinc-500 text-xs mt-1 flex items-center gap-1.5 font-mono">
-                <MapPin className="w-3.5 h-3.5 text-zinc-400" />
+              <h1 className="text-2xl font-serif font-semibold text-white mt-3">{business.name}</h1>
+              <p className="text-[#A1A1AA] text-xs mt-1 flex items-center gap-1.5 font-mono font-normal">
+                <MapPin className="w-3.5 h-3.5 text-[#71717A]" />
                 {business.address}
               </p>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 border-t border-[#E5E5E8] pt-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 border-t border-[#26282D] pt-4">
               <div>
-                <span className="text-zinc-500 text-[9px] font-bold uppercase tracking-wider block font-mono">Google Rating</span>
-                <div className="flex items-center gap-1 text-xs text-[#0F0F11] mt-1 font-mono">
+                <span className="text-[#A1A1AA] text-[9px] font-normal uppercase tracking-wider block font-mono">Google Rating</span>
+                <div className="flex items-center gap-1 text-xs text-white mt-1 font-mono">
                   <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
-                  <span className="font-bold">{business.rating}</span>
-                  <span className="text-zinc-500">({business.reviews_count} reviews)</span>
+                  <span className="font-semibold">{business.rating}</span>
+                  <span className="text-[#71717A] font-normal">({business.reviews_count} reviews)</span>
                 </div>
               </div>
               <div>
-                <span className="text-zinc-500 text-[9px] font-bold uppercase tracking-wider block font-mono">Website Domain</span>
-                <span className="text-xs text-[#E54D80] font-bold truncate block mt-1">
+                <span className="text-[#A1A1AA] text-[9px] font-normal uppercase tracking-wider block font-mono">Website Domain</span>
+                <span className="text-xs text-[#10B981] font-semibold truncate block mt-1">
                   {business.website ? (
                     <a href={business.website} target="_blank" rel="noopener noreferrer" className="hover:underline flex items-center gap-1">
-                      <Globe className="w-3.5 h-3.5 text-zinc-400" />
+                      <Globe className="w-3.5 h-3.5 text-[#71717A]" />
                       {business.website.replace('https://www.', '')}
                     </a>
                   ) : (
@@ -221,23 +222,23 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
                 </span>
               </div>
               <div>
-                <span className="text-zinc-500 text-[9px] font-bold uppercase tracking-wider block font-mono">Phone Line</span>
-                <span className="text-xs text-[#0F0F11] font-bold block mt-1 font-mono">{business.phone || 'N/A'}</span>
+                <span className="text-[#A1A1AA] text-[9px] font-normal uppercase tracking-wider block font-mono">Phone Line</span>
+                <span className="text-xs text-white font-semibold block mt-1 font-mono">{business.phone || 'N/A'}</span>
               </div>
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-2.5 border-t border-[#E5E5E8] pt-6 mt-6">
+          <div className="flex flex-wrap gap-2.5 border-t border-[#26282D] pt-6 mt-6">
             <button
               onClick={handleCopyReport}
-              className="bg-[#F4F4F6] hover:bg-[#E5E5E8] border border-[#E5E5E8] text-[#0F0F11] text-xs font-bold px-4 py-2.5 rounded-full transition-all flex items-center gap-1.5 cursor-pointer shadow-sm font-mono"
+              className="bg-[#0B0B0C] hover:bg-[#141517] border border-[#26282D] text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shadow-sm font-mono"
             >
-              {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5 text-zinc-400" />}
+              {copied ? <Check className="w-3.5 h-3.5 text-[#22C55E]" /> : <Copy className="w-3.5 h-3.5 text-[#71717A]" />}
               {copied ? 'Copied Report' : 'Copy Report'}
             </button>
             <button
               onClick={() => router.push(`/dashboard/pitch?bizId=${business.id}`)}
-              className="bg-[#E54D80] hover:bg-[#FF5E8C] text-white text-xs font-bold px-5 py-2.5 rounded-full transition-all flex items-center gap-1.5 cursor-pointer shadow-sm font-mono"
+              className="bg-[#10B981] hover:bg-[#059669] text-white text-xs font-semibold px-5 py-2.5 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shadow-sm font-mono"
             >
               <Sparkles className="w-3.5 h-3.5" />
               Generate Pitch Copy
@@ -246,7 +247,7 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
         </div>
 
         {/* Intelligence Metrics Panel */}
-        <div className="bg-white border border-[#E5E5E8] p-6 w-full lg:w-96 flex flex-col gap-6 rounded-3xl shadow-sm relative overflow-hidden">
+        <div className="bg-[#141517] border border-[#26282D] p-6 w-full lg:w-96 flex flex-col gap-6 rounded-2xl shadow-xl relative overflow-hidden">
           {/* Radial score container */}
           <div className="flex items-center gap-6">
             <div className="relative w-28 h-28 flex items-center justify-center shrink-0">
@@ -255,7 +256,7 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
                   cx="56"
                   cy="56"
                   r="48"
-                  stroke="rgba(15,15,17,0.04)"
+                  stroke="#0B0B0C"
                   strokeWidth="8"
                   fill="transparent"
                 />
@@ -263,7 +264,7 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
                   cx="56"
                   cy="56"
                   r="48"
-                  stroke={scored.opportunityScore >= 60 ? '#E54D80' : scored.opportunityScore >= 35 ? '#D97706' : '#059669'}
+                  stroke={scored.opportunityScore >= 60 ? '#10B981' : scored.opportunityScore >= 35 ? '#F59E0B' : '#71717A'}
                   strokeWidth="8"
                   strokeDasharray={2 * Math.PI * 48}
                   strokeDashoffset={2 * Math.PI * 48 * (1 - scored.opportunityScore / 100)}
@@ -272,58 +273,60 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
                 />
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-2xl font-serif font-bold text-[#0F0F11] tracking-tight">{scored.opportunityScore}</span>
-                <span className="text-[7px] text-zinc-500 uppercase tracking-widest font-bold mt-0.5 font-mono">OPPORTUNITY</span>
+                <span className="text-2xl font-mono font-semibold text-white tracking-tight">{scored.opportunityScore}</span>
+                <span className="text-[7px] text-[#71717A] uppercase tracking-widest font-normal mt-0.5 font-mono">OPPORTUNITY</span>
               </div>
             </div>
             <div className="space-y-1.5">
-              <div className="text-[9px] font-bold text-[#E54D80] bg-[#E54D80]/10 border border-[#E54D80]/20 px-2 py-0.5 rounded-full uppercase tracking-wider font-mono inline-block">
+              <div className={`text-[9px] font-normal px-2.5 py-0.5 rounded-full border uppercase tracking-wider font-mono inline-block ${
+                scored.opportunityScore >= 60 ? 'text-[#10B981] bg-[#10B981]/10 border-[#10B981]/20' : scored.opportunityScore >= 35 ? 'text-[#F59E0B] bg-[#F59E0B]/10 border-[#F59E0B]/20' : 'text-[#A1A1AA] bg-[#141517] border-[#26282D]'
+              }`}>
                 {scored.opportunityLevel} Opportunity
               </div>
-              <div className="text-xs text-zinc-500 font-mono">Intelligence Engine™</div>
+              <div className="text-xs text-[#A1A1AA] font-mono font-normal">LocalRadar Intelligence Engine™</div>
             </div>
           </div>
 
           {/* All 4 Metrics */}
           <div className="space-y-3.5 font-mono">
-            <div className="flex items-center justify-between border-b border-[#E5E5E8] pb-2.5">
-              <div className="flex items-center gap-2 text-zinc-500 text-xs">
-                <Target className="w-4 h-4 text-[#E54D80]" />
-                <span>Opportunity Score™</span>
+            <div className="flex items-center justify-between border-b border-[#26282D] pb-2.5">
+              <div className="flex items-center gap-2 text-[#A1A1AA] text-xs">
+                <Target className="w-4 h-4 text-[#10B981]" />
+                <span>Opportunity Engine™</span>
               </div>
-              <span className={`text-xs font-bold uppercase tracking-wider ${
-                scored.opportunityScore >= 60 ? 'text-[#E54D80]' : 'text-amber-600'
+              <span className={`text-xs font-semibold uppercase tracking-wider ${
+                scored.opportunityScore >= 60 ? 'text-[#10B981]' : scored.opportunityScore >= 35 ? 'text-[#F59E0B]' : 'text-[#A1A1AA]'
               }`}>
                 {scored.opportunityScore}/100
               </span>
             </div>
 
-            <div className="flex items-center justify-between border-b border-[#E5E5E8] pb-2.5">
-              <div className="flex items-center gap-2 text-zinc-500 text-xs">
-                <Layers className="w-4 h-4 text-violet-500" />
-                <span>Service Fit Score™</span>
+            <div className="flex items-center justify-between border-b border-[#26282D] pb-2.5 font-normal">
+              <div className="flex items-center gap-2 text-[#A1A1AA] text-xs">
+                <Layers className="w-4 h-4 text-[#10B981]" />
+                <span>Service Fit Engine™</span>
               </div>
-              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${getFitColor(scored.bestFit.level)}`}>
+              <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${getFitColor(scored.bestFit.level)}`}>
                 {scored.bestFit.agencyType}
               </span>
             </div>
 
-            <div className="flex items-center justify-between border-b border-[#E5E5E8] pb-2.5">
-              <div className="flex items-center gap-2 text-zinc-500 text-xs">
-                <TrendingUp className="w-4 h-4 text-[#E54D80]" />
+            <div className="flex items-center justify-between border-b border-[#26282D] pb-2.5 font-normal">
+              <div className="flex items-center gap-2 text-[#A1A1AA] text-xs">
+                <TrendingUp className="w-4 h-4 text-[#10B981]" />
                 <span>Closing Probability™</span>
               </div>
-              <span className="text-xs font-bold text-[#059669]">
+              <span className="text-xs font-semibold text-[#22C55E]">
                 {scored.closingProbability}%
               </span>
             </div>
 
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-zinc-500 text-xs">
-                <DollarSign className="w-4 h-4 text-[#059669]" />
-                <span>Deal Value™</span>
+            <div className="flex items-center justify-between font-normal">
+              <div className="flex items-center gap-2 text-[#A1A1AA] text-xs">
+                <DollarSign className="w-4 h-4 text-[#22C55E]" />
+                <span>Revenue Potential™</span>
               </div>
-              <span className="text-xs font-bold text-[#0F0F11]">
+              <span className="text-xs font-semibold text-white">
                 {scored.dealValue.formatted}
               </span>
             </div>
@@ -337,30 +340,30 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
         {/* Left Column: Breakdown + Service Fit */}
         <div className="lg:col-span-2 space-y-6">
           {/* Vulnerability Diagnostics */}
-          <div className="bg-white border border-[#E5E5E8] p-6 space-y-6 rounded-3xl shadow-sm">
-            <h2 className="text-sm font-bold text-[#0F0F11] flex items-center gap-2 uppercase tracking-wider font-mono">
-              <ListTodo className="w-4 h-4 text-[#E54D80]" />
+          <div className="bg-[#141517] border border-[#26282D] p-6 space-y-6 rounded-2xl shadow-xl">
+            <h2 className="text-sm font-semibold text-[#FFFFFF] flex items-center gap-2 uppercase tracking-wider font-mono">
+              <ListTodo className="w-4 h-4 text-[#10B981]" />
               AI Vulnerability Diagnostics
             </h2>
 
-            <div className="space-y-6">
+            <div className="space-y-6 font-normal">
               {sections.map((sec) => {
                 const percent = sec.max > 0 ? (sec.score / sec.max) * 100 : 0;
                 const isActive = sec.score > 0;
                 return (
-                  <div key={sec.title} className="border-b border-[#E5E5E8] pb-5 last:border-0 last:pb-0">
+                  <div key={sec.title} className="border-b border-[#26282D] pb-5 last:border-0 last:pb-0">
                     <div className="flex justify-between items-center mb-2">
-                      <span className="text-xs font-bold text-[#0F0F11]">{sec.title}</span>
-                      <span className="text-xs text-zinc-500 font-mono">
+                      <span className="text-xs font-semibold text-[#FFFFFF]">{sec.title}</span>
+                      <span className="text-xs text-[#A1A1AA] font-mono">
                         +{sec.score} / {sec.max} points
                       </span>
                     </div>
 
                     {/* Progress track */}
-                    <div className="w-full bg-[#F4F4F6] h-2 rounded-full border border-[#E5E5E8] overflow-hidden">
+                    <div className="w-full bg-[#0B0B0C] h-2 rounded-full border border-[#26282D] overflow-hidden">
                       <div 
                         className={`h-full rounded-full transition-all duration-500 ${
-                          isActive ? 'bg-[#E54D80]' : 'bg-[#059669]'
+                          isActive ? 'bg-[#EF4444]' : 'bg-[#22C55E]'
                         }`}
                         style={{ width: `${percent}%` }}
                       />
@@ -370,14 +373,14 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
                     <div className="mt-3.5 space-y-2">
                       {sec.issues.length > 0 ? (
                         sec.issues.map((issue, i) => (
-                          <div key={i} className="flex items-start gap-2.5 text-xs text-[#E54D80] bg-[#E54D80]/10 border border-[#E54D80]/20 p-2.5 rounded-xl font-mono">
-                            <AlertTriangle className="w-3.5 h-3.5 text-[#E54D80] shrink-0 mt-0.5" />
+                          <div key={i} className="flex items-start gap-2.5 text-xs text-[#EF4444] bg-[#EF4444]/5 border border-[#EF4444]/15 p-2.5 rounded-xl font-mono">
+                            <AlertTriangle className="w-3.5 h-3.5 text-[#EF4444] shrink-0 mt-0.5" />
                             <span>{issue}</span>
                           </div>
                         ))
                       ) : (
-                        <div className="flex items-center gap-2.5 text-xs text-[#059669] bg-[#059669]/10 border border-[#059669]/20 p-2.5 rounded-xl font-mono">
-                          <CheckCircle className="w-3.5 h-3.5 text-[#059669] shrink-0" />
+                        <div className="flex items-center gap-2.5 text-xs text-[#22C55E] bg-[#22C55E]/5 border border-[#22C55E]/15 p-2.5 rounded-xl font-mono">
+                          <CheckCircle className="w-3.5 h-3.5 text-[#22C55E] shrink-0" />
                           <span>No critical vulnerabilities discovered. Strong performance.</span>
                         </div>
                       )}
@@ -389,39 +392,39 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
           </div>
 
           {/* Service Fit Score™ Panel */}
-          <div className="bg-white border border-[#E5E5E8] p-6 space-y-4 rounded-3xl shadow-sm">
-            <h2 className="text-sm font-bold text-[#0F0F11] flex items-center gap-2 uppercase tracking-wider font-mono">
-              <Layers className="w-4 h-4 text-violet-500" />
-              Service Fit Score™ — Agency Compatibility
+          <div className="bg-[#141517] border border-[#26282D] p-6 space-y-4 rounded-2xl shadow-xl">
+            <h2 className="text-sm font-semibold text-white flex items-center gap-2 uppercase tracking-wider font-mono">
+              <Layers className="w-4 h-4 text-[#10B981]" />
+              Service Fit Engine™ — Agency Compatibility
             </h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {scored.serviceFitScores.map(fit => (
-                <div key={fit.agencyType} className="bg-[#F9F9FB] border border-[#E5E5E8] p-4 rounded-xl">
+                <div key={fit.agencyType} className="bg-[#0B0B0C] border border-[#26282D] p-4 rounded-xl">
                   <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs font-bold text-[#0F0F11]">{fit.agencyType}</span>
-                    <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full border font-mono ${getFitColor(fit.level)}`}>
+                    <span className="text-xs font-semibold text-white">{fit.agencyType}</span>
+                    <span className={`text-[9px] font-semibold px-2 py-0.5 rounded border font-mono ${getFitColor(fit.level)}`}>
                       {fit.level}
                     </span>
                   </div>
                   
                   {/* Score bar */}
-                  <div className="w-full bg-[#E5E5E8] h-1.5 rounded-full overflow-hidden mb-3">
+                  <div className="w-full bg-[#141517] h-1.5 border border-[#26282D] rounded-full overflow-hidden mb-3">
                     <div 
-                      className={`h-full rounded-full ${fit.score >= 70 ? 'bg-[#E54D80]' : fit.score >= 45 ? 'bg-violet-500' : fit.score >= 20 ? 'bg-amber-500' : 'bg-zinc-400'}`}
+                      className={`h-full rounded-full ${fit.score >= 70 ? 'bg-[#10B981]' : fit.score >= 45 ? 'bg-[#10B981]/80' : fit.score >= 20 ? 'bg-[#F59E0B]' : 'bg-[#71717A]'}`}
                       style={{ width: `${fit.score}%` }}
                     />
                   </div>
                   
-                  <div className="flex items-center justify-between text-[10px] font-mono">
-                    <span className="text-zinc-500">Compatibility</span>
-                    <span className="font-bold text-[#0F0F11]">{fit.score}/100</span>
+                  <div className="flex items-center justify-between text-[10px] font-mono font-normal">
+                    <span className="text-[#A1A1AA]">Compatibility</span>
+                    <span className="font-semibold text-white">{fit.score}/100</span>
                   </div>
                   
                   {fit.reasons.length > 0 && (
-                    <div className="mt-2 space-y-1">
+                    <div className="mt-2 space-y-1 font-normal">
                       {fit.reasons.slice(0, 2).map((r, i) => (
-                        <div key={i} className="text-[9px] text-zinc-500 font-mono">• {r}</div>
+                        <div key={i} className="text-[9px] text-[#A1A1AA] font-mono">• {r}</div>
                       ))}
                     </div>
                   )}
@@ -435,48 +438,48 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
         <div className="space-y-6">
           
           {/* Competitor Gap Analysis */}
-          <div className="bg-white border border-[#E5E5E8] p-6 space-y-4 rounded-3xl shadow-sm">
-            <h3 className="text-sm font-bold text-[#0F0F11] flex items-center gap-2 uppercase tracking-wider font-mono">
-              <Building2 className="w-4 h-4 text-[#E54D80]" />
+          <div className="bg-[#141517] border border-[#26282D] p-6 space-y-4 rounded-2xl shadow-xl">
+            <h3 className="text-sm font-semibold text-[#FFFFFF] flex items-center gap-2 uppercase tracking-wider font-mono">
+              <Building2 className="w-4 h-4 text-[#10B981]" />
               Competitor Gap Analysis
             </h3>
             
             <div className="space-y-3">
               {/* Subject Business card */}
-              <div className="bg-[#E54D80]/5 border border-[#E54D80]/20 p-3 rounded-xl shadow-sm">
-                <p className="text-xs font-bold text-[#E54D80] truncate">{business.name}</p>
-                <div className="grid grid-cols-3 gap-2 mt-2 text-[10px] text-zinc-500 font-mono">
+              <div className="bg-[#10B981]/5 border border-[#10B981]/20 p-3 rounded-xl shadow-md">
+                <p className="text-xs font-semibold text-[#10B981] truncate">{business.name}</p>
+                <div className="grid grid-cols-3 gap-2 mt-2 text-[10px] text-[#A1A1AA] font-mono font-normal">
                   <div>
                     <span>Rating:</span>
-                    <span className="text-[#0F0F11] font-bold block mt-0.5">⭐ {business.rating}</span>
+                    <span className="text-white font-semibold block mt-0.5">⭐ {business.rating}</span>
                   </div>
                   <div>
                     <span>Reviews:</span>
-                    <span className="text-[#0F0F11] font-bold block mt-0.5">{business.reviews_count}</span>
+                    <span className="text-white font-semibold block mt-0.5">{business.reviews_count}</span>
                   </div>
                   <div>
                     <span>Opp. Score:</span>
-                    <span className="text-[#E54D80] font-bold block mt-0.5">{scored.opportunityScore}</span>
+                    <span className="text-[#10B981] font-semibold block mt-0.5">{scored.opportunityScore}</span>
                   </div>
                 </div>
               </div>
 
               {/* Competitors list */}
               {competitors.map((comp) => (
-                <div key={comp.id} className="bg-[#F9F9FB] border border-[#E5E5E8] p-3 rounded-xl">
-                  <p className="text-xs font-semibold text-[#0F0F11] truncate">{comp.name}</p>
-                  <div className="grid grid-cols-3 gap-2 mt-2 text-[10px] text-zinc-500 font-mono">
+                <div key={comp.id} className="bg-[#0B0B0C] border border-[#26282D] p-3 rounded-xl">
+                  <p className="text-xs font-semibold text-white truncate">{comp.name}</p>
+                  <div className="grid grid-cols-3 gap-2 mt-2 text-[10px] text-[#A1A1AA] font-mono font-normal">
                     <div>
                       <span>Rating:</span>
-                      <span className="text-[#0F0F11] font-bold block mt-0.5">⭐ {comp.rating}</span>
+                      <span className="text-white font-semibold block mt-0.5">⭐ {comp.rating}</span>
                     </div>
                     <div>
                       <span>Reviews:</span>
-                      <span className="text-[#0F0F11] font-bold block mt-0.5">{comp.reviews_count}</span>
+                      <span className="text-white font-semibold block mt-0.5">{comp.reviews_count}</span>
                     </div>
                     <div>
                       <span>SEO Score:</span>
-                      <span className="text-[#0F0F11] font-bold block mt-0.5">{comp.seo_score}/100</span>
+                      <span className="text-white font-semibold block mt-0.5">{comp.seo_score}/100</span>
                     </div>
                   </div>
                 </div>
@@ -485,21 +488,21 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
           </div>
 
           {/* Recommended Services Panel */}
-          <div className="bg-white border border-[#E5E5E8] p-6 space-y-4 rounded-3xl shadow-sm">
-            <h3 className="text-sm font-bold text-[#0F0F11] flex items-center gap-2 uppercase tracking-wider font-mono">
-              <Sparkles className="w-4 h-4 text-[#E54D80]" />
+          <div className="bg-[#141517] border border-[#26282D] p-6 space-y-4 rounded-2xl shadow-xl">
+            <h3 className="text-sm font-semibold text-white flex items-center gap-2 uppercase tracking-wider font-mono">
+              <Sparkles className="w-4 h-4 text-[#10B981]" />
               Recommended Pitches
             </h3>
             
             <div className="space-y-2.5">
               {audit.recommended_services.map((service, idx) => (
-                <div key={idx} className="bg-[#E54D80]/5 border border-[#E54D80]/15 p-3.5 rounded-xl flex gap-2.5 items-start">
-                  <span className="w-5 h-5 rounded-full bg-[#E54D80]/10 border border-[#E54D80]/20 flex items-center justify-center font-bold text-[9px] text-[#E54D80] mt-0.5 shrink-0 font-mono">
+                <div key={idx} className="bg-[#0B0B0C] border border-[#26282D] p-3.5 rounded-xl flex gap-2.5 items-start">
+                  <span className="w-5 h-5 rounded-full bg-[#10B981]/10 border border-[#10B981]/20 flex items-center justify-center font-normal text-[9px] text-[#10B981] mt-0.5 shrink-0 font-mono">
                     {idx + 1}
                   </span>
                   <div>
-                    <p className="text-xs text-[#0F0F11] font-bold leading-relaxed">{service.split(' (')[0]}</p>
-                    <p className="text-[10px] text-[#E54D80] font-bold mt-1 font-mono">
+                    <p className="text-xs text-white font-semibold leading-relaxed">{service.split(' (')[0]}</p>
+                    <p className="text-[10px] text-[#10B981] font-semibold mt-1 font-mono">
                       Est. Service Fee: {service.includes('₹') ? '₹' + service.split('₹')[1] : 'Included'}
                     </p>
                   </div>
@@ -518,8 +521,8 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
 function LoaderComponent() {
   return (
     <div className="relative w-16 h-16 flex items-center justify-center">
-      <div className="absolute inset-0 border-4 border-[#E54D80]/10 rounded-full"></div>
-      <div className="absolute inset-0 border-4 border-[#E54D80] border-t-transparent rounded-full animate-spin"></div>
+      <div className="absolute inset-0 border-4 border-[#10B981]/10 rounded-full"></div>
+      <div className="absolute inset-0 border-4 border-[#10B981] border-t-transparent rounded-full animate-spin"></div>
     </div>
   );
 }

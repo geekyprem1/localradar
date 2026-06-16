@@ -13,26 +13,40 @@ import {
   FileText, 
   Send,
   Bookmark,
-  ChevronDown,
-  ChevronUp,
+  ChevronRight,
   TrendingUp,
   ArrowUpRight,
   DollarSign,
   AlertTriangle,
-  CheckCircle2,
   Zap,
   Info,
-  ShieldCheck,
   Building2,
   ExternalLink,
   Target,
-  Layers
+  Layers,
+  ArrowRight,
+  X,
+  History,
+  Briefcase,
+  Compass,
+  LineChart,
+  ShieldCheck,
+  CheckCircle2,
+  Flame
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { generateLeads, generateMockCompetitors } from '@/lib/mockData';
 import { scoreBusinessOpportunity, getVulnerabilityTags } from '@/lib/scoring';
 import { Business, Opportunity } from '@/types';
 import { ScoredOpportunity } from '@/types/scoring';
+import OpportunityIntelligenceDrawer from '@/components/OpportunityIntelligenceDrawer';
+
+
+interface RecentSearch {
+  niche: string;
+  city: string;
+  country: string;
+}
 
 export default function LeadFinderPage() {
   const router = useRouter();
@@ -47,16 +61,31 @@ export default function LeadFinderPage() {
   const [opportunities, setOpportunities] = useState<Record<string, Opportunity>>({});
   const [scoredMap, setScoredMap] = useState<Record<string, ScoredOpportunity>>({});
   const [savedLeadsList, setSavedLeadsList] = useState<string[]>([]);
-  const [expandedRowId, setExpandedRowId] = useState<string | null>(null);
+  const [recentSearches, setRecentSearches] = useState<RecentSearch[]>([]);
+  
+  // Drawer state for the slide-over intelligence panel
+  const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
+  const [hotLeadsMap, setHotLeadsMap] = useState<Record<string, boolean>>({});
+
+  const refreshHotLeadsMap = () => {
+    const hotMap: Record<string, boolean> = {};
+    leads.forEach(biz => {
+      hotMap[biz.id] = localStorage.getItem(`localradar_hot_${biz.id}`) === 'true';
+    });
+    setHotLeadsMap(hotMap);
+  };
+
 
   const loadingStages = [
-    'Initializing local revenue crawler...',
-    'Scanning Google Maps listings & GBP registers...',
-    'Resolving company web domains & mail servers...',
-    'Running Intelligence Engine™ diagnostics...',
-    'Computing Service Fit Score™ across agency types...',
-    'Generating Opportunity Scores™ & Deal Values...'
+    'Initializing LocalRadar Intelligence Engine™...',
+    'Scanning targets via Opportunity Engine™...',
+    'Computing closing likelihood via Closing Probability™...',
+    'Running Revenue Potential™ metrics analysis...',
+    'Evaluating suitability via Service Fit Engine™...',
+    'Running diagnostics through Why This Lead™...'
   ];
+
+  const popularNiches = ['Dentists', 'Roofers', 'Plumbers', 'Lawyers', 'Gyms'];
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -68,7 +97,7 @@ export default function LeadFinderPage() {
           }
           return prev + 1;
         });
-      }, 900);
+      }, 700);
     } else {
       setLoadingStage(0);
     }
@@ -84,9 +113,10 @@ export default function LeadFinderPage() {
       map[biz.id] = scoreBusinessOpportunity(biz, competitors);
     });
     setScoredMap(map);
+    refreshHotLeadsMap();
   }, [leads]);
 
-  // Load last searches and saved leads on mount
+  // Load last searches, recent searches, and saved leads on mount
   useEffect(() => {
     const cachedLeads = localStorage.getItem('localradar_latest_leads');
     const cachedOpps = localStorage.getItem('localradar_latest_opps');
@@ -100,6 +130,19 @@ export default function LeadFinderPage() {
     if (cachedSaved) {
       const parsed = JSON.parse(cachedSaved) as Business[];
       setSavedLeadsList(parsed.map(b => b.id));
+    }
+
+    const cachedRecent = localStorage.getItem('localradar_recent_searches');
+    if (cachedRecent) {
+      setRecentSearches(JSON.parse(cachedRecent));
+    } else {
+      // Seed some mock recent searches
+      const seeds = [
+        { niche: 'Dentists', city: 'Austin', country: 'United States' },
+        { niche: 'Gyms', city: 'Dallas', country: 'United States' }
+      ];
+      setRecentSearches(seeds);
+      localStorage.setItem('localradar_recent_searches', JSON.stringify(seeds));
     }
   }, []);
 
@@ -136,13 +179,32 @@ export default function LeadFinderPage() {
     localStorage.setItem('localradar_saved_opps', JSON.stringify(oppsMap));
   };
 
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!niche || !city) return;
+  const handleSearch = async (e?: React.FormEvent, searchNiche?: string, searchCity?: string, searchCountry?: string) => {
+    if (e) e.preventDefault();
+    
+    const finalNiche = searchNiche || niche;
+    const finalCity = searchCity || city;
+    const finalCountry = searchCountry || country;
+
+    if (!finalNiche || !finalCity) return;
+
+    // Set input values back to UI just in case
+    setNiche(finalNiche);
+    setCity(finalCity);
+    setCountry(finalCountry);
 
     setLoading(true);
     setSearched(false);
-    setExpandedRowId(null);
+    setSelectedLeadId(null);
+
+    // Save recent search
+    const updatedRecent = [
+      { niche: finalNiche, city: finalCity, country: finalCountry },
+      ...recentSearches.filter(s => !(s.niche.toLowerCase() === finalNiche.toLowerCase() && s.city.toLowerCase() === finalCity.toLowerCase()))
+    ].slice(0, 5);
+
+    setRecentSearches(updatedRecent);
+    localStorage.setItem('localradar_recent_searches', JSON.stringify(updatedRecent));
 
     const key = localStorage.getItem('localradar_dev_google_places_key') || '';
 
@@ -153,7 +215,7 @@ export default function LeadFinderPage() {
           'Content-Type': 'application/json',
           'x-google-places-key': key
         },
-        body: JSON.stringify({ niche, city, country })
+        body: JSON.stringify({ niche: finalNiche, city: finalCity, country: finalCountry })
       });
 
       const data = await response.json();
@@ -173,7 +235,7 @@ export default function LeadFinderPage() {
 
     // Fallback sandbox generator
     setTimeout(() => {
-      const { businesses, opportunities: opps } = generateLeads(niche, city, country);
+      const { businesses, opportunities: opps } = generateLeads(finalNiche, finalCity, finalCountry);
       
       setLeads(businesses);
       setOpportunities(opps);
@@ -183,7 +245,12 @@ export default function LeadFinderPage() {
       
       setLoading(false);
       setSearched(true);
-    }, 5000);
+    }, 4500);
+  };
+
+  const executePopularNiche = (nicheName: string) => {
+    const defaultCity = city || 'Austin';
+    handleSearch(undefined, nicheName, defaultCity, country);
   };
 
   // Intelligence Engine™ helper functions
@@ -195,22 +262,28 @@ export default function LeadFinderPage() {
   const getServiceFits = (bizId: string) => scoredMap[bizId]?.serviceFitScores ?? [];
 
   const getScoreColor = (score: number) => {
-    if (score >= 60) return 'text-[#E54D80] border-[#E54D80]/20 bg-[#E54D80]/10';
-    if (score >= 35) return 'text-amber-600 border-amber-500/20 bg-amber-500/10';
-    return 'text-emerald-600 border-emerald-500/20 bg-emerald-500/10';
+    if (score >= 60) return 'text-[#10B981] border-[#10B981]/25 bg-[#10B981]/10';
+    if (score >= 35) return 'text-[#F59E0B] border-[#F59E0B]/20 bg-[#F59E0B]/10';
+    return 'text-[#A1A1AA] border-[#26282D] bg-[#141517]';
+  };
+
+  const getScoreBadgeColor = (score: number) => {
+    if (score >= 60) return 'bg-[#10B981] text-[#FFFFFF]';
+    if (score >= 35) return 'bg-[#F59E0B] text-[#0B0B0C]';
+    return 'bg-[#26282D] text-[#A1A1AA]';
   };
 
   const getScoreLabel = (score: number) => {
-    if (score >= 60) return 'High';
-    if (score >= 35) return 'Medium';
-    return 'Low';
+    if (score >= 60) return 'HIGH';
+    if (score >= 35) return 'MEDIUM';
+    return 'LOW';
   };
 
   const getFitColor = (level: string) => {
-    if (level === 'Perfect Fit') return 'text-[#E54D80] bg-[#E54D80]/10 border-[#E54D80]/20';
-    if (level === 'Strong Fit') return 'text-violet-600 bg-violet-500/10 border-violet-500/20';
-    if (level === 'Moderate Fit') return 'text-amber-600 bg-amber-500/10 border-amber-500/20';
-    return 'text-zinc-500 bg-zinc-100 border-zinc-200';
+    if (level === 'Perfect Fit') return 'text-[#FFFFFF] bg-[#26282D] border-[#26282D]';
+    if (level === 'Strong Fit') return 'text-[#A1A1AA] bg-[#141517] border-[#26282D]';
+    if (level === 'Moderate Fit') return 'text-[#71717A] bg-transparent border-[#26282D]/60';
+    return 'text-[#71717A] bg-transparent border-[#26282D]/40';
   };
 
   const getTags = (bizId: string) => {
@@ -219,21 +292,64 @@ export default function LeadFinderPage() {
     return ['Analyzing...'];
   };
 
-  // Stats computation
+  const getCleanTopReason = (bizId: string) => {
+    const scored = scoredMap[bizId];
+    if (!scored) return '✓ Strong Target';
+    const reasons = scored.reasons || [];
+    
+    const noWebsite = reasons.some((r: string) => r.toLowerCase().includes('no website'));
+    if (noWebsite) return '✓ No Website';
+    
+    const reviewGap = reasons.find((r: string) => r.toLowerCase().includes('reviews') && r.toLowerCase().includes('below'));
+    if (reviewGap) {
+      const match = reviewGap.match(/\d+/);
+      if (match) {
+        return `✓ Review Gap ${match[0]}+`;
+      }
+      return '✓ Review Gap';
+    }
+
+    const noBooking = reasons.some((r: string) => r.toLowerCase().includes('booking') || r.toLowerCase().includes('appointment'));
+    if (noBooking) return '✓ No Booking Flow';
+
+    const gbpWeakness = reasons.some((r: string) => r.toLowerCase().includes('gbp') || r.toLowerCase().includes('google business') || r.toLowerCase().includes('phone'));
+    if (gbpWeakness) return '✓ Weak Google Presence';
+
+    return '✓ Verified Gaps';
+  };
+
+  // Indian currency abbreviator
+  const formatLakhs = (value: number) => {
+    if (value >= 100000) {
+      return `₹${(value / 100000).toFixed(1)}L`;
+    }
+    return `₹${value.toLocaleString('en-IN')}`;
+  };
+
+  // Dynamic metrics calculations
   const stats = searched && leads.length > 0 ? {
     found: leads.length,
-    high: leads.filter(l => getScore(l.id) >= 60).length,
+    highOppCount: leads.filter(l => getScore(l.id) >= 60).length,
+    highProbCount: leads.filter(l => getClosing(l.id) >= 70).length,
     pipeline: leads.reduce((sum, l) => {
       const scored = scoredMap[l.id];
       if (scored) return sum + scored.dealValue.max;
       return sum + (opportunities[l.id]?.estimated_deal_value || 0);
     }, 0),
-    avgScore: Math.round(leads.reduce((sum, l) => sum + getScore(l.id), 0) / leads.length)
+    weightedPipeline: leads.reduce((sum, l) => {
+      const scored = scoredMap[l.id];
+      const maxVal = scored ? scored.dealValue.max : (opportunities[l.id]?.estimated_deal_value || 0);
+      const prob = getClosing(l.id);
+      return sum + Math.round(maxVal * (prob / 100));
+    }, 0),
+    avgClosing: Math.round(leads.reduce((sum, l) => sum + getClosing(l.id), 0) / leads.length)
   } : {
-    found: 124,
-    high: 38,
-    pipeline: 58200,
-    avgScore: 71
+    found: 0,
+    highOppCount: 0,
+    highProbCount: 0,
+    pipeline: 0,
+    weightedPipeline: 0,
+    avgClosing: 0
   };
 
   // Top 5 opportunities
@@ -242,50 +358,70 @@ export default function LeadFinderPage() {
       lead: l,
       opp: opportunities[l.id],
       score: getScore(l.id),
-      scored: scoredMap[l.id]
+      scored: scoredMap[l.id],
+      closing: getClosing(l.id)
     }))
     .sort((a, b) => b.score - a.score)
     .slice(0, 5);
 
+  const selectedLead = leads.find(l => l.id === selectedLeadId);
+  const selectedScored = selectedLead ? scoredMap[selectedLead.id] : null;
+
   return (
-    <div className="space-y-8 max-w-7xl mx-auto font-sans text-[#0F0F11] pb-12">
+    <div className="space-y-8 max-w-7xl mx-auto font-sans text-[#FFFFFF] pb-16 relative">
       
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#E5E5E8] pb-6">
+      {/* Top Header / Premium Context Line */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[rgba(255,255,255,0.08)] pb-6">
         <div>
-          <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-[#E54D80] font-bold">
-            <Zap className="w-3.5 h-3.5 fill-[#E54D80]" />
-            AI-Powered Sales Intelligence
+          <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-[#10B981] font-semibold">
+            <Zap className="w-3.5 h-3.5 fill-[#10B981] animate-pulse" />
+            Opportunity Engine™
           </div>
-          <h1 className="text-3xl font-serif font-extrabold tracking-tight mt-1 text-[#0F0F11]">Opportunity Finder</h1>
-          <p className="text-zinc-500 text-xs mt-1">
-            Discover local businesses with critical vulnerabilities and high closing velocities.
+          <h1 className="text-3xl font-serif font-semibold tracking-tight mt-1 text-[#FFFFFF]">Opportunity Finder™</h1>
+          <p className="text-[#9CA3AF] text-xs mt-1 flex items-center gap-1.5 font-normal">
+            <span className="text-[#10B981] font-normal uppercase tracking-wider text-[10px] font-mono">Powered by LocalRadar Intelligence Engine™</span>
+            <span className="text-[#71717A]">•</span>
+            <span>Real-time local lead auditing and transaction valuation terminal.</span>
           </p>
+        </div>
+        
+        {/* Saved Searches / Counters top metadata */}
+        <div className="flex items-center gap-4 text-xs font-mono font-normal">
+          <div className="bg-[#141517] border border-[#26282D] px-3 py-1.5 rounded-lg">
+            <span className="text-[#A1A1AA]">Saved Opportunities:</span>{' '}
+            <span className="text-[#10B981] font-semibold">{savedLeadsList.length}</span>
+          </div>
+          <div className="bg-[#141517] border border-[#26282D] px-3 py-1.5 rounded-lg flex items-center gap-1.5">
+            <LineChart className="w-3.5 h-3.5 text-[#22C55E]" />
+            <span className="text-[#A1A1AA]">Trend:</span>{' '}
+            <span className="text-[#22C55E] font-semibold">Optimal Target</span>
+          </div>
         </div>
       </div>
 
-      {/* SECTION 1: Compact Search Bar */}
-      <div className="bg-white border border-[#E5E5E8] p-5 rounded-2xl shadow-sm relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-[1.5px] bg-gradient-to-r from-transparent via-[#E54D80]/35 to-transparent" />
-        <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end font-sans">
+      {/* SECTION 1: Compact Search Experience */}
+      <div className="bg-[#141517] border border-[#26282D] p-6 rounded-2xl relative overflow-hidden shadow-2xl">
+        <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#10B981]/25 to-transparent" />
+        
+        <form onSubmit={(e) => handleSearch(e)} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end font-sans">
           <div className="space-y-2">
-            <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-1.5 font-mono">
-              <Search className="w-3.5 h-3.5 text-[#E54D80]" />
-              Business Type / Niche
+            <label className="text-[10px] font-normal text-[#A1A1AA] uppercase tracking-widest flex items-center gap-1.5 font-mono">
+              <Compass className="w-3.5 h-3.5 text-[#A1A1AA]" />
+              Niche / Industry
             </label>
             <input
               type="text"
-              placeholder="e.g. Dental Practice, Plumbers, Roofer"
+              placeholder="e.g. Dentists, Gyms, Roofers"
               value={niche}
               onChange={(e) => setNiche(e.target.value)}
-              className="w-full bg-[#F4F4F6] border border-[#E5E5E8] rounded-xl py-3 px-4 text-[#0F0F11] placeholder-zinc-400 text-xs focus:outline-none focus:border-[#E54D80] focus:ring-1 focus:ring-[#E54D80] transition-all font-mono"
+              className="w-full bg-[#0B0B0C] border border-[#26282D] rounded-xl py-3 px-4 text-[#FFFFFF] placeholder-[#71717A]/60 text-xs focus:outline-none focus:border-[#10B981] focus:ring-1 focus:ring-[#10B981] transition-all font-mono font-normal"
               required
             />
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-1.5 font-mono">
-              <MapPin className="w-3.5 h-3.5 text-[#E54D80]" />
+            <label className="text-[10px] font-normal text-[#A1A1AA] uppercase tracking-widest flex items-center gap-1.5 font-mono">
+              <MapPin className="w-3.5 h-3.5 text-[#A1A1AA]" />
               Target City
             </label>
             <input
@@ -293,69 +429,130 @@ export default function LeadFinderPage() {
               placeholder="e.g. Dallas, TX or Austin"
               value={city}
               onChange={(e) => setCity(e.target.value)}
-              className="w-full bg-[#F4F4F6] border border-[#E5E5E8] rounded-xl py-3 px-4 text-[#0F0F11] placeholder-zinc-400 text-xs focus:outline-none focus:border-[#E54D80] focus:ring-1 focus:ring-[#E54D80] transition-all font-mono"
+              className="w-full bg-[#0B0B0C] border border-[#26282D] rounded-xl py-3 px-4 text-[#FFFFFF] placeholder-[#71717A]/60 text-xs focus:outline-none focus:border-[#10B981] focus:ring-1 focus:ring-[#10B981] transition-all font-mono font-normal"
               required
             />
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-1.5 font-mono">
-              <Globe className="w-3.5 h-3.5 text-[#E54D80]" />
+            <label className="text-[10px] font-normal text-[#A1A1AA] uppercase tracking-widest flex items-center gap-1.5 font-mono">
+              <Globe className="w-3.5 h-3.5 text-[#A1A1AA]" />
               Country
             </label>
             <select
               value={country}
               onChange={(e) => setCountry(e.target.value)}
-              className="w-full bg-[#F4F4F6] border border-[#E5E5E8] rounded-xl py-3 px-4 text-[#0F0F11] text-xs focus:outline-none focus:border-[#E54D80] focus:ring-1 focus:ring-[#E54D80] transition-all font-mono cursor-pointer"
+              className="w-full bg-[#0B0B0C] border border-[#26282D] rounded-xl py-3 px-4 text-[#FFFFFF] text-xs focus:outline-none focus:border-[#10B981] transition-all font-mono cursor-pointer font-normal"
             >
               <option value="United States">United States</option>
               <option value="India">India</option>
               <option value="Canada">Canada</option>
               <option value="United Kingdom">United Kingdom</option>
-              <option value="Australia">Australia</option>
             </select>
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-[#E54D80] hover:bg-[#FF5E8C] disabled:bg-[#E54D80]/50 text-white font-bold text-xs py-3 rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer h-[44px] uppercase tracking-wider font-mono"
+            className="w-full bg-[#10B981] hover:bg-[#059669] disabled:bg-[#10B981]/50 text-white font-semibold text-xs py-3 rounded-xl transition-all shadow-[0_0_15px_rgba(16,185,129,0.15)] flex items-center justify-center gap-2 cursor-pointer h-[44px] uppercase tracking-wider font-mono"
           >
             {loading ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin animate-duration-1000" />
-                Scanning Local Map...
+                <Loader2 className="w-4 h-4 animate-spin text-white" />
+                Scanning Market...
               </>
             ) : (
               <>
-                <Sparkles className="w-4 h-4 text-white fill-white/10" />
+                <Sparkles className="w-4 h-4 text-white" />
                 Find Opportunities
               </>
             )}
           </button>
         </form>
+
+        {/* Recent Searches, Saved Searches & Popular Niches */}
+        <div className="mt-4 pt-4 border-t border-[#26282D] grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+          {recentSearches.length > 0 ? (
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-[#A1A1AA] font-mono flex items-center gap-1">
+                <History className="w-3 h-3 text-[#A1A1AA]" />
+                Recent:
+              </span>
+              <div className="flex flex-wrap gap-1.5">
+                {recentSearches.map((search, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => handleSearch(undefined, search.niche, search.city, search.country)}
+                    className="bg-[#0B0B0C] border border-[#26282D] px-2.5 py-1 rounded-md text-[10px] font-mono text-zinc-300 hover:text-white hover:border-[#10B981] transition-all cursor-pointer"
+                  >
+                    🔍 {search.niche} ({search.city})
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-[#A1A1AA] font-mono flex items-center gap-1">
+                <Briefcase className="w-3 h-3 text-[#A1A1AA]" />
+                Popular:
+              </span>
+              <div className="flex flex-wrap gap-1.5">
+                {['Gyms', 'Salons', 'Plumbers'].map((recNiche) => (
+                  <button
+                    key={recNiche}
+                    onClick={() => executePopularNiche(recNiche)}
+                    className="bg-[#0B0B0C] border border-[#26282D] px-2.5 py-1 rounded-md text-[10px] font-mono text-zinc-300 hover:text-white hover:border-[#10B981] transition-all cursor-pointer"
+                  >
+                    🔍 {recNiche}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Popular Niches Link */}
+          <div className="flex items-center gap-2 flex-wrap md:justify-end">
+            <span className="text-[#A1A1AA] font-mono flex items-center gap-1">
+              <Briefcase className="w-3 h-3 text-[#A1A1AA]" />
+              Popular Niches:
+            </span>
+            <div className="flex flex-wrap gap-1.5">
+              {popularNiches.map((nicheName) => (
+                <button
+                  key={nicheName}
+                  type="button"
+                  onClick={() => executePopularNiche(nicheName)}
+                  className="bg-[#0B0B0C] border border-[#26282D] px-2.5 py-1 rounded-md text-[10px] font-mono text-zinc-300 hover:text-white hover:border-[#10B981] transition-all cursor-pointer"
+                >
+                  {nicheName}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* SKELETON SCANNING ANIMATION */}
+      {/* OPPORTUNITY SCANNING SKELETON */}
       <AnimatePresence>
         {loading && (
           <motion.div
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -15 }}
-            className="bg-white border border-[#E5E5E8] p-8 rounded-2xl relative overflow-hidden shadow-sm"
+            className="bg-[#141517] border border-[#26282D] p-8 rounded-2xl relative overflow-hidden shadow-2xl"
           >
-            <div className="absolute top-0 right-0 w-48 h-48 bg-[#E54D80]/5 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute top-0 right-0 w-48 h-48 bg-[#10B981]/5 rounded-full blur-3xl pointer-events-none" />
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
-              <div className="flex flex-col items-center justify-center space-y-4 text-center lg:border-r lg:border-[#E5E5E8] lg:pr-8">
+              <div className="flex flex-col items-center justify-center space-y-4 text-center lg:border-r lg:border-[#26282D] lg:pr-8">
                 <div className="relative w-20 h-20 flex items-center justify-center">
-                  <div className="absolute inset-0 border-4 border-[#E54D80]/15 rounded-full"></div>
-                  <div className="absolute inset-0 border-4 border-[#E54D80] border-t-transparent rounded-full animate-spin"></div>
-                  <Search className="w-8 h-8 text-[#E54D80] animate-pulse" />
+                  <div className="absolute inset-0 border-4 border-[#10B981]/15 rounded-full"></div>
+                  <div className="absolute inset-0 border-4 border-[#10B981] border-t-transparent rounded-full animate-spin"></div>
+                  <Search className="w-8 h-8 text-[#10B981] animate-pulse" />
                 </div>
                 <div>
-                  <h3 className="text-[#0F0F11] text-base font-bold font-serif">Deep Opportunity Scanning</h3>
-                  <p className="text-zinc-500 text-[11px] mt-1 font-mono">Resolving Places APIs & SEO indices...</p>
+                  <h3 className="text-white text-base font-bold font-serif">Deep Opportunity Scanning</h3>
+                  <p className="text-[#A1A1AA] text-[11px] mt-1 font-mono">Resolving Places APIs & SEO indices...</p>
                 </div>
               </div>
 
@@ -367,17 +564,17 @@ export default function LeadFinderPage() {
                     <motion.div 
                       key={stage} 
                       initial={{ opacity: 0.5 }}
-                      animate={{ opacity: isActive ? 1 : isPassed ? 0.75 : 0.25 }}
+                      animate={{ opacity: isActive ? 1 : isPassed ? 0.75 : 0.2 }}
                       className="flex items-center gap-3 text-xs font-mono"
                     >
                       {isPassed ? (
-                        <div className="w-4.5 h-4.5 rounded-full bg-emerald-500/20 text-[#059669] border border-emerald-500/30 flex items-center justify-center text-[9px] font-bold">✓</div>
+                        <div className="w-4.5 h-4.5 rounded-full bg-[#22C55E]/10 text-[#22C55E] border border-[#22C55E]/30 flex items-center justify-center text-[9px] font-bold">✓</div>
                       ) : isActive ? (
-                        <Loader2 className="w-4.5 h-4.5 text-[#E54D80] animate-spin" />
+                        <Loader2 className="w-4.5 h-4.5 text-[#10B981] animate-spin" />
                       ) : (
-                        <div className="w-4.5 h-4.5 rounded-full border border-zinc-200 bg-white"></div>
+                        <div className="w-4.5 h-4.5 rounded-full border border-[#26282D] bg-[#0B0B0C]"></div>
                       )}
-                      <span className={`${isPassed ? 'text-zinc-400 line-through' : isActive ? 'text-[#0F0F11] font-bold' : 'text-zinc-400'}`}>
+                      <span className={`${isPassed ? 'text-[#71717A] line-through' : isActive ? 'text-[#FFFFFF] font-bold' : 'text-[#71717A]'}`}>
                         {stage}
                       </span>
                     </motion.div>
@@ -389,147 +586,169 @@ export default function LeadFinderPage() {
         )}
       </AnimatePresence>
 
-      {/* SECTION 2: Intelligence Summary Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {[
-          { 
-            label: 'Businesses Analyzed', 
-            val: stats.found, 
-            desc: searched ? 'Scanned in target market' : 'Dallas Dental Practice Scan example', 
-            trend: '+12%',
-            icon: Building2,
-            color: 'text-[#0F0F11]'
-          },
-          { 
-            label: 'High Opportunity Leads', 
-            val: stats.high, 
-            desc: 'Critical closing triggers confirmed', 
-            trend: 'Actionable Now',
-            icon: AlertTriangle,
-            color: 'text-[#E54D80]' 
-          },
-          { 
-            label: 'Potential Pipeline Value', 
-            val: `₹${stats.pipeline.toLocaleString()}`, 
-            desc: 'Suggested services contract value', 
-            trend: 'High Yield',
-            icon: DollarSign,
-            color: 'text-[#059669]' 
-          },
-          { 
-            label: 'Avg. Opportunity Score™', 
-            val: `${stats.avgScore}/100`, 
-            desc: 'Higher score = easier target to close', 
-            trend: 'Optimal Target',
-            icon: TrendingUp,
-            color: 'text-amber-600' 
-          }
-        ].map((card, idx) => {
-          const Icon = card.icon;
-          return (
-            <motion.div
-              key={card.label}
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: idx * 0.05 }}
-              className="bg-white border border-[#E5E5E8] p-5 rounded-2xl hover:border-zinc-300 hover:shadow-sm transition-all relative group cursor-default"
-            >
-              <div className="absolute top-2 right-2 p-1.5 rounded-lg bg-[#F4F4F6] border border-[#E5E5E8] text-zinc-400 group-hover:text-[#E54D80] transition-colors">
-                <Icon className="w-4 h-4" />
-              </div>
-              <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest font-mono">{card.label}</div>
-              <div className={`text-2xl font-serif font-extrabold tracking-tight mt-2.5 ${card.color}`}>
-                {card.val}
-              </div>
-              <div className="mt-2 flex items-center justify-between text-[9px] font-mono border-t border-zinc-100 pt-2">
-                <span className="text-zinc-500 truncate max-w-[70%]">{card.desc}</span>
-                <span className={`font-semibold ${card.color} opacity-95`}>{card.trend}</span>
-              </div>
-            </motion.div>
-          );
-        })}
-      </div>
+      {/* SECTION 2: Revenue Intelligence Overview (KPI Trading Dashboard style) */}
+      {searched && !loading && (
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+          {[
+            { 
+              label: 'Potential Revenue', 
+              val: formatLakhs(stats.pipeline), 
+              desc: 'Generated by Revenue Potential™', 
+              accent: 'text-[#FFFFFF]',
+              pill: 'REVENUE POTENTIAL'
+            },
+            { 
+              label: 'High Probability Clients', 
+              val: `${stats.highProbCount}`, 
+              desc: 'Ranked by Closing Probability™', 
+              accent: 'text-[#10B981]',
+              pill: 'READY'
+            },
+            { 
+              label: 'High Opportunity Clients', 
+              val: `${stats.highOppCount}`, 
+              desc: 'Ranked by Opportunity Engine™', 
+              accent: 'text-[#F59E0B]',
+              pill: 'TOP FIT'
+            },
+            { 
+              label: 'Weighted Opportunity', 
+              val: formatLakhs(stats.weightedPipeline), 
+              desc: 'Generated by LocalRadar Intelligence Engine™', 
+              accent: 'text-[#22C55E]',
+              pill: 'PROBABLE'
+            },
+            { 
+              label: 'Avg Closing Probability™', 
+              val: `${stats.avgClosing}%`, 
+              desc: 'Ranked by Closing Probability™', 
+              accent: 'text-[#A1A1AA]',
+              pill: 'VELOCITY'
+            }
+          ].map((card, idx) => {
+            return (
+              <motion.div
+                key={card.label}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: idx * 0.04 }}
+                className="bg-[#141517] border border-[#26282D] p-4 rounded-xl transition-all relative group cursor-default"
+              >
+                <div className="flex justify-between items-start">
+                  <span className="text-[9px] font-bold text-[#A1A1AA] uppercase tracking-widest font-mono truncate max-w-[80%]">{card.label}</span>
+                  <span className="text-[8px] font-bold px-1.5 py-0.5 rounded bg-[#0B0B0C] text-[#A1A1AA] border border-[#26282D] font-mono">{card.pill}</span>
+                </div>
+                <div className={`text-2xl font-mono font-extrabold tracking-tight mt-3 ${card.accent}`}>
+                  {card.val}
+                </div>
+                <p className="text-[10px] text-[#71717A] mt-2 font-mono leading-tight border-t border-[#26282D] pt-2 truncate">{card.desc}</p>
+              </motion.div>
+            );
+          })}
+        </div>
+      )}
 
-      {/* SECTION 3: Top Opportunities */}
+      {/* SECTION 3: Priority Opportunity Board (Hero Section) */}
       {searched && !loading && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-base font-bold text-[#0F0F11] flex items-center gap-1.5">
-                <Sparkles className="w-4 h-4 text-[#E54D80] fill-[#E54D80]/10" />
-                Priority Closing Dashboard (Top 5 Opportunities)
+              <h2 className="text-base font-serif font-semibold text-white flex items-center gap-1.5">
+                <Sparkles className="w-4 h-4 text-[#10B981]" />
+                Priority Opportunity Board™
               </h2>
-              <p className="text-[11px] text-zinc-500">Highest response probabilities computed by Intelligence Engine™.</p>
+              <p className="text-[11px] text-[#A1A1AA]">Top opportunities ranked by Opportunity Engine™</p>
             </div>
-            <span className="text-[9px] font-bold text-[#E54D80] bg-[#E54D80]/10 border border-[#E54D80]/20 px-2 py-0.5 rounded font-mono uppercase tracking-wide">
-              Priority Targets
+            <span className="text-[9px] font-bold text-[#10B981] bg-[#10B981]/10 border border-[#10B981]/25 px-2 py-0.5 rounded font-mono uppercase tracking-wider">
+              High-Value Targets
             </span>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-            {topOpportunities.map(({ lead, opp, score, scored }, idx) => {
+            {topOpportunities.map(({ lead, score, scored, closing }, idx) => {
               const bestFit = scored?.bestFit;
+              const topVulnerability = scored ? getVulnerabilityTags(scored)[0] : 'None';
               return (
                 <motion.div
                   key={lead.id}
                   initial={{ opacity: 0, scale: 0.98 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.3, delay: idx * 0.05 }}
-                  className="bg-white border border-[#E5E5E8] hover:border-[#E54D80]/35 hover:shadow-[0_0_15px_rgba(229,77,128,0.1)] p-4 rounded-xl flex flex-col justify-between relative overflow-hidden group transition-all"
+                  whileHover={{ y: -4, borderColor: '#26282D' }}
+                  className="bg-[#141517] border border-[#26282D] p-4 rounded-xl flex flex-col justify-between relative group transition-all duration-300"
                 >
-                  <div className="absolute top-0 left-0 w-[2px] h-full bg-[#E54D80] opacity-0 group-hover:opacity-100 transition-opacity" />
+                  {/* Subtle red accent line on top hover */}
+                  <div className="absolute top-0 left-0 w-full h-[1.5px] bg-[#10B981] opacity-0 group-hover:opacity-100 transition-opacity" />
                   
                   <div>
-                    <div className="flex items-start justify-between gap-1.5">
-                      <span className={`text-[10px] font-bold font-mono px-2 py-0.5 rounded border ${getScoreColor(score)}`}>
-                        {score} pts
+                    {/* Header */}
+                    <div className="flex items-center justify-between gap-1.5">
+                      <span className={`text-[9px] font-semibold font-mono px-2 py-0.5 rounded ${getScoreBadgeColor(score)}`}>
+                        {score} {getScoreLabel(score)}
                       </span>
-                      {bestFit && (
-                        <span className={`text-[8px] font-bold font-mono px-1.5 py-0.5 rounded border ${getFitColor(bestFit.level)}`}>
-                          {bestFit.agencyType}
-                        </span>
-                      )}
+                      <div className="flex items-center gap-2">
+                        <span className="text-[9px] font-mono text-[#A1A1AA] font-semibold">{closing}% Close</span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleSaveLead(lead);
+                          }}
+                          className={`p-1 rounded-md border transition-all cursor-pointer ${
+                            savedLeadsList.includes(lead.id)
+                              ? 'bg-[#10B981]/10 border-[#10B981]/30 text-[#10B981]'
+                              : 'bg-[#0B0B0C] border-[#26282D] text-[#71717A] hover:text-[#FFFFFF] hover:border-[#71717A]'
+                          }`}
+                          title={savedLeadsList.includes(lead.id) ? 'Remove Lead' : 'Save Lead'}
+                        >
+                          <Bookmark className={`w-3 h-3 ${savedLeadsList.includes(lead.id) ? 'fill-[#10B981]' : ''}`} />
+                        </button>
+                      </div>
                     </div>
 
-                    <h3 className="font-serif font-extrabold text-[#0F0F11] text-xs mt-3 leading-snug truncate group-hover:text-[#E54D80] transition-colors">
+                    <h3 className="font-serif font-semibold text-[#FFFFFF] text-sm mt-4 leading-snug truncate group-hover:text-[#10B981] transition-colors flex items-center gap-1.5">
                       {lead.name}
+                      {hotLeadsMap[lead.id] && <Flame className="w-3.5 h-3.5 text-[#10B981] fill-[#10B981] shrink-0" />}
                     </h3>
-                    <p className="text-[9px] text-zinc-400 font-mono mt-0.5 truncate">{lead.address}</p>
+                    <p className="text-[10px] text-[#A1A1AA] font-mono mt-1 truncate">{lead.address}</p>
 
-                    <div className="mt-3.5 space-y-1.5 border-t border-zinc-100 pt-3">
-                      <div className="flex justify-between items-center text-[9px] font-mono">
-                        <span className="text-zinc-400">Deal Value</span>
-                        <span className="text-[#059669] font-bold">{getDealValue(lead.id)}</span>
+                    {/* Stats */}
+                    <div className="mt-4 space-y-2 border-t border-[#26282D] pt-3 text-[11px] font-mono">
+                      <div className="flex justify-between items-center">
+                        <span className="text-[#71717A]">Opportunity Score™</span>
+                        <span className="text-white font-semibold text-xs">{score}/100</span>
                       </div>
-                      <div className="flex justify-between items-center text-[9px] font-mono">
-                        <span className="text-zinc-400">Closing</span>
-                        <span className="text-[#0F0F11] font-bold">{getClosing(lead.id)}%</span>
+                      <div className="flex justify-between items-center">
+                        <span className="text-[#71717A]">Closing Probability™</span>
+                        <span className="text-[#22C55E] font-semibold text-xs">{closing}%</span>
                       </div>
-                      <div className="flex justify-between items-center text-[9px] font-mono">
-                        <span className="text-zinc-400">Web</span>
-                        {lead.website ? (
-                          <span className="text-[#059669] truncate max-w-[60px] inline-block">Active</span>
-                        ) : (
-                          <span className="text-[#E54D80] font-bold">None</span>
-                        )}
+                      <div className="flex justify-between items-center">
+                        <span className="text-[#71717A]">Revenue Potential™</span>
+                        <span className="text-white font-semibold text-xs">{getDealValue(lead.id)}</span>
+                      </div>
+                      <div className="flex justify-between items-center border-t border-[#26282D]/40 pt-1.5 mt-1.5">
+                        <span className="text-[#71717A]">Top Reason</span>
+                        <span className="text-[#10B981] font-semibold text-[10px] tracking-wide truncate max-w-[110px]" title={getCleanTopReason(lead.id)}>
+                          {getCleanTopReason(lead.id)}
+                        </span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="mt-4 pt-3 border-t border-zinc-100 flex items-center gap-1.5">
+                  {/* Actions */}
+                  <div className="mt-5 pt-3 border-t border-[#26282D] space-y-2">
                     <button
-                      onClick={() => router.push(`/dashboard/audit/${lead.id}`)}
-                      className="flex-1 bg-[#F4F4F6] hover:bg-[#E5E5E8] border border-[#E5E5E8] text-[#0F0F11] text-[9px] font-bold py-1.5 rounded transition-all flex items-center justify-center gap-1 cursor-pointer font-mono"
+                      onClick={() => setSelectedLeadId(lead.id)}
+                      className="w-full bg-[#0B0B0C] hover:bg-[#141517] border border-[#26282D] text-[#A1A1AA] hover:text-[#FFFFFF] text-[10px] font-bold py-1.5 rounded-lg transition-all flex items-center justify-center gap-1 cursor-pointer font-mono"
                     >
-                      <FileText className="w-2.5 h-2.5 text-zinc-500" />
-                      Audit
+                      <Info className="w-3.5 h-3.5 text-[#71717A]" />
+                      View Intelligence
                     </button>
                     <button
                       onClick={() => router.push(`/dashboard/pitch?bizId=${lead.id}`)}
-                      className="flex-1 bg-[#E54D80] hover:bg-[#FF5E8C] text-white text-[9px] font-bold py-1.5 rounded transition-all flex items-center justify-center gap-1 cursor-pointer font-mono shadow-sm"
+                      className="w-full bg-[#10B981] hover:bg-[#059669] text-white text-[10px] font-bold py-1.5 rounded-lg transition-all flex items-center justify-center gap-1 cursor-pointer font-mono shadow-sm"
                     >
-                      <Send className="w-2.5 h-2.5 text-white" />
-                      Pitch
+                      <Send className="w-3.5 h-3.5 text-white" />
+                      Generate Pitch
                     </button>
                   </div>
                 </motion.div>
@@ -539,321 +758,135 @@ export default function LeadFinderPage() {
         </div>
       )}
 
-      {/* SECTION 4: Intelligence Table */}
+      {/* SECTION 4: Opportunity Intelligence Table */}
       {searched && !loading && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between border-b border-[#E5E5E8] pb-3">
-            <h2 className="text-sm font-mono font-bold uppercase tracking-wider text-zinc-400">
-              Intelligence Listing ({leads.length} Records)
+          <div className="flex items-center justify-between border-b border-[#26282D] pb-3">
+            <h2 className="text-xs font-mono font-bold uppercase tracking-widest text-[#A1A1AA]">
+              All Opportunity Diagnostics ({leads.length} Records)
             </h2>
-            <div className="text-[10px] text-zinc-400 font-mono">
-              Click any row to open the Interactive Opportunity Panel
+            <div className="text-[10px] text-[#71717A] font-mono">
+              Ranked by LocalRadar Intelligence Engine™ • Click any row to reveal full intelligence dossier.
             </div>
           </div>
 
-          <div className="bg-white border border-[#E5E5E8] rounded-2xl overflow-hidden shadow-sm">
+          <div className="bg-[#141517] border border-[#26282D] rounded-xl overflow-hidden shadow-2xl">
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-[#E5E5E8] bg-[#F9F9FB] text-zinc-500 text-[9px] font-mono uppercase tracking-wider">
-                    <th className="p-4">Business</th>
-                    <th className="p-4 text-center">Opportunity Score™</th>
-                    <th className="p-4 text-center">Service Fit™</th>
-                    <th className="p-4 text-center">Deal Value</th>
-                    <th className="p-4 text-center">Closing %</th>
-                    <th className="p-4">Vulnerabilities</th>
-                    <th className="p-4 text-right">Actions</th>
+                  <tr className="border-b border-[#26282D] bg-[#0B0B0C]/90 text-[#A1A1AA] text-[11px] font-mono uppercase tracking-widest">
+                    <th className="py-5 px-6">Business</th>
+                    <th className="py-5 px-6 text-center">Opportunity Score™</th>
+                    <th className="py-5 px-6 text-center">Why This Lead™</th>
+                    <th className="py-5 px-6 text-center">Service Fit Engine™</th>
+                    <th className="py-5 px-6 text-center">Closing Probability™</th>
+                    <th className="py-5 px-6 text-center">Revenue Potential™</th>
+                    <th className="py-5 px-6">Top Vulnerability</th>
+                    <th className="py-5 px-6 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#E5E5E8]">
+                <tbody className="divide-y divide-[#26282D]">
                   {leads.map((biz) => {
-                    const opp = opportunities[biz.id];
                     const score = getScore(biz.id);
                     const tags = getTags(biz.id);
                     const bestFit = getBestFit(biz.id);
-                    const isExpanded = expandedRowId === biz.id;
 
                     return (
-                      <React.Fragment key={biz.id}>
-                        {/* Table Row */}
-                        <tr 
-                          onClick={() => setExpandedRowId(isExpanded ? null : biz.id)}
-                          className={`hover:bg-zinc-50 transition-colors cursor-pointer select-none ${isExpanded ? 'bg-zinc-50/70' : ''}`}
-                        >
-                          <td className="p-4 max-w-[200px]">
-                            <div className="font-serif font-extrabold text-sm text-[#0F0F11]">
-                              {biz.name}
-                            </div>
-                            <div className="text-[10px] text-zinc-400 font-mono mt-0.5 truncate">{biz.address}</div>
-                          </td>
-                          <td className="p-4 text-center">
+                      <motion.tr 
+                        key={biz.id}
+                        onClick={() => setSelectedLeadId(biz.id)}
+                        whileHover={{ backgroundColor: '#0B0B0C' }}
+                        className="transition-colors cursor-pointer select-none"
+                      >
+                        <td className="py-5 px-6 max-w-[220px]">
+                          <div className="font-sans font-semibold text-base text-[#FFFFFF] flex items-center gap-1.5">
+                            {biz.name}
+                            {hotLeadsMap[biz.id] && <Flame className="w-3.5 h-3.5 text-[#10B981] fill-[#10B981] shrink-0" />}
+                          </div>
+                          <div className="text-xs text-[#71717A] font-mono mt-1 truncate">{biz.address}</div>
+                        </td>
+                        <td className="py-5 px-6 text-center">
+                          <div className="inline-flex flex-col items-center">
+                            <span className={`inline-block text-xs font-semibold px-2.5 py-1 rounded-md border font-mono ${getScoreColor(score)}`}>
+                              {score} {getScoreLabel(score)}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="py-5 px-6 text-center">
+                          <span className="text-xs text-[#10B981] font-semibold font-mono bg-[#10B981]/5 border border-[#10B981]/10 px-2 py-1 rounded">
+                            {(() => {
+                              const reason = getCleanTopReason(biz.id);
+                              if (reason.includes('No Website')) return 'No Website';
+                              if (reason.includes('Review Gap')) return 'Review Gap';
+                              if (reason.includes('Booking')) return 'Revenue Leak';
+                              if (reason.includes('Google') || reason.includes('Presence')) return 'Weak Visibility';
+                              return 'Low Reviews';
+                            })()}
+                          </span>
+                        </td>
+                        <td className="py-5 px-6 text-center">
+                          {bestFit ? (
                             <div className="inline-flex flex-col items-center">
-                              <span className={`inline-block text-xs font-bold px-3 py-1 rounded-lg border font-mono ${getScoreColor(score)}`}>
-                                {score} / 100
-                              </span>
-                              <span className="text-[8px] text-zinc-400 font-mono mt-1 uppercase tracking-wide">
-                                {getScoreLabel(score)} Opp
+                              <span className={`inline-block text-xs font-semibold px-2.5 py-1 rounded-md border font-mono ${getFitColor(bestFit.level)}`}>
+                                {bestFit.agencyType} {bestFit.score}%
                               </span>
                             </div>
-                          </td>
-                          <td className="p-4 text-center">
-                            {bestFit ? (
-                              <div className="inline-flex flex-col items-center">
-                                <span className={`inline-block text-[10px] font-bold px-2.5 py-0.5 rounded-lg border font-mono ${getFitColor(bestFit.level)}`}>
-                                  {bestFit.agencyType}
-                                </span>
-                                <span className="text-[8px] text-zinc-400 font-mono mt-1">
-                                  {bestFit.score}/100
-                                </span>
-                              </div>
-                            ) : (
-                              <span className="text-[10px] text-zinc-400 font-mono">—</span>
-                            )}
-                          </td>
-                          <td className="p-4 text-center">
-                            <span className="text-xs font-bold text-[#059669] font-mono">
-                              {getDealValue(biz.id)}
-                            </span>
-                          </td>
-                          <td className="p-4 text-center">
-                            <span className={`text-xs font-bold font-mono ${getClosing(biz.id) >= 60 ? 'text-[#E54D80]' : getClosing(biz.id) >= 30 ? 'text-amber-600' : 'text-zinc-500'}`}>
-                              {getClosing(biz.id)}%
-                            </span>
-                          </td>
-                          <td className="p-4">
-                            <div className="flex flex-wrap gap-1">
-                              {tags.map((r) => (
-                                <span 
-                                  key={r} 
-                                  className="text-[8px] font-bold text-amber-600 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded font-mono"
-                                >
-                                  ✓ {r}
-                                </span>
-                              ))}
-                            </div>
-                          </td>
-                          <td className="p-4 text-right" onClick={(e) => e.stopPropagation()}>
-                            <div className="flex items-center justify-end gap-2">
-                              <button
-                                onClick={() => toggleSaveLead(biz)}
-                                className={`p-2 rounded-xl border transition-all cursor-pointer ${
-                                  savedLeadsList.includes(biz.id)
-                                    ? 'bg-[#E54D80]/15 border-[#E54D80]/30 text-[#E54D80] hover:bg-[#E54D80]/25'
-                                    : 'bg-[#F4F4F6] border-[#E5E5E8] text-zinc-500 hover:text-[#0F0F11] hover:bg-[#E5E5E8]'
-                                }`}
-                                title={savedLeadsList.includes(biz.id) ? 'Remove Lead' : 'Save Lead'}
-                              >
-                                <Bookmark className={`w-3.5 h-3.5 ${savedLeadsList.includes(biz.id) ? 'fill-[#E54D80]' : ''}`} />
-                              </button>
-                              
-                              <button
-                                onClick={() => router.push(`/dashboard/audit/${biz.id}`)}
-                                className="bg-[#F4F4F6] hover:bg-[#E5E5E8] border border-[#E5E5E8] text-[#0F0F11] text-xs font-bold px-3 py-1.5 rounded-lg transition-all font-mono"
-                              >
-                                Audit
-                              </button>
-                              
-                              <button
-                                onClick={() => router.push(`/dashboard/pitch?bizId=${biz.id}`)}
-                                className="bg-[#E54D80] hover:bg-[#FF5E8C] text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-all font-mono shadow-sm"
-                              >
-                                Pitch
-                              </button>
-
-                              <button 
-                                onClick={() => setExpandedRowId(isExpanded ? null : biz.id)}
-                                className="text-zinc-400 hover:text-[#0F0F11] p-1 rounded transition-colors"
-                              >
-                                {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-
-                        {/* Interactive Opportunity Panel (Row Expansion) */}
-                        <AnimatePresence>
-                          {isExpanded && (
-                            <tr>
-                              <td colSpan={7} className="p-0 bg-[#F9F9FB]">
-                                <motion.div
-                                  initial={{ opacity: 0, height: 0 }}
-                                  animate={{ opacity: 1, height: 'auto' }}
-                                  exit={{ opacity: 0, height: 0 }}
-                                  transition={{ duration: 0.3 }}
-                                  className="overflow-hidden border-b border-[#E5E5E8]"
-                                >
-                                  <div className="p-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
-                                    
-                                    {/* Sub-column 1: Business Details */}
-                                    <div className="space-y-4 border-r border-[#E5E5E8] pr-6">
-                                      <h4 className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest font-mono">
-                                        Client Overview
-                                      </h4>
-                                      <div className="space-y-3 font-mono text-xs">
-                                        <div>
-                                          <span className="text-zinc-400 block">Legal Entity Name</span>
-                                          <span className="font-bold text-[#0F0F11] text-sm font-sans">{biz.name}</span>
-                                        </div>
-                                        <div>
-                                          <span className="text-zinc-400 block">Direct Address</span>
-                                          <span className="text-zinc-500">{biz.address}</span>
-                                        </div>
-                                        {biz.phone && (
-                                          <div>
-                                            <span className="text-zinc-400 block">Telephone Line</span>
-                                            <span className="text-[#0F0F11] flex items-center gap-1.5">
-                                              <Phone className="w-3.5 h-3.5 text-zinc-400" />
-                                              {biz.phone}
-                                            </span>
-                                          </div>
-                                        )}
-                                        <div>
-                                          <span className="text-zinc-400 block">Web Address</span>
-                                          {biz.website ? (
-                                            <a 
-                                              href={biz.website} 
-                                              target="_blank" 
-                                              rel="noopener noreferrer"
-                                              className="text-[#E54D80] hover:underline flex items-center gap-1"
-                                            >
-                                              {biz.website}
-                                              <ExternalLink className="w-3 h-3 text-[#E54D80]/70" />
-                                            </a>
-                                          ) : (
-                                            <span className="text-[#E54D80] font-bold">No registered domain</span>
-                                          )}
-                                        </div>
-                                      </div>
-                                    </div>
-
-                                    {/* Sub-column 2: Score Breakdown */}
-                                    <div className="space-y-4 border-r border-[#E5E5E8] pr-6">
-                                      <h4 className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest font-mono">
-                                        Intelligence Breakdown
-                                      </h4>
-                                      
-                                      <div className="space-y-2.5">
-                                        {(() => {
-                                          const scored = scoredMap[biz.id];
-                                          if (!scored) return null;
-                                          const bd = scored.breakdown;
-                                          return [
-                                            { label: 'Website Opp.', val: bd.websiteOpportunity.score, max: bd.websiteOpportunity.maxScore },
-                                            { label: 'Review Gap', val: bd.reviewGap.score, max: bd.reviewGap.maxScore },
-                                            { label: 'GBP Weakness', val: bd.gbpWeakness.score, max: bd.gbpWeakness.maxScore },
-                                            { label: 'Revenue Leak', val: bd.revenueLeakage.score, max: bd.revenueLeakage.maxScore },
-                                            { label: 'Growth Intent', val: bd.growthIntent.score, max: bd.growthIntent.maxScore }
-                                          ].map((bar) => {
-                                            const pct = bar.max > 0 ? (bar.val / bar.max) * 100 : 0;
-                                            const isStrong = pct >= 50;
-                                            return (
-                                              <div key={bar.label} className="space-y-1 font-mono text-[10px]">
-                                                <div className="flex justify-between">
-                                                  <span className="text-zinc-400">{bar.label}</span>
-                                                  <span className={isStrong ? 'text-[#E54D80] font-bold' : 'text-zinc-500'}>
-                                                    +{bar.val}/{bar.max}
-                                                  </span>
-                                                </div>
-                                                <div className="h-1 bg-[#E5E5E8] rounded-full overflow-hidden">
-                                                  <div 
-                                                    className={`h-full rounded-full ${isStrong ? 'bg-[#E54D80]' : 'bg-[#059669]'}`}
-                                                    style={{ width: `${pct}%` }}
-                                                  />
-                                                </div>
-                                              </div>
-                                            );
-                                          });
-                                        })()}
-                                      </div>
-                                    </div>
-
-                                    {/* Sub-column 3: Service Fit Score™ */}
-                                    <div className="space-y-4 border-r border-[#E5E5E8] pr-6">
-                                      <h4 className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest font-mono flex items-center gap-1.5">
-                                        <Layers className="w-3 h-3 text-[#E54D80]" />
-                                        Service Fit Score™
-                                      </h4>
-                                      
-                                      <div className="space-y-2">
-                                        {getServiceFits(biz.id).map(fit => (
-                                          <div key={fit.agencyType} className="flex items-center justify-between p-2 rounded-lg bg-white border border-[#E5E5E8]">
-                                            <div className="flex items-center gap-2">
-                                              <span className="text-[10px] font-bold text-[#0F0F11] font-mono">{fit.agencyType}</span>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                              <span className="text-[10px] font-bold font-mono text-zinc-500">{fit.score}/100</span>
-                                              <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded border font-mono ${getFitColor(fit.level)}`}>
-                                                {fit.level}
-                                              </span>
-                                            </div>
-                                          </div>
-                                        ))}
-                                      </div>
-                                    </div>
-
-                                    {/* Sub-column 4: AI Closing Strategy */}
-                                    <div className="space-y-4 flex flex-col justify-between">
-                                      <div className="space-y-2.5">
-                                        <h4 className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest font-mono">
-                                          AI Closing Strategy
-                                        </h4>
-                                        <div className="p-3 bg-[#FFF0F5] border border-[#E54D80]/20 rounded-xl font-mono text-[10px] space-y-1.5">
-                                          <div className="text-[#E54D80] font-bold uppercase tracking-wider text-[8px]">
-                                            Best Service Fit: {bestFit ? bestFit.agencyType : 'Analyzing...'}
-                                          </div>
-                                          <div className="text-[#0F0F11] text-xs font-bold font-sans">
-                                            {!biz.website 
-                                              ? 'High-Conversion Website Builder + SEO Retainer' 
-                                              : 'Google Reputation Acceleration & Social Autopilot'}
-                                          </div>
-                                          <div className="flex items-center gap-1.5 text-[#059669] font-bold text-sm mt-1.5">
-                                            <DollarSign className="w-4 h-4" />
-                                            {getDealValue(biz.id)}
-                                            <span className="text-zinc-400 font-normal text-[8px] uppercase">Est. Revenue</span>
-                                          </div>
-                                        </div>
-
-                                        <ul className="text-[10px] text-zinc-500 space-y-1 font-mono">
-                                          <li className="flex items-start gap-1">
-                                            <span className="text-[#E54D80]">•</span>
-                                            Closing Probability: <span className="font-bold text-[#0F0F11]">{getClosing(biz.id)}%</span>
-                                          </li>
-                                          <li className="flex items-start gap-1">
-                                            <span className="text-[#E54D80]">•</span>
-                                            {!biz.website 
-                                              ? 'Client has 0 web domain. Sell local landing page.' 
-                                              : 'Resolve web audit performance lags.'}
-                                          </li>
-                                          <li className="flex items-start gap-1">
-                                            <span className="text-[#E54D80]">•</span>
-                                            Launch automated reviews feedback sequence to elevate rating.
-                                          </li>
-                                        </ul>
-                                      </div>
-
-                                      <div className="flex gap-2.5 pt-2">
-                                        <button
-                                          onClick={() => router.push(`/dashboard/audit/${biz.id}`)}
-                                          className="flex-1 bg-[#F4F4F6] hover:bg-[#E5E5E8] border border-[#E5E5E8] text-[#0F0F11] text-xs font-bold py-2 rounded-lg transition-all font-mono"
-                                        >
-                                          Generate Proposal
-                                        </button>
-                                        <button
-                                          onClick={() => router.push(`/dashboard/pitch?bizId=${biz.id}`)}
-                                          className="flex-1 bg-[#E54D80] hover:bg-[#FF5E8C] text-white text-xs font-bold py-2 rounded-lg transition-all font-mono shadow-sm"
-                                        >
-                                          Generate Pitch
-                                        </button>
-                                      </div>
-                                    </div>
-
-                                  </div>
-                                </motion.div>
-                              </td>
-                            </tr>
+                          ) : (
+                            <span className="text-xs text-[#71717A] font-mono">—</span>
                           )}
-                        </AnimatePresence>
-                      </React.Fragment>
+                        </td>
+                        <td className="py-5 px-6 text-center">
+                          <span className={`text-sm font-mono font-semibold ${getClosing(biz.id) >= 70 ? 'text-[#22C55E]' : getClosing(biz.id) >= 50 ? 'text-[#F59E0B]' : 'text-[#71717A]'}`}>
+                            {getClosing(biz.id)}%
+                          </span>
+                        </td>
+                        <td className="py-5 px-6 text-center">
+                          <span className="text-sm font-semibold text-white font-mono">
+                            {getDealValue(biz.id)}
+                          </span>
+                        </td>
+                        <td className="py-5 px-6">
+                          <div className="flex flex-wrap gap-1">
+                            {tags.slice(0, 2).map((r) => (
+                              <span 
+                                key={r} 
+                                className="text-[10px] text-[#A1A1AA] bg-[#0B0B0C] border border-[#26282D] px-2 py-1 rounded font-mono"
+                              >
+                                {r}
+                              </span>
+                            ))}
+                          </div>
+                        </td>
+                        <td className="py-5 px-6 text-right" onClick={(e) => e.stopPropagation()}>
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={() => toggleSaveLead(biz)}
+                              className={`p-2 rounded-lg border transition-all cursor-pointer ${
+                                savedLeadsList.includes(biz.id)
+                                  ? 'bg-[#10B981]/10 border-[#10B981]/30 text-[#10B981] hover:bg-[#10B981]/20'
+                                  : 'bg-[#0B0B0C] border-[#26282D] text-[#A1A1AA] hover:text-[#FFFFFF]'
+                              }`}
+                              title={savedLeadsList.includes(biz.id) ? 'Remove Lead' : 'Save Lead'}
+                            >
+                              <Bookmark className={`w-3.5 h-3.5 ${savedLeadsList.includes(biz.id) ? 'fill-[#10B981]' : ''}`} />
+                            </button>
+                            
+                            <button
+                              onClick={() => router.push(`/dashboard/audit/${biz.id}`)}
+                              className="bg-[#0B0B0C] hover:bg-[#141517] border border-[#26282D] text-[#A1A1AA] hover:text-[#FFFFFF] text-xs font-semibold px-4 py-2 rounded-lg transition-all font-mono cursor-pointer"
+                            >
+                              Audit
+                            </button>
+                            
+                            <button
+                              onClick={() => router.push(`/dashboard/pitch?bizId=${biz.id}`)}
+                              className="bg-[#10B981] hover:bg-[#059669] text-white text-xs font-semibold px-4 py-2 rounded-lg transition-all font-mono shadow-sm cursor-pointer"
+                            >
+                              Pitch
+                            </button>
+                          </div>
+                        </td>
+                      </motion.tr>
                     );
                   })}
                 </tbody>
@@ -863,17 +896,70 @@ export default function LeadFinderPage() {
         </div>
       )}
 
-      {/* Empty State */}
+      {/* Empty State / Premium Onboarding */}
       {!searched && !loading && (
-        <div className="bg-white border border-dashed border-[#E5E5E8] p-12 text-center max-w-lg mx-auto rounded-3xl shadow-sm">
-          <div className="w-12 h-12 rounded-xl bg-[#F4F4F6] border border-[#E5E5E8] flex items-center justify-center mx-auto mb-4 text-[#E54D80]">
-            <Search className="w-5 h-5" />
+        <motion.div 
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-[#141517] border border-[#26282D] p-12 text-center max-w-xl mx-auto rounded-3xl relative overflow-hidden shadow-2xl mt-12"
+        >
+          {/* Subtle glow ring */}
+          <div className="absolute -top-20 -left-20 w-48 h-48 bg-[#10B981]/5 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-20 -right-20 w-48 h-48 bg-[#10B981]/5 rounded-full blur-3xl pointer-events-none" />
+          
+          <div className="w-16 h-16 rounded-2xl bg-[#0B0B0C] border border-[#26282D] flex items-center justify-center mx-auto mb-6 text-[#10B981]">
+            <Target className="w-6 h-6 animate-pulse" />
           </div>
-          <h3 className="text-[#0F0F11] text-sm font-bold font-serif">Deep Market Opportunity Scans</h3>
-          <p className="text-zinc-500 text-xs mt-1 max-w-sm mx-auto font-mono">
-            Enter a niche category (e.g. Roofers) and city to identify revenue opportunities.
+          
+          <h2 className="text-[#FFFFFF] text-2xl font-serif font-extrabold tracking-tight">
+            Find businesses that need your services.
+          </h2>
+          <p className="text-[#A1A1AA] text-xs mt-2 max-w-sm mx-auto font-mono">
+            Search any niche and instantly discover high-probability opportunities losing revenue online.
           </p>
-        </div>
+
+          {/* Quick-action helper niches */}
+          <div className="mt-8 pt-6 border-t border-[#26282D] space-y-4">
+            <h4 className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#71717A]">
+              Popular Agency Target Profiles
+            </h4>
+            <div className="flex flex-wrap justify-center gap-2">
+              {popularNiches.map((nicheName) => (
+                <button
+                  key={nicheName}
+                  onClick={() => executePopularNiche(nicheName)}
+                  className="bg-[#0B0B0C] border border-[#26282D] text-xs text-[#A1A1AA] px-4 py-2 rounded-xl hover:text-white hover:border-[#10B981] transition-all cursor-pointer font-mono"
+                >
+                  🚀 {nicheName}
+                </button>
+              ))}
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      {/* SLIDE-OVER INTELLIGENCE PANEL (Slide-over drawer) */}
+      {selectedLead && selectedScored && (
+        <OpportunityIntelligenceDrawer
+          isOpen={!!selectedLeadId && !!selectedLead && !!selectedScored}
+          onClose={() => {
+            setSelectedLeadId(null);
+            refreshHotLeadsMap();
+          }}
+          business={selectedLead}
+          scored={selectedScored}
+          isSaved={savedLeadsList.includes(selectedLead.id)}
+          onToggleSave={(biz) => toggleSaveLead(biz)}
+          onOpenPitch={(bizId) => {
+            setSelectedLeadId(null);
+            router.push(`/dashboard/pitch?bizId=${bizId}`);
+          }}
+          onOpenAudit={(bizId) => {
+            setSelectedLeadId(null);
+            router.push(`/dashboard/audit/${bizId}`);
+          }}
+          categoryName={niche || 'Agency Lead'}
+        />
       )}
 
     </div>

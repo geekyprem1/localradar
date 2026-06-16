@@ -1,15 +1,29 @@
 export async function generateAICompletion(
   systemPrompt: string,
   userPrompt: string,
-  fallbackData: any
+  fallbackData: any,
+  clientApiKey?: string,
+  clientModel?: string
 ): Promise<any> {
-  let apiKey = '';
+  let apiKey = clientApiKey || '';
   let apiEndpoint = 'https://api.openai.com/v1/chat/completions';
-  let modelName = 'gpt-4o-mini';
+  let modelName = clientModel || 'gpt-4o-mini';
   let extraHeaders: Record<string, string> = {};
 
-  // Load Developer custom overrides from localStorage first
-  if (typeof window !== 'undefined') {
+  if (apiKey) {
+    // If it's an OpenRouter key, route to OpenRouter
+    if (apiKey.includes('sk-or-') || apiKey.includes('openrouter') || apiKey.startsWith('sk-or-v1-')) {
+      apiEndpoint = 'https://openrouter.ai/api/v1/chat/completions';
+      modelName = clientModel || 'deepseek/deepseek-chat';
+      extraHeaders = {
+        'HTTP-Referer': 'http://localhost:3000',
+        'X-Title': 'LocalRadar',
+      };
+    }
+  }
+
+  // Load Developer custom overrides from localStorage first if clientApiKey not provided
+  if (!apiKey && typeof window !== 'undefined') {
     const orKey = localStorage.getItem('localradar_dev_openrouter_key');
     const orModel = localStorage.getItem('localradar_dev_openrouter_model') || 'deepseek/deepseek-chat';
     
@@ -43,7 +57,7 @@ export async function generateAICompletion(
   
   if (!apiKey || apiKey === 'mock-key') {
     // Simulate API delay for realism in Sandbox Mode
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    await new Promise((resolve) => setTimeout(resolve, 800));
     return fallbackData;
   }
 
