@@ -40,10 +40,12 @@ export default function OpportunityBreakdown({
       {/* Top Header */}
       <div className="flex justify-between items-center border-b border-[#26282D] pb-3">
         <h3 className="text-xs font-semibold text-[#A1A1AA] flex items-center gap-1.5 uppercase tracking-wider font-mono">
-          <Target className="w-4 h-4 text-[#10B981]" />
+          <Target className="w-4 h-4 text-[#A1A1AA]" />
           Opportunity Score™ Breakdown
         </h3>
-        <span className="text-sm font-mono font-semibold text-[#10B981]">
+        <span className={`text-sm font-mono font-semibold ${
+          score >= 60 ? 'text-[#2DD4A7]' : score >= 35 ? 'text-[#F5A623]' : 'text-[#FF5C5C]'
+        }`}>
           {score} / 100
         </span>
       </div>
@@ -66,7 +68,13 @@ export default function OpportunityBreakdown({
                   initial={{ width: 0 }}
                   animate={{ width: `${percentage}%` }}
                   transition={{ duration: 0.6, delay: idx * 0.05, ease: 'easeOut' }}
-                  className={`h-full rounded-full ${percentage >= 70 ? 'bg-[#10B981]' : 'bg-[#A1A1AA]'}`}
+                  className={`h-full rounded-full ${
+                    percentage >= 70 
+                      ? 'bg-[#FF5C5C]' 
+                      : percentage >= 35 
+                        ? 'bg-[#F5A623]' 
+                        : 'bg-[#A1A1AA]'
+                  }`}
                 />
               </div>
             </div>

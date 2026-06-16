@@ -76,9 +76,9 @@ export default function OpportunityIntelligenceDrawer({
   };
 
   const getScoreBadgeColor = (score: number) => {
-    if (score >= 60) return 'text-[#10B981] bg-[#10B981]/10 border-[#10B981]/20';
-    if (score >= 35) return 'text-[#F59E0B] bg-[#F59E0B]/10 border-[#F59E0B]/20';
-    return 'text-[#A1A1AA] bg-[#141517] border-[#26282D]';
+    if (score >= 60) return 'text-[#2DD4A7] bg-[#2DD4A7]/10 border-[#2DD4A7]/20';
+    if (score >= 35) return 'text-[#F5A623] bg-[#F5A623]/10 border-[#F5A623]/20';
+    return 'text-[#FF5C5C] bg-[#FF5C5C]/10 border-[#FF5C5C]/20';
   };
 
   const formatCurrency = (val: number) => {
@@ -120,7 +120,7 @@ export default function OpportunityIntelligenceDrawer({
               <div className="flex items-start justify-between border-b border-[#26282D] pb-5">
                 <div className="space-y-1.5 max-w-[85%]">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-[9px] font-normal text-[#10B981] bg-[#10B981]/10 border border-[#10B981]/20 px-2 py-0.5 rounded font-mono uppercase tracking-wider">
+                    <span className="text-[9px] font-normal text-white bg-[#26282D] border border-[#26282D] px-2 py-0.5 rounded font-mono uppercase tracking-wider">
                       Opportunity Intelligence Dossier
                     </span>
                     <span className="text-[9px] text-[#A1A1AA] bg-[#141517] border border-[#26282D] px-2 py-0.5 rounded font-mono uppercase font-normal">
@@ -155,7 +155,7 @@ export default function OpportunityIntelligenceDrawer({
                 <div className="p-3 bg-[#0B0B0C] border border-[#26282D] rounded-xl relative">
                   <span className="text-[8px] font-normal text-[#71717A] uppercase tracking-widest block">Opportunity Engine™</span>
                   <div className="flex items-baseline gap-1.5 mt-2">
-                    <span className="text-xl font-semibold text-[#10B981]">{scored.opportunityScore}</span>
+                    <span className={`text-xl font-semibold ${scored.opportunityScore >= 60 ? 'text-[#2DD4A7]' : scored.opportunityScore >= 35 ? 'text-[#F5A623]' : 'text-[#FF5C5C]'}`}>{scored.opportunityScore}</span>
                     <span className="text-[8px] text-[#71717A] font-normal">/100</span>
                   </div>
                   <span className={`text-[8px] font-normal px-1.5 py-0.5 rounded absolute bottom-2.5 right-2.5 ${getScoreBadgeColor(scored.opportunityScore)}`}>
@@ -166,7 +166,7 @@ export default function OpportunityIntelligenceDrawer({
                 <div className="p-3 bg-[#0B0B0C] border border-[#26282D] rounded-xl">
                   <span className="text-[8px] font-normal text-[#71717A] uppercase tracking-widest block">Closing Probability™</span>
                   <div className="flex items-baseline gap-1 mt-2">
-                    <span className="text-xl font-semibold text-[#10B981]">{scored.closingProbability}%</span>
+                    <span className="text-xl font-semibold text-[#2DD4A7]">{scored.closingProbability}%</span>
                   </div>
                   <span className="text-[8px] text-[#71717A] block mt-0.5 font-normal">Velocity Target</span>
                 </div>
@@ -178,7 +178,7 @@ export default function OpportunityIntelligenceDrawer({
                       {formatCurrency(scored.dealValue.max)}
                     </span>
                   </div>
-                  <span className="text-[8px] text-[#10B981] block mt-0.5 font-normal">Est. Margin Cap</span>
+                  <span className="text-[8px] text-[#2DD4A7] block mt-0.5 font-normal">Est. Margin Cap</span>
                 </div>
               </div>
 
@@ -240,11 +240,11 @@ export default function OpportunityIntelligenceDrawer({
                 {/* SECTION 6: Closing Probability Detail */}
                 <div className="bg-[#0B0B0C] border border-[#26282D] p-5 rounded-xl space-y-3">
                   <h4 className="text-xs font-semibold text-[#A1A1AA] uppercase tracking-wider font-mono flex items-center gap-1.5">
-                    <TrendingUp className="w-4 h-4 text-[#10B981]" />
+                    <TrendingUp className="w-4 h-4 text-[#A1A1AA]" />
                     Closing Probability™
                   </h4>
                   <div className="flex items-center gap-6 font-mono">
-                    <div className="text-3xl font-semibold text-[#10B981]">
+                    <div className="text-3xl font-semibold text-[#2DD4A7]">
                       {scored.closingProbability}%
                     </div>
                     <div className="text-[10px] text-[#A1A1AA] space-y-1.5 flex-1 leading-normal">
@@ -255,19 +255,19 @@ export default function OpportunityIntelligenceDrawer({
                       {!signals.hasWebsite && (
                         <div className="flex justify-between border-b border-[#26282D] pb-1 font-normal">
                           <span>Vulnerability Index (No Website)</span>
-                          <span className="text-[#10B981] font-semibold">+25%</span>
+                          <span className="text-[#2DD4A7] font-semibold">+25%</span>
                         </div>
                       )}
                       {business.reviews_count > 5 && (
                         <div className="flex justify-between border-b border-[#26282D] pb-1 font-normal">
                           <span>Operational Signal (Recent Activity)</span>
-                          <span className="text-[#10B981] font-semibold">+20%</span>
+                          <span className="text-[#2DD4A7] font-semibold">+20%</span>
                         </div>
                       )}
                       {business.phone && (
                         <div className="flex justify-between font-normal">
                           <span>Direct Outreach Factor (Contactability)</span>
-                          <span className="text-[#10B981] font-semibold">+20%</span>
+                          <span className="text-[#2DD4A7] font-semibold">+20%</span>
                         </div>
                       )}
                     </div>
@@ -277,7 +277,7 @@ export default function OpportunityIntelligenceDrawer({
                 {/* SECTION 7: Estimated Deal Value Details */}
                 <div className="bg-[#0B0B0C] border border-[#26282D] p-5 rounded-xl space-y-4">
                   <h4 className="text-xs font-semibold text-[#A1A1AA] uppercase tracking-wider font-mono flex items-center gap-1.5">
-                    <DollarSign className="w-4 h-4 text-[#10B981]" />
+                    <DollarSign className="w-4 h-4 text-[#A1A1AA]" />
                     Revenue Potential™
                   </h4>
                   <div className="grid grid-cols-3 gap-3 font-mono text-center">
@@ -291,9 +291,9 @@ export default function OpportunityIntelligenceDrawer({
                       <span className="text-white font-semibold text-xs">{formatCurrency(scored.dealValue.max)}</span>
                     </div>
 
-                    <div className="p-2.5 bg-[#10B981]/5 border border-[#10B981]/30 rounded-lg">
-                      <span className="text-[#10B981] block text-[8px] uppercase tracking-widest mb-1 font-normal">Recommended Proposal</span>
-                      <span className="text-[#10B981] font-semibold text-xs">
+                    <div className="p-2.5 bg-[#2DD4A7]/5 border border-[#2DD4A7]/30 rounded-lg">
+                      <span className="text-[#2DD4A7] block text-[8px] uppercase tracking-widest mb-1 font-normal">Recommended Proposal</span>
+                      <span className="text-[#2DD4A7] font-semibold text-xs">
                         {formatCurrency(Math.round((scored.dealValue.min + scored.dealValue.max) / 2))}
                       </span>
                     </div>
@@ -310,7 +310,7 @@ export default function OpportunityIntelligenceDrawer({
                 {/* SECTION 9: Notes & Lead Status configuration */}
                 <div className="bg-[#0B0B0C] border border-[#26282D] p-5 rounded-xl space-y-4">
                   <h4 className="text-xs font-semibold text-[#A1A1AA] uppercase tracking-wider font-mono flex items-center gap-1.5">
-                    <PenTool className="w-4 h-4 text-[#10B981]" />
+                    <PenTool className="w-4 h-4 text-[#A1A1AA]" />
                     Agency Notes & Intel Markers
                   </h4>
                   
@@ -320,11 +320,11 @@ export default function OpportunityIntelligenceDrawer({
                         onClick={toggleHotLead}
                         className={`px-3 py-1.5 rounded-lg border transition-all flex items-center gap-1.5 font-mono text-[10px] font-semibold cursor-pointer ${
                           isHotLead 
-                            ? 'bg-[#10B981]/10 border-[#10B981] text-[#10B981]' 
+                            ? 'bg-[#F5A623]/10 border-[#F5A623] text-[#F5A623]' 
                             : 'bg-[#141517] border-[#26282D] text-[#A1A1AA] hover:text-white'
                         }`}
                       >
-                        <Flame className={`w-3.5 h-3.5 ${isHotLead ? 'fill-[#10B981] text-[#10B981]' : 'text-[#71717A]'}`} />
+                        <Flame className={`w-3.5 h-3.5 ${isHotLead ? 'fill-[#F5A623] text-[#F5A623]' : 'text-[#71717A]'}`} />
                         {isHotLead ? 'HOT LEAD ACTIVE' : 'MARK AS HOT LEAD'}
                       </button>
                     </div>
@@ -335,13 +335,13 @@ export default function OpportunityIntelligenceDrawer({
                         onChange={(e) => setNotes(e.target.value)}
                         placeholder="Add custom notes about phone calls, owner names, or meeting schedules..."
                         rows={3}
-                        className="w-full bg-[#141517] border border-[#26282D] rounded-lg p-3 text-white placeholder-zinc-600 text-xs focus:outline-none focus:border-[#10B981] transition-colors font-mono font-normal"
+                        className="w-full bg-[#141517] border border-[#26282D] rounded-lg p-3 text-white placeholder-zinc-600 text-xs focus:outline-none focus:border-[#FAFAF9] transition-colors font-mono font-normal"
                       />
                       <button
                         onClick={handleSaveNotes}
                         className="bg-[#141517] hover:bg-[#22242a] border border-[#26282D] text-white text-[10px] font-semibold px-3 py-1.5 rounded-lg transition-all flex items-center gap-1 ml-auto font-mono cursor-pointer"
                       >
-                        {noteSavedFeedback ? <Check className="w-3 h-3 text-[#22C55E]" /> : null}
+                        {noteSavedFeedback ? <Check className="w-3 h-3 text-[#2DD4A7]" /> : null}
                         {noteSavedFeedback ? 'Notes Saved' : 'Save Notes'}
                       </button>
                     </div>
@@ -357,11 +357,11 @@ export default function OpportunityIntelligenceDrawer({
                 onClick={() => onToggleSave(business)}
                 className={`w-full py-3 rounded-xl border font-mono text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                   isSaved 
-                    ? 'bg-[#10B981]/10 border-[#10B981]/30 text-[#10B981]' 
-                    : 'bg-[#141517] border-[#26282D] text-white hover:text-[#10B981] hover:border-[#10B981]/35'
+                    ? 'bg-[#2DD4A7]/10 border-[#2DD4A7]/30 text-[#2DD4A7]' 
+                    : 'bg-[#141517] border-[#26282D] text-white hover:text-[#2DD4A7] hover:border-[#2DD4A7]/35'
                 }`}
               >
-                <Bookmark className={`w-4 h-4 ${isSaved ? 'fill-[#10B981]' : ''}`} />
+                <Bookmark className={`w-4 h-4 ${isSaved ? 'fill-[#2DD4A7]' : ''}`} />
                 {isSaved ? 'Lead Saved' : 'Save Lead'}
               </button>
 
@@ -375,9 +375,9 @@ export default function OpportunityIntelligenceDrawer({
 
               <button
                 onClick={() => onOpenPitch(business.id)}
-                className="w-full bg-[#10B981] hover:bg-[#059669] text-white py-3 rounded-xl font-mono text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-[0_0_15px_rgba(16,185,129,0.15)]"
+                className="w-full bg-gradient-to-r from-[#2DD4A7] to-[#14B88C] hover:opacity-95 text-[#0B0B0C] py-3 rounded-xl font-mono text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-[0_0_15px_rgba(45,212,167,0.15)]"
               >
-                <Send className="w-4 h-4 text-white" />
+                <Send className="w-4 h-4 text-[#0B0B0C]" />
                 Generate Pitch
               </button>
             </div>

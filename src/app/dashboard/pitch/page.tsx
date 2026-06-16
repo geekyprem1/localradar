@@ -316,7 +316,7 @@ ${audit.gbp_issues.map(i => `- ${i}`).join('\n')}`;
       <div className="border-b border-[#26282D] pb-6">
         <h1 className="text-2xl font-serif font-bold text-white flex items-center gap-2">
           AI Pitch Engine
-          <Sparkles className="w-5 h-5 text-[#10B981] fill-[#10B981]/10 animate-pulse" />
+          <Sparkles className="w-5 h-5 text-[#FAFAF9] fill-[#FAFAF9]/10 animate-pulse" />
         </h1>
         <p className="text-[#A1A1AA] text-xs mt-1">
           Draft personalized client acquisition sequences using diagnostic data.
@@ -339,7 +339,7 @@ ${audit.gbp_issues.map(i => `- ${i}`).join('\n')}`;
             <select
               value={selectedBizId}
               onChange={(e) => setSelectedBizId(e.target.value)}
-              className="w-full bg-[#0B0B0C] border border-[#26282D] rounded-xl py-3 px-4 text-white text-sm focus:outline-none focus:border-[#10B981] transition-all font-mono cursor-pointer"
+              className="w-full bg-[#0B0B0C] border border-[#26282D] rounded-xl py-3 px-4 text-white text-sm focus:outline-none focus:border-zinc-500 transition-all font-mono cursor-pointer"
             >
               {businesses.map((b) => (
                 <option key={b.id} value={b.id} className="bg-[#0B0B0C]">
@@ -378,7 +378,7 @@ ${audit.gbp_issues.map(i => `- ${i}`).join('\n')}`;
                     onClick={() => setActiveTab(tab.id as any)}
                     className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer border whitespace-nowrap font-mono ${
                       isActive 
-                        ? 'bg-[#10B981]/10 border-[#10B981]/20 text-[#10B981]' 
+                        ? 'bg-[#26282D] border-[#26282D] text-[#FAFAF9]' 
                         : 'text-[#A1A1AA] border-transparent hover:text-white'
                     }`}
                   >
@@ -393,7 +393,7 @@ ${audit.gbp_issues.map(i => `- ${i}`).join('\n')}`;
             <div className="relative">
               {loadingStates[activeTab] ? (
                 <div className="h-60 flex flex-col items-center justify-center space-y-3">
-                  <Loader2 className="w-8 h-8 text-[#10B981] animate-spin" />
+                  <Loader2 className="w-8 h-8 text-[#FAFAF9] animate-spin" />
                   <span className="text-xs text-[#A1A1AA] font-medium font-mono">Re-writing outreach sequence...</span>
                 </div>
               ) : pitches[activeTab] ? (
@@ -402,7 +402,7 @@ ${audit.gbp_issues.map(i => `- ${i}`).join('\n')}`;
                 </pre>
               ) : (
                 <div className="h-60 flex flex-col items-center justify-center space-y-4 border border-dashed border-[#26282D] bg-[#0B0B0C]/40 rounded-xl p-6">
-                  <Sparkles className="w-8 h-8 text-[#10B981] animate-pulse" />
+                  <Sparkles className="w-8 h-8 text-[#A1A1AA] animate-pulse" />
                   <div className="text-center">
                     <p className="text-xs font-semibold text-white font-mono">{getTabLabel(activeTab)} Not Generated</p>
                     <p className="text-[10px] text-[#71717A] font-mono mt-1">
@@ -411,7 +411,7 @@ ${audit.gbp_issues.map(i => `- ${i}`).join('\n')}`;
                   </div>
                   <button
                     onClick={() => handleGenerateTabPitch(activeTab)}
-                    className="bg-[#10B981] hover:bg-[#059669] text-white text-xs font-mono font-bold px-5 py-2.5 rounded-xl transition-all shadow-md flex items-center gap-1.5 cursor-pointer uppercase tracking-wider"
+                    className="bg-gradient-to-r from-[#2DD4A7] to-[#14B88C] hover:opacity-95 text-[#0B0B0C] text-xs font-mono font-extrabold px-5 py-2.5 rounded-xl transition-all shadow-md flex items-center gap-1.5 cursor-pointer uppercase tracking-wider"
                   >
                     <Sparkles className="w-3.5 h-3.5" />
                     Generate {getTabLabel(activeTab)}
@@ -431,7 +431,7 @@ ${audit.gbp_issues.map(i => `- ${i}`).join('\n')}`;
 
               <button
                 onClick={handleCopy}
-                className="bg-[#10B981] hover:bg-[#059669] text-white text-xs font-bold px-5 py-2.5 rounded-xl transition-all shadow-sm flex items-center gap-1.5 cursor-pointer font-mono"
+                className="bg-gradient-to-r from-[#2DD4A7] to-[#14B88C] hover:opacity-95 text-[#0B0B0C] text-xs font-extrabold px-5 py-2.5 rounded-xl transition-all shadow-sm flex items-center gap-1.5 cursor-pointer font-mono"
               >
                 {copied ? <Check className="w-3.5 h-3.5 text-white" /> : <Copy className="w-3.5 h-3.5" />}
                 {copied ? 'Copied' : 'Copy Pitch'}

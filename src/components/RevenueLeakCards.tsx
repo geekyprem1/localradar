@@ -76,22 +76,22 @@ export default function RevenueLeakCards({
               transition={{ duration: 0.25, delay: idx * 0.04 }}
               className={`p-3.5 rounded-xl border flex flex-col justify-between transition-all ${
                 leak.active 
-                  ? 'bg-[#0B0B0C] border-[#EF4444]/25 hover:border-[#EF4444]/45' 
+                  ? 'bg-[#0B0B0C] border-[#FF5C5C]/25 hover:border-[#FF5C5C]/45' 
                   : 'bg-[#141517] border-[#26282D] opacity-60'
               }`}
             >
               <div>
                 <div className="flex items-center justify-between gap-1.5 mb-2">
                   <span className={`text-[8px] font-normal font-mono px-1.5 py-0.5 rounded ${
-                    leak.active ? 'bg-[#EF4444]/10 text-[#EF4444]' : 'bg-[#0B0B0C] text-[#71717A] border border-[#26282D]'
+                    leak.active ? 'bg-[#FF5C5C]/10 text-[#FF5C5C]' : 'bg-[#0B0B0C] text-[#71717A] border border-[#26282D]'
                   }`}>
                     {leak.category}
                   </span>
                   
                   {leak.active ? (
-                    <AlertTriangle className="w-4 h-4 text-[#EF4444]" />
+                    <AlertTriangle className="w-4 h-4 text-[#FF5C5C]" />
                   ) : (
-                    <ShieldCheck className="w-4 h-4 text-[#22C55E]" />
+                    <ShieldCheck className="w-4 h-4 text-[#2DD4A7]" />
                   )}
                 </div>
 
@@ -105,7 +105,7 @@ export default function RevenueLeakCards({
 
               <div className="mt-3 pt-2 border-t border-[#26282D] flex items-center justify-between text-[9px] font-mono">
                 <span className="text-[#71717A] font-normal">Status</span>
-                <span className={leak.active ? 'text-[#EF4444] font-semibold' : 'text-[#22C55E] font-semibold'}>
+                <span className={leak.active ? 'text-[#FF5C5C] font-semibold' : 'text-[#2DD4A7] font-semibold'}>
                   {leak.active ? '✓ CRITICAL LEAK' : '✓ SECURED'}
                 </span>
               </div>

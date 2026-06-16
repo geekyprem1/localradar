@@ -71,7 +71,7 @@ export default function RecommendedServices({
   return (
     <div className="space-y-3">
       <h4 className="text-[10px] font-semibold text-[#A1A1AA] uppercase tracking-widest font-mono flex items-center gap-1">
-        <Sparkles className="w-3 h-3 text-[#10B981]" />
+        <Sparkles className="w-3 h-3 text-[#A1A1AA]" />
         Service Fit Engine™
       </h4>
 
@@ -86,7 +86,7 @@ export default function RecommendedServices({
           >
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <span className="w-4 h-4 rounded-full bg-[#10B981]/10 border border-[#10B981]/20 flex items-center justify-center font-mono text-[9px] text-[#10B981] font-normal shrink-0">
+                <span className="w-4 h-4 rounded-full bg-[#26282D] border border-[#26282D] flex items-center justify-center font-mono text-[9px] text-white font-normal shrink-0">
                   {idx + 1}
                 </span>
                 <h5 className="text-xs font-semibold text-white leading-tight">
@@ -100,7 +100,7 @@ export default function RecommendedServices({
 
             <div className="text-right shrink-0">
               <span className="text-[8px] font-normal text-[#71717A] uppercase tracking-wider block font-mono">Value</span>
-              <span className="text-[#22C55E] font-mono font-semibold text-sm block mt-0.5">
+              <span className="text-[#2DD4A7] font-mono font-semibold text-sm block mt-0.5">
                 {formatIndianCurrency(service.value)}
               </span>
             </div>

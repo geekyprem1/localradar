@@ -87,9 +87,9 @@ export default function SavedLeadsPage() {
   };
 
   const getScoreColor = (score: number) => {
-    if (score >= 60) return 'text-[#10B981] border-[#10B981]/25 bg-[#10B981]/10';
-    if (score >= 35) return 'text-[#F59E0B] border-[#F59E0B]/20 bg-[#F59E0B]/10';
-    return 'text-[#A1A1AA] border-[#26282D] bg-[#141517]';
+    if (score >= 60) return 'text-[#2DD4A7] border-[#2DD4A7]/25 bg-[#2DD4A7]/10';
+    if (score >= 35) return 'text-[#F5A623] border-[#F5A623]/20 bg-[#F5A623]/10';
+    return 'text-[#FF5C5C] border-[#FF5C5C]/20 bg-[#FF5C5C]/10';
   };
 
   const getOpportunityLabel = (score: number) => {
@@ -148,9 +148,9 @@ export default function SavedLeadsPage() {
       <div className="border-b border-[#26282D] pb-6">
         <h1 className="text-2xl font-serif font-bold text-white flex items-center gap-2">
           Saved Opportunities
-          <Bookmark className="w-5 h-5 text-[#10B981] fill-[#10B981]" />
+          <Bookmark className="w-5 h-5 text-white" />
         </h1>
-        <p className="text-[#A1A1AA] text-xs mt-1">
+        <p className="text-[#A1A1AA] text-xs mt-1 font-mono">
           Review and access your persistently bookmarked prospects across searches.
         </p>
       </div>
@@ -186,7 +186,7 @@ export default function SavedLeadsPage() {
                       <td className="py-5 px-6">
                         <div className="font-sans font-semibold text-base text-[#FFFFFF] flex items-center gap-1.5 truncate max-w-[200px]">
                           {biz.name}
-                          {hotLeadsMap[biz.id] && <Flame className="w-3.5 h-3.5 text-[#10B981] fill-[#10B981] shrink-0 animate-pulse" />}
+                          {hotLeadsMap[biz.id] && <Flame className="w-3.5 h-3.5 text-[#F5A623] fill-[#F5A623] shrink-0" />}
                         </div>
                         <div className="text-xs text-[#71717A] truncate max-w-[200px] mt-1 font-mono">{biz.address}</div>
                       </td>
@@ -196,22 +196,22 @@ export default function SavedLeadsPage() {
                             href={biz.website}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-xs text-[#10B981] hover:underline flex items-center gap-1 max-w-[150px] truncate font-mono"
+                            className="text-xs text-zinc-300 hover:text-white hover:underline flex items-center gap-1 max-w-[150px] truncate font-mono"
                           >
                             <Globe className="w-3.5 h-3.5 text-[#A1A1AA]" />
                             {biz.website.replace('https://www.', '')}
                           </a>
                         ) : (
-                          <span className="text-[10px] text-[#EF4444] bg-[#EF4444]/10 border border-[#EF4444]/20 px-2.5 py-0.5 rounded-full font-normal font-mono">
+                          <span className="text-[10px] text-[#FF5C5C] bg-[#FF5C5C]/10 border border-[#FF5C5C]/20 px-2.5 py-0.5 rounded-full font-normal font-mono">
                             No Website
                           </span>
                         )}
                       </td>
                       <td className="py-5 px-6">
                         <div className="flex items-center gap-1 text-xs text-white">
-                          <Star className="w-3.5 h-3.5 text-[#F59E0B] fill-[#F59E0B]" />
+                          <Star className="w-3.5 h-3.5 text-[#F5A623] fill-[#F5A623]" />
                           <span>{biz.rating}</span>
-                          <span className="text-zinc-500 font-mono">({biz.reviews_count} reviews)</span>
+                          <span className="text-[#A1A1AA] font-mono">({biz.reviews_count} reviews)</span>
                         </div>
                       </td>
                       <td className="py-5 px-6 text-center">
@@ -222,7 +222,7 @@ export default function SavedLeadsPage() {
                         </div>
                       </td>
                       <td className="py-5 px-6 text-center">
-                        <span className="text-xs text-[#10B981] font-semibold font-mono bg-[#10B981]/5 border border-[#10B981]/10 px-2 py-1 rounded">
+                        <span className="text-xs text-[#FF5C5C] font-semibold font-mono bg-[#FF5C5C]/5 border border-[#FF5C5C]/15 px-2 py-1 rounded">
                           {getTableWhyThisLead(scored)}
                         </span>
                       </td>
@@ -238,12 +238,18 @@ export default function SavedLeadsPage() {
                         )}
                       </td>
                       <td className="py-5 px-6 text-center">
-                        <span className={`text-sm font-semibold font-mono ${(scored?.closingProbability ?? 0) >= 60 ? 'text-[#22C55E]' : (scored?.closingProbability ?? 0) >= 30 ? 'text-[#F59E0B]' : 'text-[#71717A]'}`}>
+                        <span className={`text-sm font-semibold font-mono ${
+                          (scored?.closingProbability ?? 0) >= 70 
+                            ? 'text-[#2DD4A7]' 
+                            : (scored?.closingProbability ?? 0) >= 40 
+                              ? 'text-[#F5A623]' 
+                              : 'text-[#FF5C5C]'
+                        }`}>
                           {scored?.closingProbability ?? 0}%
                         </span>
                       </td>
                       <td className="py-5 px-6 text-center">
-                        <span className="text-sm font-semibold text-white font-mono">
+                        <span className="text-sm font-semibold text-[#2DD4A7] font-mono">
                           {scored?.dealValue.formatted ?? '—'}
                         </span>
                       </td>
@@ -251,7 +257,7 @@ export default function SavedLeadsPage() {
                         <div className="flex items-center justify-end gap-2">
                           <button
                             onClick={() => handleRemoveLead(biz.id)}
-                            className="p-2 rounded-lg border border-[#26282D] bg-[#0B0B0C] text-[#A1A1AA] hover:text-[#EF4444] hover:bg-[#EF4444]/10 hover:border-[#EF4444]/20 transition-all cursor-pointer"
+                            className="p-2 rounded-lg border border-[#26282D] bg-[#0B0B0C] text-[#A1A1AA] hover:text-[#FF5C5C] hover:bg-[#FF5C5C]/10 hover:border-[#FF5C5C]/20 transition-all cursor-pointer"
                             title="Remove Lead"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -265,9 +271,9 @@ export default function SavedLeadsPage() {
                           </button>
                           <button
                             onClick={() => router.push(`/dashboard/pitch?bizId=${biz.id}`)}
-                            className="bg-[#10B981] hover:bg-[#059669] text-white text-xs font-semibold px-4 py-2 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer shadow-sm font-mono"
+                            className="bg-gradient-to-r from-[#2DD4A7] to-[#14B88C] hover:opacity-95 text-[#0B0B0C] text-xs font-bold px-4 py-2 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer shadow-sm font-mono"
                           >
-                            <Send className="w-3.5 h-3.5 text-white" />
+                            <Send className="w-3.5 h-3.5 text-[#0B0B0C]" />
                             Pitch
                           </button>
                         </div>
@@ -281,7 +287,7 @@ export default function SavedLeadsPage() {
         </div>
       ) : (
         <div className="bg-[#141517] border border-[#26282D] p-12 text-center max-w-lg mx-auto rounded-3xl shadow-xl">
-          <div className="w-12 h-12 rounded-xl bg-[#0B0B0C] border border-[#26282D] flex items-center justify-center mx-auto mb-4 text-[#10B981]">
+          <div className="w-12 h-12 rounded-xl bg-[#0B0B0C] border border-[#26282D] flex items-center justify-center mx-auto mb-4 text-[#A1A1AA]">
             <Bookmark className="w-5 h-5" />
           </div>
           <h3 className="text-white text-sm font-semibold font-serif">No Saved Opportunities Yet</h3>

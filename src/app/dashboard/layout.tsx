@@ -35,8 +35,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     return (
       <div className="min-h-screen bg-[#0B0B0C] flex items-center justify-center">
         <div className="relative w-16 h-16">
-          <div className="absolute inset-0 border-4 border-[#10B981]/10 rounded-full"></div>
-          <div className="absolute inset-0 border-4 border-[#10B981] border-t-transparent rounded-full animate-spin"></div>
+          <div className="absolute inset-0 border-4 border-[#26282D] rounded-full"></div>
+          <div className="absolute inset-0 border-4 border-[#FAFAF9] border-t-transparent rounded-full animate-spin"></div>
         </div>
       </div>
     );
@@ -60,8 +60,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <aside className="hidden md:flex flex-col w-64 border-r border-[#26282D] bg-[#141517] p-6 shrink-0 relative z-20">
         <div className="mb-8">
           <div className="flex items-center gap-2.5">
-            <div className="w-6 h-6 rounded-lg bg-[#10B981]/10 border border-[#10B981]/35 flex items-center justify-center">
-              <Zap className="w-3.5 h-3.5 text-[#10B981] fill-[#10B981]/20" />
+            <div className="w-6 h-6 rounded-lg bg-[#26282D] border border-[#26282D] flex items-center justify-center">
+              <Zap className="w-3.5 h-3.5 text-[#FAFAF9] fill-[#FAFAF9]/10" />
             </div>
             <span className="font-serif italic font-semibold tracking-wide text-lg text-[#FFFFFF]">LocalRadar</span>
           </div>
@@ -87,7 +87,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     : 'text-[#A1A1AA] hover:text-[#FFFFFF] hover:bg-[#0B0B0C]/50 border-transparent'
                 }`}
               >
-                <Icon className={`w-4 h-4 ${isActive ? 'text-[#10B981]' : 'text-[#A1A1AA]'}`} />
+                <Icon className={`w-4 h-4 ${isActive ? 'text-[#FFFFFF]' : 'text-[#A1A1AA]'}`} />
                 {item.name}
               </Link>
             );
@@ -98,7 +98,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <div className="border-t border-[#26282D] pt-6 mt-auto space-y-4">
           {user.subscription_tier !== 'free' && (
             <div className="bg-[#0B0B0C] border border-[#26282D] p-3 rounded-xl flex items-center gap-2">
-              <Zap className="w-4 h-4 text-[#10B981] fill-[#10B981]" />
+              <Zap className="w-4 h-4 text-[#FAFAF9] fill-[#FAFAF9]/15" />
               <div className="text-[10px] font-mono">
                 <p className="font-bold text-white uppercase tracking-wider">{user.subscription_tier} Account</p>
                 <p className="text-[#A1A1AA]">Intelligence Active</p>
@@ -118,7 +118,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
             <button 
               onClick={() => signOut()} 
-              className="p-2 text-[#A1A1AA] hover:text-[#10B981] hover:bg-[#0B0B0C] rounded-xl transition-colors cursor-pointer"
+              className="p-2 text-[#A1A1AA] hover:text-[#FFFFFF] hover:bg-[#0B0B0C] rounded-xl transition-colors cursor-pointer"
               title="Sign Out"
             >
               <LogOut className="w-4 h-4" />
@@ -132,8 +132,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <header className="h-16 border-b border-[#26282D] bg-[#141517] px-6 flex items-center justify-between relative z-35">
           <div className="flex flex-col justify-center">
             <div className="flex items-center gap-2">
-              <div className="w-5 h-5 rounded bg-[#10B981]/15 flex items-center justify-center">
-                <Zap className="w-3 h-3 text-[#10B981] fill-[#10B981]/20" />
+              <div className="w-5 h-5 rounded bg-[#26282D] flex items-center justify-center">
+                <Zap className="w-3.5 h-3.5 text-[#FAFAF9] fill-[#FAFAF9]/10" />
               </div>
               <span className="font-serif italic font-semibold tracking-wide text-base text-[#FFFFFF]">LocalRadar</span>
             </div>
@@ -192,7 +192,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 </div>
                 <button 
                   onClick={() => signOut()} 
-                  className="flex items-center gap-1.5 text-xs text-[#A1A1AA] hover:text-[#10B981] px-3 py-1.5 rounded-lg bg-[#0B0B0C] border border-[#26282D]"
+                  className="flex items-center gap-1.5 text-xs text-[#A1A1AA] hover:text-[#FFFFFF] px-3 py-1.5 rounded-lg bg-[#0B0B0C] border border-[#26282D]"
                 >
                   <LogOut className="w-3.5 h-3.5" />
                   Sign Out

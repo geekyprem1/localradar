@@ -109,7 +109,7 @@ export default function SettingsPage() {
           {/* Profile form */}
           <div className="bg-[#141517] border border-[#26282D] p-6 rounded-2xl space-y-4 shadow-xl">
             <h3 className="text-sm font-bold text-white flex items-center gap-2 uppercase tracking-wider font-mono">
-              <User className="w-4 h-4 text-[#10B981]" />
+              <User className="w-4 h-4 text-[#A1A1AA]" />
               Agency Profile Details
             </h3>
 
@@ -121,7 +121,7 @@ export default function SettingsPage() {
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full bg-[#0B0B0C] border border-[#26282D] rounded-xl py-2.5 px-4 text-white text-xs focus:outline-none focus:border-[#10B981] transition-all font-mono"
+                    className="w-full bg-[#0B0B0C] border border-[#26282D] rounded-xl py-2.5 px-4 text-white text-xs focus:outline-none focus:border-zinc-500 transition-all font-mono"
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -141,7 +141,7 @@ export default function SettingsPage() {
                   type="text"
                   value={orgName}
                   onChange={(e) => setOrgName(e.target.value)}
-                  className="w-full bg-[#0B0B0C] border border-[#26282D] rounded-xl py-2.5 px-4 text-white text-xs focus:outline-none focus:border-[#10B981] transition-all font-mono"
+                  className="w-full bg-[#0B0B0C] border border-[#26282D] rounded-xl py-2.5 px-4 text-white text-xs focus:outline-none focus:border-zinc-500 transition-all font-mono"
                 />
               </div>
 
@@ -159,7 +159,7 @@ export default function SettingsPage() {
           <div className="bg-[#141517] border border-[#26282D] p-6 rounded-2xl space-y-6 shadow-xl">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <h3 className="text-sm font-bold text-white flex items-center gap-2 uppercase tracking-wider font-mono">
-                <CreditCard className="w-4 h-4 text-[#10B981]" />
+                <CreditCard className="w-4 h-4 text-[#A1A1AA]" />
                 Subscription Plans
               </h3>
               <span className="text-[9px] text-zinc-400 font-bold bg-[#0B0B0C] border border-[#26282D] px-2.5 py-1 rounded-full uppercase tracking-wider font-mono">
@@ -175,7 +175,7 @@ export default function SettingsPage() {
                     key={tier.id} 
                     className={`p-4 rounded-xl border flex flex-col justify-between ${
                       isActive 
-                        ? 'bg-[#10B981]/5 border-[#10B981] shadow-lg' 
+                        ? 'bg-zinc-800/10 border-[#FAFAF9] shadow-lg' 
                         : 'bg-[#0B0B0C] border-[#26282D]'
                     }`}
                   >
@@ -189,7 +189,7 @@ export default function SettingsPage() {
                       <ul className="mt-4 space-y-2 text-[10px] text-[#A1A1AA] font-mono">
                         {tier.features.map((feat, i) => (
                           <li key={i} className="flex items-center gap-1.5">
-                            <Check className="w-3.5 h-3.5 text-[#10B981]" />
+                            <Check className="w-3.5 h-3.5 text-[#2DD4A7]" />
                             <span>{feat}</span>
                           </li>
                         ))}
@@ -201,8 +201,8 @@ export default function SettingsPage() {
                       disabled={isActive}
                       className={`w-full text-center text-xs font-bold py-2.5 rounded-xl mt-6 transition-all cursor-pointer font-mono ${
                         isActive 
-                          ? 'bg-[#10B981]/10 border border-[#10B981]/20 text-[#10B981] cursor-default' 
-                          : 'bg-[#10B981] hover:bg-[#059669] text-white shadow-md'
+                          ? 'bg-[#26282D] border border-[#26282D] text-[#FAFAF9] cursor-default' 
+                          : 'bg-gradient-to-r from-[#2DD4A7] to-[#14B88C] hover:opacity-95 text-[#0B0B0C] font-extrabold shadow-md'
                       }`}
                     >
                       {isActive ? 'Active' : tier.buttonText}
@@ -218,7 +218,7 @@ export default function SettingsPage() {
         <div className="bg-[#141517] border border-[#26282D] p-6 rounded-2xl space-y-4 shadow-xl">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-bold text-white flex items-center gap-2 uppercase tracking-wider font-mono">
-              <Key className="w-4 h-4 text-[#10B981]" />
+              <Key className="w-4 h-4 text-[#A1A1AA]" />
               Developer Keys
             </h3>
             <span className="p-1.5 rounded-lg bg-[#0B0B0C] border border-[#26282D]" title="Encrypted Local Storage">
@@ -232,7 +232,7 @@ export default function SettingsPage() {
 
           <form onSubmit={handleSaveKeys} className="space-y-4 border-t border-[#26282D] pt-4">
             <div className="space-y-1.5 border-b border-[#26282D] pb-4">
-              <label className="text-[9px] font-bold text-[#10B981] uppercase tracking-wider block mb-1 font-mono">OpenRouter (DeepSeek v4 Flash)</label>
+              <label className="text-[9px] font-bold text-[#A1A1AA] uppercase tracking-wider block mb-1 font-mono">OpenRouter (DeepSeek v4 Flash)</label>
               
               <div className="space-y-1.5">
                 <label className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest font-mono">API Key</label>
@@ -241,7 +241,7 @@ export default function SettingsPage() {
                   placeholder="sk-or-v1-..."
                   value={openrouterKey}
                   onChange={(e) => setOpenrouterKey(e.target.value)}
-                  className="w-full bg-[#0B0B0C] border border-[#26282D] rounded-xl py-2 px-3 text-white text-xs focus:outline-none focus:border-[#10B981] transition-all font-mono"
+                  className="w-full bg-[#0B0B0C] border border-[#26282D] rounded-xl py-2 px-3 text-white text-xs focus:outline-none focus:border-zinc-500 transition-all font-mono"
                 />
               </div>
 
@@ -252,7 +252,7 @@ export default function SettingsPage() {
                   placeholder="e.g. deepseek/deepseek-chat"
                   value={openrouterModel}
                   onChange={(e) => setOpenrouterModel(e.target.value)}
-                  className="w-full bg-[#0B0B0C] border border-[#26282D] rounded-xl py-2 px-3 text-white text-xs focus:outline-none focus:border-[#10B981] transition-all font-mono"
+                  className="w-full bg-[#0B0B0C] border border-[#26282D] rounded-xl py-2 px-3 text-white text-xs focus:outline-none focus:border-zinc-500 transition-all font-mono"
                 />
               </div>
             </div>
@@ -264,7 +264,7 @@ export default function SettingsPage() {
                 placeholder="AIzaSy..."
                 value={googlePlacesKey}
                 onChange={(e) => setGooglePlacesKey(e.target.value)}
-                className="w-full bg-[#0B0B0C] border border-[#26282D] rounded-xl py-2 px-3 text-white text-xs focus:outline-none focus:border-[#10B981] transition-all font-mono"
+                className="w-full bg-[#0B0B0C] border border-[#26282D] rounded-xl py-2 px-3 text-white text-xs focus:outline-none focus:border-zinc-500 transition-all font-mono"
               />
             </div>
 
@@ -275,7 +275,7 @@ export default function SettingsPage() {
                 placeholder="sk-..."
                 value={openaiKey}
                 onChange={(e) => setOpenaiKey(e.target.value)}
-                className="w-full bg-[#0B0B0C] border border-[#26282D] rounded-xl py-2 px-3 text-white text-xs focus:outline-none focus:border-[#10B981] transition-all font-mono"
+                className="w-full bg-[#0B0B0C] border border-[#26282D] rounded-xl py-2 px-3 text-white text-xs focus:outline-none focus:border-zinc-500 transition-all font-mono"
               />
             </div>
 
@@ -286,7 +286,7 @@ export default function SettingsPage() {
                 placeholder="https://your-project.supabase.co"
                 value={supabaseUrl}
                 onChange={(e) => setSupabaseUrl(e.target.value)}
-                className="w-full bg-[#0B0B0C] border border-[#26282D] rounded-xl py-2 px-3 text-white text-xs focus:outline-none focus:border-[#10B981] transition-all font-mono"
+                className="w-full bg-[#0B0B0C] border border-[#26282D] rounded-xl py-2 px-3 text-white text-xs focus:outline-none focus:border-zinc-500 transition-all font-mono"
               />
             </div>
 
@@ -297,13 +297,13 @@ export default function SettingsPage() {
                 placeholder="eyJhbG..."
                 value={supabaseAnon}
                 onChange={(e) => setSupabaseAnon(e.target.value)}
-                className="w-full bg-[#0B0B0C] border border-[#26282D] rounded-xl py-2 px-3 text-white text-xs focus:outline-none focus:border-[#10B981] transition-all font-mono"
+                className="w-full bg-[#0B0B0C] border border-[#26282D] rounded-xl py-2 px-3 text-white text-xs focus:outline-none focus:border-zinc-500 transition-all font-mono"
               />
             </div>
 
             <button
               type="submit"
-              className="w-full bg-[#10B981] hover:bg-[#059669] text-white font-bold text-xs py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-md font-mono"
+              className="w-full bg-gradient-to-r from-[#2DD4A7] to-[#14B88C] hover:opacity-95 text-[#0B0B0C] font-extrabold text-xs py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-md font-mono"
             >
               Save Credentials
             </button>
@@ -319,7 +319,7 @@ export default function SettingsPage() {
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 15 }}
-            className="fixed bottom-6 right-6 bg-[#22C55E]/10 border border-[#22C55E]/20 text-[#22C55E] text-xs px-4 py-3 rounded-xl flex items-center gap-2 shadow-lg z-50 font-mono"
+            className="fixed bottom-6 right-6 bg-[#2DD4A7]/10 border border-[#2DD4A7]/20 text-[#2DD4A7] text-xs px-4 py-3 rounded-xl flex items-center gap-2 shadow-lg z-50 font-mono"
           >
             <Check className="w-4 h-4" />
             <span>Settings saved successfully!</span>

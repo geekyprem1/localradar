@@ -132,10 +132,10 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
   };
 
   const getFitColor = (level: string) => {
-    if (level === 'Perfect Fit') return 'text-[#10B981] bg-[#10B981]/10 border-[#10B981]/20';
-    if (level === 'Strong Fit') return 'text-[#10B981]/90 bg-[#10B981]/5 border-[#10B981]/10';
-    if (level === 'Moderate Fit') return 'text-[#F59E0B] bg-[#F59E0B]/10 border-[#F59E0B]/20';
-    return 'text-[#A1A1AA] bg-[#141517] border-[#26282D]';
+    if (level === 'Perfect Fit') return 'text-white bg-[#26282D] border-[#26282D]';
+    if (level === 'Strong Fit') return 'text-[#A1A1AA] bg-[#141517] border-[#26282D]';
+    if (level === 'Moderate Fit') return 'text-[#F5A623] bg-[#F5A623]/10 border-[#F5A623]/25';
+    return 'text-[#FF5C5C] bg-[#FF5C5C]/10 border-[#FF5C5C]/25';
   };
 
   if (loading) {
@@ -149,7 +149,7 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
   if (!business || !opportunity || !audit || !scored) {
     return (
       <div className="p-8 text-center space-y-4 font-mono text-xs text-white bg-[#0B0B0C]">
-        <p className="text-[#EF4444]">Error loading audit details.</p>
+        <p className="text-[#FF5C5C]">Error loading audit details.</p>
         <button onClick={() => router.push('/dashboard/lead-finder')} className="text-[#71717A] hover:text-white underline">
           Back to Opportunity Finder
         </button>
@@ -180,12 +180,12 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
       <div className="flex flex-col lg:flex-row gap-6">
         {/* Left main info */}
         <div className="bg-[#141517] border border-[#26282D] p-6 flex-1 flex flex-col justify-between relative overflow-hidden rounded-2xl shadow-xl">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-[#10B981]/5 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-3xl pointer-events-none" />
           
           <div className="space-y-4">
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-[9px] font-normal text-[#10B981] bg-[#10B981]/10 border border-[#10B981]/20 px-2.5 py-0.5 rounded-full uppercase tracking-wider font-mono">
+                <span className="text-[9px] font-normal text-white bg-[#26282D] border border-[#26282D] px-2.5 py-0.5 rounded-full uppercase tracking-wider font-mono">
                   Intelligence Engine™ Scanned
                 </span>
                 <span className="text-[9px] font-normal text-[#A1A1AA] bg-[#0B0B0C] border border-[#26282D] px-2.5 py-0.5 rounded-full font-mono">
@@ -210,10 +210,10 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
               </div>
               <div>
                 <span className="text-[#A1A1AA] text-[9px] font-normal uppercase tracking-wider block font-mono">Website Domain</span>
-                <span className="text-xs text-[#10B981] font-semibold truncate block mt-1">
+                <span className="text-xs text-white font-semibold truncate block mt-1">
                   {business.website ? (
                     <a href={business.website} target="_blank" rel="noopener noreferrer" className="hover:underline flex items-center gap-1">
-                      <Globe className="w-3.5 h-3.5 text-[#71717A]" />
+                      <Globe className="w-3.5 h-3.5 text-[#A1A1AA]" />
                       {business.website.replace('https://www.', '')}
                     </a>
                   ) : (
@@ -233,14 +233,14 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
               onClick={handleCopyReport}
               className="bg-[#0B0B0C] hover:bg-[#141517] border border-[#26282D] text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shadow-sm font-mono"
             >
-              {copied ? <Check className="w-3.5 h-3.5 text-[#22C55E]" /> : <Copy className="w-3.5 h-3.5 text-[#71717A]" />}
+              {copied ? <Check className="w-3.5 h-3.5 text-[#2DD4A7]" /> : <Copy className="w-3.5 h-3.5 text-[#71717A]" />}
               {copied ? 'Copied Report' : 'Copy Report'}
             </button>
             <button
-              onClick={() => router.push(`/dashboard/pitch?bizId=${business.id}`)}
-              className="bg-[#10B981] hover:bg-[#059669] text-white text-xs font-semibold px-5 py-2.5 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shadow-sm font-mono"
+              onClick={() => router.push(`/dashboard/pitch?bizId={business.id}`)}
+              className="bg-gradient-to-r from-[#2DD4A7] to-[#14B88C] hover:opacity-95 text-[#0B0B0C] text-xs font-bold px-5 py-2.5 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shadow-sm font-mono"
             >
-              <Sparkles className="w-3.5 h-3.5" />
+              <Sparkles className="w-3.5 h-3.5 text-[#0B0B0C]" />
               Generate Pitch Copy
             </button>
           </div>
@@ -264,7 +264,7 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
                   cx="56"
                   cy="56"
                   r="48"
-                  stroke={scored.opportunityScore >= 60 ? '#10B981' : scored.opportunityScore >= 35 ? '#F59E0B' : '#71717A'}
+                  stroke={scored.opportunityScore >= 60 ? '#2DD4A7' : scored.opportunityScore >= 35 ? '#F5A623' : '#FF5C5C'}
                   strokeWidth="8"
                   strokeDasharray={2 * Math.PI * 48}
                   strokeDashoffset={2 * Math.PI * 48 * (1 - scored.opportunityScore / 100)}
@@ -279,7 +279,7 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
             </div>
             <div className="space-y-1.5">
               <div className={`text-[9px] font-normal px-2.5 py-0.5 rounded-full border uppercase tracking-wider font-mono inline-block ${
-                scored.opportunityScore >= 60 ? 'text-[#10B981] bg-[#10B981]/10 border-[#10B981]/20' : scored.opportunityScore >= 35 ? 'text-[#F59E0B] bg-[#F59E0B]/10 border-[#F59E0B]/20' : 'text-[#A1A1AA] bg-[#141517] border-[#26282D]'
+                scored.opportunityScore >= 60 ? 'text-[#2DD4A7] bg-[#2DD4A7]/10 border-[#2DD4A7]/20' : scored.opportunityScore >= 35 ? 'text-[#F5A623] bg-[#F5A623]/10 border-[#F5A623]/20' : 'text-[#FF5C5C] bg-[#FF5C5C]/10 border-[#FF5C5C]/20'
               }`}>
                 {scored.opportunityLevel} Opportunity
               </div>
@@ -291,11 +291,11 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
           <div className="space-y-3.5 font-mono">
             <div className="flex items-center justify-between border-b border-[#26282D] pb-2.5">
               <div className="flex items-center gap-2 text-[#A1A1AA] text-xs">
-                <Target className="w-4 h-4 text-[#10B981]" />
-                <span>Opportunity Engine™</span>
+                <Target className="w-4 h-4 text-[#A1A1AA]" />
+                <span>Opportunity Score™</span>
               </div>
               <span className={`text-xs font-semibold uppercase tracking-wider ${
-                scored.opportunityScore >= 60 ? 'text-[#10B981]' : scored.opportunityScore >= 35 ? 'text-[#F59E0B]' : 'text-[#A1A1AA]'
+                scored.opportunityScore >= 60 ? 'text-[#2DD4A7]' : scored.opportunityScore >= 35 ? 'text-[#F5A623]' : 'text-[#FF5C5C]'
               }`}>
                 {scored.opportunityScore}/100
               </span>
@@ -303,7 +303,7 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
 
             <div className="flex items-center justify-between border-b border-[#26282D] pb-2.5 font-normal">
               <div className="flex items-center gap-2 text-[#A1A1AA] text-xs">
-                <Layers className="w-4 h-4 text-[#10B981]" />
+                <Layers className="w-4 h-4 text-[#A1A1AA]" />
                 <span>Service Fit Engine™</span>
               </div>
               <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${getFitColor(scored.bestFit.level)}`}>
@@ -313,20 +313,26 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
 
             <div className="flex items-center justify-between border-b border-[#26282D] pb-2.5 font-normal">
               <div className="flex items-center gap-2 text-[#A1A1AA] text-xs">
-                <TrendingUp className="w-4 h-4 text-[#10B981]" />
+                <TrendingUp className="w-4 h-4 text-[#A1A1AA]" />
                 <span>Closing Probability™</span>
               </div>
-              <span className="text-xs font-semibold text-[#22C55E]">
+              <span className={`text-xs font-semibold ${
+                scored.closingProbability >= 70 
+                  ? 'text-[#2DD4A7]' 
+                  : scored.closingProbability >= 40 
+                    ? 'text-[#F5A623]' 
+                    : 'text-[#FF5C5C]'
+              }`}>
                 {scored.closingProbability}%
               </span>
             </div>
 
             <div className="flex items-center justify-between font-normal">
               <div className="flex items-center gap-2 text-[#A1A1AA] text-xs">
-                <DollarSign className="w-4 h-4 text-[#22C55E]" />
+                <DollarSign className="w-4 h-4 text-[#2DD4A7]" />
                 <span>Revenue Potential™</span>
               </div>
-              <span className="text-xs font-semibold text-white">
+              <span className="text-xs font-semibold text-[#2DD4A7]">
                 {scored.dealValue.formatted}
               </span>
             </div>
@@ -342,7 +348,7 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
           {/* Vulnerability Diagnostics */}
           <div className="bg-[#141517] border border-[#26282D] p-6 space-y-6 rounded-2xl shadow-xl">
             <h2 className="text-sm font-semibold text-[#FFFFFF] flex items-center gap-2 uppercase tracking-wider font-mono">
-              <ListTodo className="w-4 h-4 text-[#10B981]" />
+              <ListTodo className="w-4 h-4 text-[#A1A1AA]" />
               AI Vulnerability Diagnostics
             </h2>
 
@@ -363,7 +369,7 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
                     <div className="w-full bg-[#0B0B0C] h-2 rounded-full border border-[#26282D] overflow-hidden">
                       <div 
                         className={`h-full rounded-full transition-all duration-500 ${
-                          isActive ? 'bg-[#EF4444]' : 'bg-[#22C55E]'
+                          isActive ? 'bg-[#FF5C5C]' : 'bg-[#2DD4A7]'
                         }`}
                         style={{ width: `${percent}%` }}
                       />
@@ -373,14 +379,14 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
                     <div className="mt-3.5 space-y-2">
                       {sec.issues.length > 0 ? (
                         sec.issues.map((issue, i) => (
-                          <div key={i} className="flex items-start gap-2.5 text-xs text-[#EF4444] bg-[#EF4444]/5 border border-[#EF4444]/15 p-2.5 rounded-xl font-mono">
-                            <AlertTriangle className="w-3.5 h-3.5 text-[#EF4444] shrink-0 mt-0.5" />
+                          <div key={i} className="flex items-start gap-2.5 text-xs text-[#FF5C5C] bg-[#FF5C5C]/5 border border-[#FF5C5C]/15 p-2.5 rounded-xl font-mono">
+                            <AlertTriangle className="w-3.5 h-3.5 text-[#FF5C5C] shrink-0 mt-0.5" />
                             <span>{issue}</span>
                           </div>
                         ))
                       ) : (
-                        <div className="flex items-center gap-2.5 text-xs text-[#22C55E] bg-[#22C55E]/5 border border-[#22C55E]/15 p-2.5 rounded-xl font-mono">
-                          <CheckCircle className="w-3.5 h-3.5 text-[#22C55E] shrink-0" />
+                        <div className="flex items-center gap-2.5 text-xs text-[#2DD4A7] bg-[#2DD4A7]/5 border border-[#2DD4A7]/15 p-2.5 rounded-xl font-mono">
+                          <CheckCircle className="w-3.5 h-3.5 text-[#2DD4A7] shrink-0" />
                           <span>No critical vulnerabilities discovered. Strong performance.</span>
                         </div>
                       )}
@@ -394,7 +400,7 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
           {/* Service Fit Score™ Panel */}
           <div className="bg-[#141517] border border-[#26282D] p-6 space-y-4 rounded-2xl shadow-xl">
             <h2 className="text-sm font-semibold text-white flex items-center gap-2 uppercase tracking-wider font-mono">
-              <Layers className="w-4 h-4 text-[#10B981]" />
+              <Layers className="w-4 h-4 text-[#A1A1AA]" />
               Service Fit Engine™ — Agency Compatibility
             </h2>
             
@@ -411,7 +417,7 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
                   {/* Score bar */}
                   <div className="w-full bg-[#141517] h-1.5 border border-[#26282D] rounded-full overflow-hidden mb-3">
                     <div 
-                      className={`h-full rounded-full ${fit.score >= 70 ? 'bg-[#10B981]' : fit.score >= 45 ? 'bg-[#10B981]/80' : fit.score >= 20 ? 'bg-[#F59E0B]' : 'bg-[#71717A]'}`}
+                      className={`h-full rounded-full ${fit.score >= 70 ? 'bg-[#FAFAF9]' : fit.score >= 45 ? 'bg-[#A1A1AA]' : fit.score >= 20 ? 'bg-[#F5A623]' : 'bg-[#71717A]'}`}
                       style={{ width: `${fit.score}%` }}
                     />
                   </div>
@@ -440,14 +446,14 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
           {/* Competitor Gap Analysis */}
           <div className="bg-[#141517] border border-[#26282D] p-6 space-y-4 rounded-2xl shadow-xl">
             <h3 className="text-sm font-semibold text-[#FFFFFF] flex items-center gap-2 uppercase tracking-wider font-mono">
-              <Building2 className="w-4 h-4 text-[#10B981]" />
+              <Building2 className="w-4 h-4 text-[#A1A1AA]" />
               Competitor Gap Analysis
             </h3>
             
             <div className="space-y-3">
               {/* Subject Business card */}
-              <div className="bg-[#10B981]/5 border border-[#10B981]/20 p-3 rounded-xl shadow-md">
-                <p className="text-xs font-semibold text-[#10B981] truncate">{business.name}</p>
+              <div className="bg-[#26282D] border border-[#26282D] p-3 rounded-xl shadow-md">
+                <p className="text-xs font-semibold text-white truncate">{business.name}</p>
                 <div className="grid grid-cols-3 gap-2 mt-2 text-[10px] text-[#A1A1AA] font-mono font-normal">
                   <div>
                     <span>Rating:</span>
@@ -459,7 +465,7 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
                   </div>
                   <div>
                     <span>Opp. Score:</span>
-                    <span className="text-[#10B981] font-semibold block mt-0.5">{scored.opportunityScore}</span>
+                    <span className={`font-semibold block mt-0.5 ${scored.opportunityScore >= 60 ? 'text-[#2DD4A7]' : scored.opportunityScore >= 35 ? 'text-[#F5A623]' : 'text-[#FF5C5C]'}`}>{scored.opportunityScore}</span>
                   </div>
                 </div>
               </div>
@@ -490,19 +496,19 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
           {/* Recommended Services Panel */}
           <div className="bg-[#141517] border border-[#26282D] p-6 space-y-4 rounded-2xl shadow-xl">
             <h3 className="text-sm font-semibold text-white flex items-center gap-2 uppercase tracking-wider font-mono">
-              <Sparkles className="w-4 h-4 text-[#10B981]" />
+              <Sparkles className="w-4 h-4 text-[#A1A1AA]" />
               Recommended Pitches
             </h3>
             
             <div className="space-y-2.5">
               {audit.recommended_services.map((service, idx) => (
                 <div key={idx} className="bg-[#0B0B0C] border border-[#26282D] p-3.5 rounded-xl flex gap-2.5 items-start">
-                  <span className="w-5 h-5 rounded-full bg-[#10B981]/10 border border-[#10B981]/20 flex items-center justify-center font-normal text-[9px] text-[#10B981] mt-0.5 shrink-0 font-mono">
+                  <span className="w-5 h-5 rounded-full bg-[#26282D] border border-[#26282D] flex items-center justify-center font-normal text-[9px] text-white mt-0.5 shrink-0 font-mono">
                     {idx + 1}
                   </span>
                   <div>
                     <p className="text-xs text-white font-semibold leading-relaxed">{service.split(' (')[0]}</p>
-                    <p className="text-[10px] text-[#10B981] font-semibold mt-1 font-mono">
+                    <p className="text-[10px] text-[#2DD4A7] font-semibold mt-1 font-mono">
                       Est. Service Fee: {service.includes('₹') ? '₹' + service.split('₹')[1] : 'Included'}
                     </p>
                   </div>
@@ -521,8 +527,8 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
 function LoaderComponent() {
   return (
     <div className="relative w-16 h-16 flex items-center justify-center">
-      <div className="absolute inset-0 border-4 border-[#10B981]/10 rounded-full"></div>
-      <div className="absolute inset-0 border-4 border-[#10B981] border-t-transparent rounded-full animate-spin"></div>
+      <div className="absolute inset-0 border-4 border-[#26282D] rounded-full"></div>
+      <div className="absolute inset-0 border-4 border-[#FAFAF9] border-t-transparent rounded-full animate-spin"></div>
     </div>
   );
 }
