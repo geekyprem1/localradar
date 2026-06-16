@@ -23,6 +23,7 @@ export default function SettingsPage() {
   
   // API Keys state
   const [openaiKey, setOpenaiKey] = useState('');
+  const [googlePlacesKey, setGooglePlacesKey] = useState('');
   const [supabaseUrl, setSupabaseUrl] = useState('');
   const [supabaseAnon, setSupabaseAnon] = useState('');
   const [openrouterKey, setOpenrouterKey] = useState('');
@@ -34,6 +35,7 @@ export default function SettingsPage() {
   useEffect(() => {
     // Load local developer override keys if configured
     setOpenaiKey(localStorage.getItem('localradar_dev_openai_key') || '');
+    setGooglePlacesKey(localStorage.getItem('localradar_dev_google_places_key') || '');
     setSupabaseUrl(localStorage.getItem('localradar_dev_supabase_url') || '');
     setSupabaseAnon(localStorage.getItem('localradar_dev_supabase_anon') || '');
     setOpenrouterKey(localStorage.getItem('localradar_dev_openrouter_key') || '');
@@ -49,6 +51,7 @@ export default function SettingsPage() {
   const handleSaveKeys = (e: React.FormEvent) => {
     e.preventDefault();
     localStorage.setItem('localradar_dev_openai_key', openaiKey);
+    localStorage.setItem('localradar_dev_google_places_key', googlePlacesKey);
     localStorage.setItem('localradar_dev_supabase_url', supabaseUrl);
     localStorage.setItem('localradar_dev_supabase_anon', supabaseAnon);
     localStorage.setItem('localradar_dev_openrouter_key', openrouterKey);
@@ -252,6 +255,17 @@ export default function SettingsPage() {
                   className="w-full bg-[#F4F4F6] border border-[#E5E5E8] rounded-xl py-2 px-3 text-[#0F0F11] text-xs focus:outline-none focus:border-[#E54D80] transition-all font-mono"
                 />
               </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest font-mono">Google Places API Key</label>
+              <input
+                type="password"
+                placeholder="AIzaSy..."
+                value={googlePlacesKey}
+                onChange={(e) => setGooglePlacesKey(e.target.value)}
+                className="w-full bg-[#F4F4F6] border border-[#E5E5E8] rounded-xl py-2 px-3 text-[#0F0F11] text-xs focus:outline-none focus:border-[#E54D80] transition-all font-mono"
+              />
             </div>
 
             <div className="space-y-1.5">

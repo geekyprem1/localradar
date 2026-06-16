@@ -66,14 +66,41 @@ export default function LeadFinderPage() {
     }
   }, []);
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!niche || !city) return;
 
     setLoading(true);
     setSearched(false);
 
-    // Simulate search duration
+    const key = localStorage.getItem('localradar_dev_google_places_key') || '';
+
+    try {
+      const response = await fetch('/api/search', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-google-places-key': key
+        },
+        body: JSON.stringify({ niche, city, country })
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success && data.businesses?.length > 0) {
+        setLeads(data.businesses);
+        setOpportunities(data.opportunities);
+        localStorage.setItem('localradar_latest_leads', JSON.stringify(data.businesses));
+        localStorage.setItem('localradar_latest_opps', JSON.stringify(data.opportunities));
+        setLoading(false);
+        setSearched(true);
+        return;
+      }
+    } catch (err) {
+      console.warn('Live search failed or key is not set, falling back to sandbox simulator:', err);
+    }
+
+    // Graceful fallback to sandbox lead generator
     setTimeout(() => {
       const { businesses, opportunities: opps } = generateLeads(niche, city, country);
       
@@ -86,7 +113,7 @@ export default function LeadFinderPage() {
       
       setLoading(false);
       setSearched(true);
-    }, 6000);
+    }, 4000);
   };
 
   const getScoreBadgeColor = (score: number) => {
