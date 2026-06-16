@@ -51,6 +51,18 @@ export default function AuditDetailsPage() {
       selectedOpp = opps[businessId] || null;
     }
 
+    // Look in saved leads if not found in latest scan cache
+    if (!selectedBiz) {
+      const savedLeadsStr = localStorage.getItem('localradar_saved_leads');
+      const savedOppsStr = localStorage.getItem('localradar_saved_opps');
+      if (savedLeadsStr && savedOppsStr) {
+        const savedLeads = JSON.parse(savedLeadsStr) as Business[];
+        const savedOpps = JSON.parse(savedOppsStr) as Record<string, Opportunity>;
+        selectedBiz = savedLeads.find((b) => b.id === businessId) || null;
+        selectedOpp = savedOpps[businessId] || null;
+      }
+    }
+
     // Fallback: If not found, generate it on the fly so page doesn't error
     if (!selectedBiz) {
       selectedBiz = {
@@ -92,11 +104,29 @@ export default function AuditDetailsPage() {
     setLoading(false);
   }, [businessId]);
 
+  const getOpportunityScore = (opp: Opportunity) => {
+    const rawScore = 100 - opp.total_score;
+    if (opp.opportunity_level === 'High') {
+      return Math.floor(71 + ((rawScore - 50) / 50) * 29);
+    } else if (opp.opportunity_level === 'Medium') {
+      return Math.floor(41 + ((rawScore - 25) / 24) * 29);
+    } else {
+      return Math.floor((rawScore / 24) * 40);
+    }
+  };
+
+  const getOpportunityLabel = (score: number) => {
+    if (score >= 71) return 'High';
+    if (score >= 41) return 'Medium';
+    return 'Low';
+  };
+
   const handleCopyReport = () => {
     if (!business || !opportunity) return;
+    const score = getOpportunityScore(opportunity);
     const text = `LocalRadar Opportunity Report: ${business.name}
-Score: ${opportunity.total_score}/100
-Opportunity Level: ${opportunity.opportunity_level}
+Opportunity Score™: ${score}/100
+Opportunity Level: ${getOpportunityLabel(score)}
 Recommended Services:
 ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
     
@@ -115,7 +145,7 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
 
   if (!business || !opportunity || !audit) {
     return (
-      <div className="p-8 text-center space-y-4 font-mono text-xs text-[#0F0F11]">
+      <div className="p-8 text-center space-y-4 font-mono text-xs text-[#0F0F11] bg-[#F9F9FB]">
         <p className="text-[#E54D80]">Error loading audit details.</p>
         <button onClick={() => router.push('/dashboard/lead-finder')} className="text-zinc-500 hover:text-[#0F0F11] underline">
           Back to Lead Finder
@@ -132,12 +162,14 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
     { title: 'Social Activity', score: opportunity.social_score, max: 15, issues: audit.social_issues },
   ];
 
+  const currentScore = getOpportunityScore(opportunity);
+
   return (
-    <div className="space-y-8 max-w-7xl mx-auto pb-12 font-sans">
+    <div className="space-y-8 max-w-7xl mx-auto pb-12 font-sans text-[#0F0F11]">
       {/* Back link */}
       <button 
         onClick={() => router.push('/dashboard/lead-finder')}
-        className="flex items-center gap-2 text-zinc-500 hover:text-[#0F0F11] text-xs font-bold transition-colors cursor-pointer"
+        className="flex items-center gap-2 text-zinc-500 hover:text-[#0F0F11] text-xs font-bold transition-colors cursor-pointer font-mono"
       >
         <ArrowLeft className="w-4 h-4" />
         Back to Lead Finder
@@ -168,19 +200,19 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
 
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4 border-t border-[#E5E5E8] pt-4">
               <div>
-                <span className="text-zinc-400 text-[9px] font-bold uppercase tracking-wider block font-mono">Google Rating</span>
+                <span className="text-zinc-500 text-[9px] font-bold uppercase tracking-wider block font-mono">Google Rating</span>
                 <div className="flex items-center gap-1 text-xs text-[#0F0F11] mt-1 font-mono">
                   <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
                   <span className="font-bold">{business.rating}</span>
-                  <span className="text-zinc-400">({business.reviews_count} reviews)</span>
+                  <span className="text-zinc-500">({business.reviews_count} reviews)</span>
                 </div>
               </div>
               <div>
-                <span className="text-zinc-400 text-[9px] font-bold uppercase tracking-wider block font-mono">Website Domain</span>
+                <span className="text-zinc-500 text-[9px] font-bold uppercase tracking-wider block font-mono">Website Domain</span>
                 <span className="text-xs text-[#E54D80] font-bold truncate block mt-1">
                   {business.website ? (
                     <a href={business.website} target="_blank" rel="noopener noreferrer" className="hover:underline flex items-center gap-1">
-                      <Globe className="w-3.5 h-3.5" />
+                      <Globe className="w-3.5 h-3.5 text-zinc-400" />
                       {business.website.replace('https://www.', '')}
                     </a>
                   ) : (
@@ -189,7 +221,7 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
                 </span>
               </div>
               <div>
-                <span className="text-zinc-400 text-[9px] font-bold uppercase tracking-wider block font-mono">Phone Line</span>
+                <span className="text-zinc-500 text-[9px] font-bold uppercase tracking-wider block font-mono">Phone Line</span>
                 <span className="text-xs text-[#0F0F11] font-bold block mt-1 font-mono">{business.phone || 'N/A'}</span>
               </div>
             </div>
@@ -198,14 +230,14 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
           <div className="flex flex-wrap gap-2.5 border-t border-[#E5E5E8] pt-6 mt-6">
             <button
               onClick={handleCopyReport}
-              className="bg-[#F4F4F6] hover:bg-[#E5E5E8] border border-[#E5E5E8] text-[#0F0F11] text-xs font-bold px-4 py-2.5 rounded-full transition-all flex items-center gap-1.5 cursor-pointer shadow-sm"
+              className="bg-[#F4F4F6] hover:bg-[#E5E5E8] border border-[#E5E5E8] text-[#0F0F11] text-xs font-bold px-4 py-2.5 rounded-full transition-all flex items-center gap-1.5 cursor-pointer shadow-sm font-mono"
             >
-              {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+              {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5 text-zinc-400" />}
               {copied ? 'Copied Report' : 'Copy Report'}
             </button>
             <button
               onClick={() => router.push(`/dashboard/pitch?bizId=${business.id}`)}
-              className="bg-[#E54D80] hover:bg-[#FF5E8C] text-white text-xs font-bold px-5 py-2.5 rounded-full transition-all flex items-center gap-1.5 cursor-pointer shadow-sm"
+              className="bg-[#E54D80] hover:bg-[#FF5E8C] text-white text-xs font-bold px-5 py-2.5 rounded-full transition-all flex items-center gap-1.5 cursor-pointer shadow-sm font-mono"
             >
               <Sparkles className="w-3.5 h-3.5" />
               Generate Pitch Copy
@@ -223,7 +255,7 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
                 cx="72"
                 cy="72"
                 r="64"
-                stroke="rgba(15,15,17,0.02)"
+                stroke="rgba(15,15,17,0.04)"
                 strokeWidth="8"
                 fill="transparent"
               />
@@ -231,17 +263,17 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
                 cx="72"
                 cy="72"
                 r="64"
-                stroke={opportunity.total_score <= 50 ? '#E54D80' : opportunity.total_score <= 75 ? '#F59E0B' : '#10B981'}
+                stroke={currentScore >= 71 ? '#E54D80' : currentScore >= 41 ? '#D97706' : '#059669'}
                 strokeWidth="8"
                 strokeDasharray={2 * Math.PI * 64}
-                strokeDashoffset={2 * Math.PI * 64 * (1 - opportunity.total_score / 100)}
+                strokeDashoffset={2 * Math.PI * 64 * (1 - currentScore / 100)}
                 strokeLinecap="round"
                 fill="transparent"
               />
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-3xl font-serif font-bold text-[#0F0F11] tracking-tight">{opportunity.total_score}</span>
-              <span className="text-[9px] text-zinc-400 uppercase tracking-widest font-bold mt-0.5 font-mono">LOCALRADAR</span>
+              <span className="text-3xl font-serif font-bold text-[#0F0F11] tracking-tight">{currentScore}</span>
+              <span className="text-[8px] text-zinc-500 uppercase tracking-widest font-bold mt-0.5 font-mono">OPPORTUNITY</span>
             </div>
           </div>
 
@@ -253,15 +285,15 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
                 <span>Opportunity Level</span>
               </div>
               <span className={`text-xs font-bold uppercase tracking-wider ${
-                opportunity.opportunity_level === 'High' ? 'text-[#E54D80]' : 'text-amber-600'
+                currentScore >= 71 ? 'text-[#E54D80]' : 'text-amber-600'
               }`}>
-                {opportunity.opportunity_level}
+                {getOpportunityLabel(currentScore)}
               </span>
             </div>
 
             <div className="flex items-center justify-between border-b border-[#E5E5E8] pb-2.5">
               <div className="flex items-center gap-2 text-zinc-500 text-xs">
-                <DollarSign className="w-4 h-4 text-emerald-600" />
+                <DollarSign className="w-4 h-4 text-[#059669]" />
                 <span>Est. Service Value</span>
               </div>
               <span className="text-xs font-bold text-[#0F0F11]">
@@ -274,7 +306,7 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
                 <TrendingUp className="w-4 h-4 text-[#E54D80]" />
                 <span>Closing Probability</span>
               </div>
-              <span className="text-xs font-bold text-emerald-600">
+              <span className="text-xs font-bold text-[#059669]">
                 {opportunity.closing_probability}%
               </span>
             </div>
@@ -301,7 +333,7 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
                   <div key={sec.title} className="border-b border-[#E5E5E8] pb-5 last:border-0 last:pb-0">
                     <div className="flex justify-between items-center mb-2">
                       <span className="text-xs font-bold text-[#0F0F11]">{sec.title}</span>
-                      <span className="text-xs text-zinc-400 font-mono">
+                      <span className="text-xs text-zinc-500 font-mono">
                         {sec.score} / {sec.max} points
                       </span>
                     </div>
@@ -310,7 +342,7 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
                     <div className="w-full bg-[#F4F4F6] h-2 rounded-full border border-[#E5E5E8] overflow-hidden">
                       <div 
                         className={`h-full rounded-full transition-all duration-500 ${
-                          isCrit ? 'bg-[#E54D80]' : percent <= 75 ? 'bg-amber-500' : 'bg-emerald-500'
+                          isCrit ? 'bg-[#E54D80]' : percent <= 75 ? 'bg-[#D97706]' : 'bg-[#059669]'
                         }`}
                         style={{ width: `${percent}%` }}
                       />
@@ -320,14 +352,14 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
                     <div className="mt-3.5 space-y-2">
                       {sec.issues.length > 0 ? (
                         sec.issues.map((issue, i) => (
-                          <div key={i} className="flex items-start gap-2.5 text-xs text-red-600 bg-red-50 border border-red-100 p-2.5 rounded-xl font-mono">
+                          <div key={i} className="flex items-start gap-2.5 text-xs text-[#E54D80] bg-[#E54D80]/10 border border-[#E54D80]/20 p-2.5 rounded-xl font-mono">
                             <AlertTriangle className="w-3.5 h-3.5 text-[#E54D80] shrink-0 mt-0.5" />
                             <span>{issue}</span>
                           </div>
                         ))
                       ) : (
-                        <div className="flex items-center gap-2.5 text-xs text-emerald-700 bg-emerald-50 border border-emerald-100 p-2.5 rounded-xl font-mono">
-                          <CheckCircle className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                        <div className="flex items-center gap-2.5 text-xs text-[#059669] bg-[#059669]/10 border border-[#059669]/20 p-2.5 rounded-xl font-mono">
+                          <CheckCircle className="w-3.5 h-3.5 text-[#059669] shrink-0" />
                           <span>No critical vulnerabilities discovered. Strong performance.</span>
                         </div>
                       )}
@@ -351,7 +383,7 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
             
             <div className="space-y-3">
               {/* Subject Business card */}
-              <div className="bg-[#FFF0F5] border border-[#E54D80]/20 p-3 rounded-xl shadow-sm">
+              <div className="bg-[#E54D80]/5 border border-[#E54D80]/20 p-3 rounded-xl shadow-sm">
                 <p className="text-xs font-bold text-[#E54D80] truncate">{business.name}</p>
                 <div className="grid grid-cols-3 gap-2 mt-2 text-[10px] text-zinc-500 font-mono">
                   <div>
@@ -364,15 +396,15 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
                   </div>
                   <div>
                     <span>Opp. Score:</span>
-                    <span className="text-[#E54D80] font-bold block mt-0.5">{opportunity.total_score}</span>
+                    <span className="text-[#E54D80] font-bold block mt-0.5">{currentScore}</span>
                   </div>
                 </div>
               </div>
 
               {/* Competitors list */}
               {competitors.map((comp) => (
-                <div key={comp.id} className="bg-[#F4F4F6] border border-[#E5E5E8] p-3 rounded-xl">
-                  <p className="text-xs font-semibold text-zinc-700 truncate">{comp.name}</p>
+                <div key={comp.id} className="bg-[#F9F9FB] border border-[#E5E5E8] p-3 rounded-xl">
+                  <p className="text-xs font-semibold text-[#0F0F11] truncate">{comp.name}</p>
                   <div className="grid grid-cols-3 gap-2 mt-2 text-[10px] text-zinc-500 font-mono">
                     <div>
                       <span>Rating:</span>
@@ -401,7 +433,7 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
             
             <div className="space-y-2.5">
               {audit.recommended_services.map((service, idx) => (
-                <div key={idx} className="bg-[#FFF0F5]/50 border border-[#E54D80]/15 p-3.5 rounded-xl flex gap-2.5 items-start">
+                <div key={idx} className="bg-[#E54D80]/5 border border-[#E54D80]/15 p-3.5 rounded-xl flex gap-2.5 items-start">
                   <span className="w-5 h-5 rounded-full bg-[#E54D80]/10 border border-[#E54D80]/20 flex items-center justify-center font-bold text-[9px] text-[#E54D80] mt-0.5 shrink-0 font-mono">
                     {idx + 1}
                   </span>

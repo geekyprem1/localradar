@@ -13,7 +13,8 @@ import {
   Sparkles,
   User,
   Zap,
-  Volume2
+  Volume2,
+  Bookmark
 } from 'lucide-react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -48,6 +49,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const menuItems = [
     { name: 'Overview', href: '/dashboard', icon: LayoutDashboard },
     { name: 'Lead Finder', href: '/dashboard/lead-finder', icon: Search },
+    { name: 'Saved Leads', href: '/dashboard/saved-leads', icon: Bookmark },
     { name: 'Pitch Generator', href: '/dashboard/pitch', icon: Volume2 },
     { name: 'Settings & Billing', href: '/dashboard/settings', icon: Settings },
   ];

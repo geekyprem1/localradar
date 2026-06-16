@@ -19,10 +19,10 @@ export default function DashboardOverviewPage() {
   const { user } = useAuth();
 
   const stats = [
-    { name: 'Total Leads Discovered', value: '148', change: '+24%', icon: Search, color: '#E54D80' },
-    { name: 'High Opportunities', value: '42', change: '+12%', icon: AlertTriangle, color: '#FF5E8C' },
-    { name: 'AI Audits Generated', value: '29', change: '+8%', icon: ShieldCheck, color: '#059669' },
-    { name: 'Closing Value (Est.)', value: '$24,600', change: '+15%', icon: TrendingUp, color: '#7C3AED' },
+    { name: 'Total Leads Discovered', value: '148', change: '+24%', icon: Search, color: '#FF2D2D' },
+    { name: 'High Opportunities', value: '42', change: '+12%', icon: AlertTriangle, color: '#FF4D4D' },
+    { name: 'AI Audits Generated', value: '29', change: '+8%', icon: ShieldCheck, color: '#22C55E' },
+    { name: 'Closing Value (Est.)', value: '$24,600', change: '+15%', icon: TrendingUp, color: '#FACC15' },
   ];
 
   const recentLeads = [
@@ -68,7 +68,7 @@ export default function DashboardOverviewPage() {
                 <span className="text-zinc-400 text-xs font-semibold uppercase tracking-wider font-mono">{stat.name}</span>
                 <div 
                   className="p-2 rounded-lg bg-zinc-50 border border-[#E5E5E8]"
-                  style={{ color: stat.color }}
+                  style={{ color: stat.color === '#FF2D2D' ? '#E54D80' : stat.color === '#FF4D4D' ? '#FF5E8C' : stat.color }}
                 >
                   <Icon className="w-4 h-4" />
                 </div>
@@ -192,7 +192,7 @@ export default function DashboardOverviewPage() {
 
           <Link 
             href="/dashboard/lead-finder" 
-            className="w-full mt-6 bg-[#F4F4F6] hover:bg-[#E5E5E8] border border-[#E5E5E8] text-zinc-600 hover:text-[#0F0F11] font-bold text-xs py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer group"
+            className="w-full mt-6 bg-[#F4F4F6] hover:bg-[#E5E5E8] border border-[#E5E5E8] text-zinc-600 hover:text-[#0F0F11] font-bold text-xs py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer group font-mono"
           >
             Scan More Businesses
             <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />

@@ -93,7 +93,7 @@ export default function SettingsPage() {
   ];
 
   return (
-    <div className="space-y-8 max-w-6xl mx-auto pb-12 font-sans">
+    <div className="space-y-8 max-w-6xl mx-auto pb-12 font-sans text-[#0F0F11]">
       {/* Header */}
       <div>
         <h1 className="text-2xl font-serif font-bold text-[#0F0F11]">Settings & Billing</h1>
@@ -116,16 +116,16 @@ export default function SettingsPage() {
             <form onSubmit={handleSaveProfile} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest font-mono">Full Name</label>
+                  <label className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest font-mono">Full Name</label>
                   <input
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full bg-[#F4F4F6] border border-[#E5E5E8] rounded-xl py-2.5 px-4 text-[#0F0F11] text-xs focus:outline-none focus:border-[#E54D80] transition-all"
+                    className="w-full bg-[#F4F4F6] border border-[#E5E5E8] rounded-xl py-2.5 px-4 text-[#0F0F11] text-xs focus:outline-none focus:border-[#E54D80] focus:ring-1 focus:ring-[#E54D80] transition-all font-mono"
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest font-mono">Email Address</label>
+                  <label className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest font-mono">Email Address</label>
                   <input
                     type="email"
                     value={email}
@@ -136,18 +136,18 @@ export default function SettingsPage() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest font-mono">Agency Organization Name</label>
+                <label className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest font-mono">Agency Organization Name</label>
                 <input
                   type="text"
                   value={orgName}
                   onChange={(e) => setOrgName(e.target.value)}
-                  className="w-full bg-[#F4F4F6] border border-[#E5E5E8] rounded-xl py-2.5 px-4 text-[#0F0F11] text-xs focus:outline-none focus:border-[#E54D80] transition-all"
+                  className="w-full bg-[#F4F4F6] border border-[#E5E5E8] rounded-xl py-2.5 px-4 text-[#0F0F11] text-xs focus:outline-none focus:border-[#E54D80] focus:ring-1 focus:ring-[#E54D80] transition-all font-mono"
                 />
               </div>
 
               <button
                 type="submit"
-                className="bg-[#F4F4F6] hover:bg-[#E5E5E8] border border-[#E5E5E8] text-[#0F0F11] text-xs font-bold px-4 py-2.5 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ml-auto shadow-sm"
+                className="bg-[#F4F4F6] hover:bg-[#E5E5E8] border border-[#E5E5E8] text-[#0F0F11] text-xs font-bold px-4 py-2.5 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ml-auto shadow-sm font-mono"
               >
                 <Save className="w-3.5 h-3.5" />
                 Save Changes
@@ -176,14 +176,14 @@ export default function SettingsPage() {
                     className={`p-4 rounded-xl border flex flex-col justify-between ${
                       isActive 
                         ? 'bg-[#E54D80]/5 border-[#E54D80] shadow-sm' 
-                        : 'bg-white border-[#E5E5E8]'
+                        : 'bg-[#F9F9FB] border-[#E5E5E8]'
                     }`}
                   >
                     <div>
                       <h4 className="text-xs font-bold text-[#0F0F11]">{tier.name}</h4>
                       <div className="mt-2 flex items-baseline">
                         <span className="text-xl font-serif font-extrabold text-[#0F0F11]">{tier.price}</span>
-                        <span className="text-[10px] text-zinc-400 font-semibold ml-1">/{tier.period}</span>
+                        <span className="text-[10px] text-zinc-500 font-semibold ml-1">/{tier.period}</span>
                       </div>
 
                       <ul className="mt-4 space-y-2 text-[10px] text-zinc-500 font-mono">
@@ -199,7 +199,7 @@ export default function SettingsPage() {
                     <button
                       onClick={() => handleSubscriptionUpgrade(tier.id as any)}
                       disabled={isActive}
-                      className={`w-full text-center text-xs font-bold py-2.5 rounded-xl mt-6 transition-all cursor-pointer ${
+                      className={`w-full text-center text-xs font-bold py-2.5 rounded-xl mt-6 transition-all cursor-pointer font-mono ${
                         isActive 
                           ? 'bg-[#E54D80]/15 border border-[#E54D80]/30 text-[#E54D80] cursor-default' 
                           : 'bg-[#E54D80] hover:bg-[#FF5E8C] text-white shadow-sm'
@@ -235,75 +235,75 @@ export default function SettingsPage() {
               <label className="text-[9px] font-bold text-[#E54D80] uppercase tracking-wider block mb-1 font-mono">OpenRouter (DeepSeek v4 Flash)</label>
               
               <div className="space-y-1.5">
-                <label className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest font-mono">API Key</label>
+                <label className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest font-mono">API Key</label>
                 <input
                   type="password"
                   placeholder="sk-or-v1-..."
                   value={openrouterKey}
                   onChange={(e) => setOpenrouterKey(e.target.value)}
-                  className="w-full bg-[#F4F4F6] border border-[#E5E5E8] rounded-xl py-2 px-3 text-[#0F0F11] text-xs focus:outline-none focus:border-[#E54D80] transition-all font-mono"
+                  className="w-full bg-[#F4F4F6] border border-[#E5E5E8] rounded-xl py-2 px-3 text-[#0F0F11] text-xs focus:outline-none focus:border-[#E54D80] focus:ring-1 focus:ring-[#E54D80] transition-all font-mono"
                 />
               </div>
 
               <div className="space-y-1.5 mt-2.5">
-                <label className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest font-mono">Model Name</label>
+                <label className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest font-mono">Model Name</label>
                 <input
                   type="text"
                   placeholder="e.g. deepseek/deepseek-chat"
                   value={openrouterModel}
                   onChange={(e) => setOpenrouterModel(e.target.value)}
-                  className="w-full bg-[#F4F4F6] border border-[#E5E5E8] rounded-xl py-2 px-3 text-[#0F0F11] text-xs focus:outline-none focus:border-[#E54D80] transition-all font-mono"
+                  className="w-full bg-[#F4F4F6] border border-[#E5E5E8] rounded-xl py-2 px-3 text-[#0F0F11] text-xs focus:outline-none focus:border-[#E54D80] focus:ring-1 focus:ring-[#E54D80] transition-all font-mono"
                 />
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest font-mono">Google Places API Key</label>
+              <label className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest font-mono">Google Places API Key</label>
               <input
                 type="password"
                 placeholder="AIzaSy..."
                 value={googlePlacesKey}
                 onChange={(e) => setGooglePlacesKey(e.target.value)}
-                className="w-full bg-[#F4F4F6] border border-[#E5E5E8] rounded-xl py-2 px-3 text-[#0F0F11] text-xs focus:outline-none focus:border-[#E54D80] transition-all font-mono"
+                className="w-full bg-[#F4F4F6] border border-[#E5E5E8] rounded-xl py-2 px-3 text-[#0F0F11] text-xs focus:outline-none focus:border-[#E54D80] focus:ring-1 focus:ring-[#E54D80] transition-all font-mono"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest font-mono">OpenAI API Key (Direct)</label>
+              <label className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest font-mono">OpenAI API Key (Direct)</label>
               <input
                 type="password"
                 placeholder="sk-..."
                 value={openaiKey}
                 onChange={(e) => setOpenaiKey(e.target.value)}
-                className="w-full bg-[#F4F4F6] border border-[#E5E5E8] rounded-xl py-2 px-3 text-[#0F0F11] text-xs focus:outline-none focus:border-[#E54D80] transition-all font-mono"
+                className="w-full bg-[#F4F4F6] border border-[#E5E5E8] rounded-xl py-2 px-3 text-[#0F0F11] text-xs focus:outline-none focus:border-[#E54D80] focus:ring-1 focus:ring-[#E54D80] transition-all font-mono"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest font-mono">Supabase URL</label>
+              <label className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest font-mono">Supabase URL</label>
               <input
                 type="text"
                 placeholder="https://your-project.supabase.co"
                 value={supabaseUrl}
                 onChange={(e) => setSupabaseUrl(e.target.value)}
-                className="w-full bg-[#F4F4F6] border border-[#E5E5E8] rounded-xl py-2 px-3 text-[#0F0F11] text-xs focus:outline-none focus:border-[#E54D80] transition-all font-mono"
+                className="w-full bg-[#F4F4F6] border border-[#E5E5E8] rounded-xl py-2 px-3 text-[#0F0F11] text-xs focus:outline-none focus:border-[#E54D80] focus:ring-1 focus:ring-[#E54D80] transition-all font-mono"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest font-mono">Supabase Anon Key</label>
+              <label className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest font-mono">Supabase Anon Key</label>
               <input
                 type="password"
                 placeholder="eyJhbG..."
                 value={supabaseAnon}
                 onChange={(e) => setSupabaseAnon(e.target.value)}
-                className="w-full bg-[#F4F4F6] border border-[#E5E5E8] rounded-xl py-2 px-3 text-[#0F0F11] text-xs focus:outline-none focus:border-[#E54D80] transition-all font-mono"
+                className="w-full bg-[#F4F4F6] border border-[#E5E5E8] rounded-xl py-2 px-3 text-[#0F0F11] text-xs focus:outline-none focus:border-[#E54D80] focus:ring-1 focus:ring-[#E54D80] transition-all font-mono"
               />
             </div>
 
             <button
               type="submit"
-              className="w-full bg-[#E54D80] hover:bg-[#FF5E8C] text-white font-bold text-xs py-2.5 rounded-full transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
+              className="w-full bg-[#E54D80] hover:bg-[#FF5E8C] text-white font-bold text-xs py-2.5 rounded-full transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm font-mono"
             >
               Save Credentials
             </button>
@@ -319,7 +319,7 @@ export default function SettingsPage() {
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 15 }}
-            className="fixed bottom-6 right-6 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs px-4 py-3 rounded-xl flex items-center gap-2 shadow-lg z-50 font-mono"
+            className="fixed bottom-6 right-6 bg-emerald-500/10 border border-emerald-500/20 text-[#059669] text-xs px-4 py-3 rounded-xl flex items-center gap-2 shadow-lg z-50 font-mono"
           >
             <Check className="w-4 h-4" />
             <span>Settings saved successfully!</span>

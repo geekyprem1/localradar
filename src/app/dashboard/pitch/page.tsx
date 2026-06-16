@@ -24,6 +24,7 @@ export default function PitchGeneratorPage() {
 
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [selectedBizId, setSelectedBizId] = useState<string>('');
+  const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
   
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'email' | 'dm' | 'website' | 'seo'>('email');
@@ -33,13 +34,30 @@ export default function PitchGeneratorPage() {
   // Load leads from cache
   useEffect(() => {
     const cachedLeadsStr = localStorage.getItem('localradar_latest_leads');
+    const savedLeadsStr = localStorage.getItem('localradar_saved_leads');
+    
+    let leads: Business[] = [];
     if (cachedLeadsStr) {
-      const leads = JSON.parse(cachedLeadsStr) as Business[];
+      leads = JSON.parse(cachedLeadsStr) as Business[];
+    }
+    
+    const savedList: Business[] = savedLeadsStr ? JSON.parse(savedLeadsStr) : [];
+    const savedIdsSet = new Set(savedList.map(b => b.id));
+    setSavedIds(savedIdsSet);
+    
+    // Merge saved leads, avoiding duplicates
+    savedList.forEach(savedBiz => {
+      if (!leads.some(b => b.id === savedBiz.id)) {
+        leads.push(savedBiz);
+      }
+    });
+
+    if (leads.length > 0) {
       setBusinesses(leads);
       
       if (preselectedBizId && leads.some(b => b.id === preselectedBizId)) {
         setSelectedBizId(preselectedBizId);
-      } else if (leads.length > 0) {
+      } else {
         setSelectedBizId(leads[0].id);
       }
     } else {
@@ -68,10 +86,16 @@ export default function PitchGeneratorPage() {
     
     // Retrieve associated opportunity score from cache or compute it
     const cachedOppsStr = localStorage.getItem('localradar_latest_opps');
+    const savedOppsStr = localStorage.getItem('localradar_saved_opps');
     let opp: Opportunity | null = null;
     
     if (cachedOppsStr) {
       const opps = JSON.parse(cachedOppsStr) as Record<string, Opportunity>;
+      opp = opps[selectedBizId] || null;
+    }
+    
+    if (!opp && savedOppsStr) {
+      const opps = JSON.parse(savedOppsStr) as Record<string, Opportunity>;
       opp = opps[selectedBizId] || null;
     }
 
@@ -131,7 +155,7 @@ export default function PitchGeneratorPage() {
   };
 
   return (
-    <div className="space-y-8 max-w-5xl mx-auto font-sans">
+    <div className="space-y-8 max-w-5xl mx-auto font-sans text-[#0F0F11] pb-12">
       {/* Header */}
       <div>
         <h1 className="text-2xl font-serif font-bold text-[#0F0F11] flex items-center gap-2">
@@ -159,11 +183,11 @@ export default function PitchGeneratorPage() {
             <select
               value={selectedBizId}
               onChange={(e) => setSelectedBizId(e.target.value)}
-              className="w-full bg-[#F4F4F6] border border-[#E5E5E8] rounded-xl py-3 px-4 text-[#0F0F11] text-sm focus:outline-none focus:border-[#E54D80] focus:ring-1 focus:ring-[#E54D80] transition-all"
+              className="w-full bg-[#F4F4F6] border border-[#E5E5E8] rounded-xl py-3 px-4 text-[#0F0F11] text-sm focus:outline-none focus:border-[#E54D80] focus:ring-1 focus:ring-[#E54D80] transition-all font-mono cursor-pointer"
             >
               {businesses.map((b) => (
                 <option key={b.id} value={b.id}>
-                  {b.name}
+                  {b.name} {savedIds.has(b.id) ? '★' : ''}
                 </option>
               ))}
             </select>
@@ -172,7 +196,7 @@ export default function PitchGeneratorPage() {
           <div className="border-t border-[#E5E5E8] pt-4 mt-2">
             <button
               onClick={() => router.push('/dashboard/lead-finder')}
-              className="w-full bg-[#F4F4F6] hover:bg-[#E5E5E8] border border-[#E5E5E8] text-[#0F0F11] text-xs font-bold py-2.5 rounded-xl transition-all block text-center cursor-pointer"
+              className="w-full bg-[#F4F4F6] hover:bg-[#E5E5E8] border border-[#E5E5E8] text-[#0F0F11] text-xs font-bold py-2.5 rounded-xl transition-all block text-center cursor-pointer font-mono"
             >
               Search Different Niche
             </button>
@@ -196,10 +220,10 @@ export default function PitchGeneratorPage() {
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id as any)}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer border whitespace-nowrap ${
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer border whitespace-nowrap font-mono ${
                       isActive 
                         ? 'bg-[#E54D80]/10 border-[#E54D80]/20 text-[#E54D80]' 
-                        : 'text-[#5C5C64] border-transparent hover:text-[#0F0F11]'
+                        : 'text-zinc-500 border-transparent hover:text-[#0F0F11]'
                     }`}
                   >
                     <TabIcon className="w-3.5 h-3.5" />
@@ -214,10 +238,10 @@ export default function PitchGeneratorPage() {
               {loading ? (
                 <div className="h-60 flex flex-col items-center justify-center space-y-3">
                   <Loader2 className="w-8 h-8 text-[#E54D80] animate-spin" />
-                  <span className="text-xs text-zinc-500 font-medium">Re-writing outreach sequence...</span>
+                  <span className="text-xs text-zinc-500 font-medium font-mono">Re-writing outreach sequence...</span>
                 </div>
               ) : (
-                <pre className="text-xs text-zinc-700 font-mono leading-relaxed bg-[#F9F9FB] border border-[#E5E5E8] p-5 rounded-xl whitespace-pre-wrap overflow-x-auto select-text min-h-[220px]">
+                <pre className="text-xs text-[#0F0F11] font-mono leading-relaxed bg-[#F9F9FB] border border-[#E5E5E8] p-5 rounded-xl whitespace-pre-wrap overflow-x-auto select-text min-h-[220px]">
                   {getActiveContent()}
                 </pre>
               )}
@@ -227,14 +251,14 @@ export default function PitchGeneratorPage() {
           {/* Bottom Actions Row */}
           {!loading && pitch && (
             <div className="flex flex-col sm:flex-row sm:items-center justify-between border-t border-[#E5E5E8] pt-6 mt-6 gap-3">
-              <span className="text-[10px] text-zinc-400 font-medium flex items-center gap-1 font-mono">
-                <AlertTriangle className="w-3.5 h-3.5 text-zinc-400" />
+              <span className="text-[10px] text-zinc-500 font-medium flex items-center gap-1 font-mono">
+                <AlertTriangle className="w-3.5 h-3.5 text-zinc-500" />
                 Customize variables prior to sending.
               </span>
 
               <button
                 onClick={handleCopy}
-                className="bg-[#E54D80] hover:bg-[#FF5E8C] text-white text-xs font-bold px-5 py-2.5 rounded-full transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
+                className="bg-[#E54D80] hover:bg-[#FF5E8C] text-white text-xs font-bold px-5 py-2.5 rounded-full transition-all shadow-sm flex items-center gap-1.5 cursor-pointer font-mono"
               >
                 {copied ? <Check className="w-3.5 h-3.5 text-white" /> : <Copy className="w-3.5 h-3.5" />}
                 {copied ? 'Copied' : 'Copy Pitch'}
