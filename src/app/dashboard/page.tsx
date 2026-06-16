@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   TrendingUp, 
@@ -10,26 +10,105 @@ import {
   Activity,
   ArrowRight,
   ShieldCheck,
-  AlertTriangle
+  AlertTriangle,
+  Layers,
+  Target,
+  DollarSign
 } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth';
+import { Business, Opportunity } from '@/types';
+import { scoreBusinessOpportunity } from '@/lib/scoring';
+import { generateMockCompetitors } from '@/lib/mockData';
+import { ScoredOpportunity } from '@/types/scoring';
 
 export default function DashboardOverviewPage() {
   const { user } = useAuth();
+  const [liveStats, setLiveStats] = useState<{
+    found: number;
+    high: number;
+    pipeline: string;
+    avgScore: number;
+    topFit: string;
+  } | null>(null);
+
+  const [recentLeadsData, setRecentLeadsData] = useState<{
+    name: string;
+    city: string;
+    score: number;
+    opportunity: string;
+    bestFit: string;
+    dealValue: string;
+    date: string;
+  }[]>([]);
+
+  useEffect(() => {
+    // Try to compute live stats from cached leads
+    const cachedLeads = localStorage.getItem('localradar_latest_leads');
+    const cachedOpps = localStorage.getItem('localradar_latest_opps');
+
+    if (cachedLeads && cachedOpps) {
+      const leads = JSON.parse(cachedLeads) as Business[];
+      const opps = JSON.parse(cachedOpps) as Record<string, Opportunity>;
+
+      if (leads.length > 0) {
+        const scoredResults: Record<string, ScoredOpportunity> = {};
+        leads.forEach(biz => {
+          const competitors = generateMockCompetitors(biz);
+          scoredResults[biz.id] = scoreBusinessOpportunity(biz, competitors);
+        });
+
+        const high = leads.filter(l => (scoredResults[l.id]?.opportunityScore ?? 0) >= 60).length;
+        const totalPipeline = leads.reduce((sum, l) => sum + (scoredResults[l.id]?.dealValue.max ?? 0), 0);
+        const avgScore = Math.round(leads.reduce((sum, l) => sum + (scoredResults[l.id]?.opportunityScore ?? 0), 0) / leads.length);
+
+        // Count best fit categories
+        const fitCounts: Record<string, number> = {};
+        leads.forEach(l => {
+          const fit = scoredResults[l.id]?.bestFit.agencyType;
+          if (fit) fitCounts[fit] = (fitCounts[fit] || 0) + 1;
+        });
+        const topFit = Object.entries(fitCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || 'Web Design';
+
+        setLiveStats({
+          found: leads.length,
+          high,
+          pipeline: `₹${totalPipeline.toLocaleString()}`,
+          avgScore,
+          topFit,
+        });
+
+        // Create recent leads from actual data
+        const times = ['2 hours ago', '4 hours ago', '1 day ago', '2 days ago'];
+        const recentData = leads.slice(0, 4).map((l, i) => {
+          const scored = scoredResults[l.id];
+          return {
+            name: l.name,
+            city: l.address.split(',').slice(-2).join(',').trim(),
+            score: scored?.opportunityScore ?? 0,
+            opportunity: scored?.opportunityLevel ?? 'Low',
+            bestFit: scored?.bestFit.agencyType ?? 'Web Design',
+            dealValue: scored?.dealValue.formatted ?? '—',
+            date: times[i] || '3 days ago',
+          };
+        });
+        setRecentLeadsData(recentData);
+      }
+    }
+  }, []);
 
   const stats = [
-    { name: 'Total Leads Discovered', value: '148', change: '+24%', icon: Search, color: '#FF2D2D' },
-    { name: 'High Opportunities', value: '42', change: '+12%', icon: AlertTriangle, color: '#FF4D4D' },
+    { name: 'Total Leads Discovered', value: liveStats?.found.toString() || '148', change: '+24%', icon: Search, color: '#E54D80' },
+    { name: 'High Opportunities', value: liveStats?.high.toString() || '42', change: '+12%', icon: AlertTriangle, color: '#FF5E8C' },
     { name: 'AI Audits Generated', value: '29', change: '+8%', icon: ShieldCheck, color: '#22C55E' },
-    { name: 'Closing Value (Est.)', value: '$24,600', change: '+15%', icon: TrendingUp, color: '#FACC15' },
+    { name: 'Pipeline Value (Est.)', value: liveStats?.pipeline || '₹5,82,000', change: '+15%', icon: DollarSign, color: '#FACC15' },
   ];
 
-  const recentLeads = [
-    { name: 'Preston Hollow Family Dental', city: 'Dallas, TX', score: 38, opportunity: 'High', date: '2 hours ago' },
-    { name: 'Capital Plumbing & Drain', city: 'Austin, TX', score: 45, opportunity: 'High', date: '4 hours ago' },
-    { name: 'Lone Star Spine Clinic', city: 'Houston, TX', score: 62, opportunity: 'Medium', date: '1 day ago' },
-    { name: 'Downtown Eats Diner', city: 'Fort Worth, TX', score: 82, opportunity: 'Low', date: '2 days ago' },
+  const recentLeads = recentLeadsData.length > 0 ? recentLeadsData : [
+    { name: 'Preston Hollow Family Dental', city: 'Dallas, TX', score: 72, opportunity: 'High', bestFit: 'Web Design', dealValue: '₹75,000 – ₹2,55,000', date: '2 hours ago' },
+    { name: 'Capital Plumbing & Drain', city: 'Austin, TX', score: 58, opportunity: 'Medium', bestFit: 'SEO', dealValue: '₹20,000 – ₹90,000', date: '4 hours ago' },
+    { name: 'Lone Star Spine Clinic', city: 'Houston, TX', score: 45, opportunity: 'Medium', bestFit: 'AI Automation', dealValue: '₹30,000 – ₹70,000', date: '1 day ago' },
+    { name: 'Downtown Eats Diner', city: 'Fort Worth, TX', score: 28, opportunity: 'Low', bestFit: 'Marketing Agency', dealValue: '₹5,000 – ₹15,000', date: '2 days ago' },
   ];
 
   return (
@@ -41,7 +120,7 @@ export default function DashboardOverviewPage() {
             Welcome back, {user?.full_name?.split(' ')[0] || 'Agency Owner'} 
             <Sparkles className="w-5 h-5 text-[#E54D80] animate-pulse" />
           </h1>
-          <p className="text-zinc-500 text-xs mt-1">Here is your local business intelligence overview.</p>
+          <p className="text-zinc-500 text-xs mt-1">Intelligence Engine™ dashboard overview.</p>
         </div>
         <Link 
           href="/dashboard/lead-finder" 
@@ -68,7 +147,7 @@ export default function DashboardOverviewPage() {
                 <span className="text-zinc-400 text-xs font-semibold uppercase tracking-wider font-mono">{stat.name}</span>
                 <div 
                   className="p-2 rounded-lg bg-zinc-50 border border-[#E5E5E8]"
-                  style={{ color: stat.color === '#FF2D2D' ? '#E54D80' : stat.color === '#FF4D4D' ? '#FF5E8C' : stat.color }}
+                  style={{ color: stat.color }}
                 >
                   <Icon className="w-4 h-4" />
                 </div>
@@ -171,19 +250,26 @@ export default function DashboardOverviewPage() {
             <div className="space-y-4">
               {recentLeads.map((lead) => (
                 <div key={lead.name} className="flex items-center justify-between border-b border-[#E5E5E8] pb-3 last:border-0 last:pb-0">
-                  <div className="max-w-[70%]">
+                  <div className="max-w-[55%]">
                     <p className="text-xs font-bold text-[#0F0F11] truncate">{lead.name}</p>
                     <p className="text-[10px] text-zinc-400 mt-0.5 font-mono">{lead.city} • {lead.date}</p>
                   </div>
-                  <div className="text-right">
-                    <span className={`inline-block text-[9px] font-bold px-2 py-0.5 rounded-full border font-mono ${
-                      lead.opportunity === 'High' 
-                        ? 'bg-[#E54D80]/10 text-[#E54D80] border-[#E54D80]/20' 
-                        : 'bg-amber-500/10 text-amber-600 border border-amber-500/20'
-                    }`}>
-                      {lead.opportunity}
-                    </span>
-                    <p className="text-[10px] text-zinc-400 mt-0.5 font-mono">Score: {lead.score}</p>
+                  <div className="text-right space-y-1">
+                    <div className="flex items-center gap-1.5 justify-end">
+                      <span className={`inline-block text-[9px] font-bold px-2 py-0.5 rounded-full border font-mono ${
+                        lead.opportunity === 'High' 
+                          ? 'bg-[#E54D80]/10 text-[#E54D80] border-[#E54D80]/20' 
+                          : lead.opportunity === 'Medium'
+                            ? 'bg-amber-500/10 text-amber-600 border-amber-500/20'
+                            : 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
+                      }`}>
+                        {lead.score}pts
+                      </span>
+                      <span className="text-[8px] font-bold text-violet-600 bg-violet-500/10 border border-violet-500/20 px-1.5 py-0.5 rounded font-mono">
+                        {lead.bestFit}
+                      </span>
+                    </div>
+                    <p className="text-[9px] text-[#059669] font-mono font-bold">{lead.dealValue}</p>
                   </div>
                 </div>
               ))}

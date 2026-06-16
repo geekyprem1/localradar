@@ -17,10 +17,13 @@ import {
   Copy,
   Check,
   Building2,
-  ListTodo
+  ListTodo,
+  Layers
 } from 'lucide-react';
-import { generateMockAudit, generateMockCompetitors, calculateLocalRadarScore } from '@/lib/mockData';
+import { generateMockAudit, generateMockCompetitors } from '@/lib/mockData';
+import { scoreBusinessOpportunity } from '@/lib/scoring';
 import { Business, Opportunity, Audit, Competitor } from '@/types';
+import { ScoredOpportunity } from '@/types/scoring';
 
 export default function AuditDetailsPage() {
   const params = useParams();
@@ -31,6 +34,7 @@ export default function AuditDetailsPage() {
   const [opportunity, setOpportunity] = useState<Opportunity | null>(null);
   const [audit, setAudit] = useState<Audit | null>(null);
   const [competitors, setCompetitors] = useState<Competitor[]>([]);
+  const [scored, setScored] = useState<ScoredOpportunity | null>(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
 
@@ -63,7 +67,7 @@ export default function AuditDetailsPage() {
       }
     }
 
-    // Fallback: If not found, generate it on the fly so page doesn't error
+    // Fallback: If not found, generate it on the fly
     if (!selectedBiz) {
       selectedBiz = {
         id: businessId,
@@ -76,63 +80,61 @@ export default function AuditDetailsPage() {
         address: '8383 Preston Rd, Dallas, TX 75225',
         organization_id: 'mock-org-123'
       };
+    }
 
-      const scoring = calculateLocalRadarScore(15, 12, 10, 8, 5); // Scored 50/100
+    // Use Intelligence Engine™ for scoring
+    const mockCompetitors = generateMockCompetitors(selectedBiz);
+    const scoredResult = scoreBusinessOpportunity(selectedBiz, mockCompetitors);
+
+    // Build opportunity from engine if not cached
+    if (!selectedOpp) {
       selectedOpp = {
         id: `opp-${businessId}`,
         created_at: new Date().toISOString(),
         business_id: businessId,
-        website_score: scoring.website,
-        reviews_score: scoring.reviews,
-        seo_score: scoring.seo,
-        gbp_score: scoring.gbp,
-        social_score: scoring.social,
-        total_score: scoring.total,
-        opportunity_level: scoring.opportunityLevel,
-        estimated_deal_value: scoring.estimatedDealValue,
-        closing_probability: scoring.closingProbability
+        website_score: scoredResult.websiteScore,
+        reviews_score: scoredResult.reviewsScore,
+        seo_score: scoredResult.seoScore,
+        gbp_score: scoredResult.gbpScore,
+        social_score: scoredResult.socialScore,
+        total_score: scoredResult.opportunityScore,
+        opportunity_level: scoredResult.opportunityLevel,
+        estimated_deal_value: scoredResult.dealValue.max,
+        closing_probability: scoredResult.closingProbability
       };
     }
 
-    const mockAudit = generateMockAudit(selectedBiz, selectedOpp!);
-    const mockCompetitors = generateMockCompetitors(selectedBiz);
+    const mockAudit = generateMockAudit(selectedBiz, selectedOpp);
 
     setBusiness(selectedBiz);
     setOpportunity(selectedOpp);
     setAudit(mockAudit);
     setCompetitors(mockCompetitors);
+    setScored(scoredResult);
     setLoading(false);
   }, [businessId]);
 
-  const getOpportunityScore = (opp: Opportunity) => {
-    const rawScore = 100 - opp.total_score;
-    if (opp.opportunity_level === 'High') {
-      return Math.floor(71 + ((rawScore - 50) / 50) * 29);
-    } else if (opp.opportunity_level === 'Medium') {
-      return Math.floor(41 + ((rawScore - 25) / 24) * 29);
-    } else {
-      return Math.floor((rawScore / 24) * 40);
-    }
-  };
-
-  const getOpportunityLabel = (score: number) => {
-    if (score >= 71) return 'High';
-    if (score >= 41) return 'Medium';
-    return 'Low';
-  };
-
   const handleCopyReport = () => {
-    if (!business || !opportunity) return;
-    const score = getOpportunityScore(opportunity);
-    const text = `LocalRadar Opportunity Report: ${business.name}
-Opportunity Score™: ${score}/100
-Opportunity Level: ${getOpportunityLabel(score)}
+    if (!business || !scored) return;
+    const text = `LocalRadar Intelligence Report: ${business.name}
+Opportunity Score™: ${scored.opportunityScore}/100
+Opportunity Level: ${scored.opportunityLevel}
+Closing Probability™: ${scored.closingProbability}%
+Estimated Deal Value™: ${scored.dealValue.formatted}
+Best Service Fit™: ${scored.bestFit.agencyType} (${scored.bestFit.level})
 Recommended Services:
 ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
     
     navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const getFitColor = (level: string) => {
+    if (level === 'Perfect Fit') return 'text-[#E54D80] bg-[#E54D80]/10 border-[#E54D80]/20';
+    if (level === 'Strong Fit') return 'text-violet-600 bg-violet-500/10 border-violet-500/20';
+    if (level === 'Moderate Fit') return 'text-amber-600 bg-amber-500/10 border-amber-500/20';
+    return 'text-zinc-500 bg-zinc-100 border-zinc-200';
   };
 
   if (loading) {
@@ -143,7 +145,7 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
     );
   }
 
-  if (!business || !opportunity || !audit) {
+  if (!business || !opportunity || !audit || !scored) {
     return (
       <div className="p-8 text-center space-y-4 font-mono text-xs text-[#0F0F11] bg-[#F9F9FB]">
         <p className="text-[#E54D80]">Error loading audit details.</p>
@@ -155,14 +157,12 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
   }
 
   const sections = [
-    { title: 'Website Quality', score: opportunity.website_score, max: 25, issues: audit.website_issues },
-    { title: 'Review Strength', score: opportunity.reviews_score, max: 25, issues: audit.review_issues },
-    { title: 'SEO Presence', score: opportunity.seo_score, max: 20, issues: audit.seo_issues },
-    { title: 'Google Business Profile', score: opportunity.gbp_score, max: 15, issues: audit.gbp_issues },
-    { title: 'Social Activity', score: opportunity.social_score, max: 15, issues: audit.social_issues },
+    { title: 'Website Opportunity', score: scored.breakdown.websiteOpportunity.score, max: scored.breakdown.websiteOpportunity.maxScore, issues: audit.website_issues },
+    { title: 'Review Gap', score: scored.breakdown.reviewGap.score, max: scored.breakdown.reviewGap.maxScore, issues: audit.review_issues },
+    { title: 'GBP Weakness', score: scored.breakdown.gbpWeakness.score, max: scored.breakdown.gbpWeakness.maxScore, issues: audit.seo_issues },
+    { title: 'Revenue Leakage', score: scored.breakdown.revenueLeakage.score, max: scored.breakdown.revenueLeakage.maxScore, issues: audit.gbp_issues },
+    { title: 'Growth Intent', score: scored.breakdown.growthIntent.score, max: scored.breakdown.growthIntent.maxScore, issues: audit.social_issues },
   ];
-
-  const currentScore = getOpportunityScore(opportunity);
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto pb-12 font-sans text-[#0F0F11]">
@@ -185,7 +185,7 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-[9px] font-bold text-[#E54D80] bg-[#E54D80]/10 border border-[#E54D80]/20 px-2.5 py-0.5 rounded-full uppercase tracking-wider font-mono">
-                  AI Opportunity Scanned
+                  Intelligence Engine™ Scanned
                 </span>
                 <span className="text-[9px] font-bold text-zinc-500 bg-[#F4F4F6] border border-[#E5E5E8] px-2.5 py-0.5 rounded-full font-mono">
                   ID: {business.id.slice(0, 8)}
@@ -245,80 +245,98 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
           </div>
         </div>
 
-        {/* Circular score dial & intelligence metrics */}
-        <div className="bg-white border border-[#E5E5E8] p-6 w-full lg:w-96 flex flex-col md:flex-row lg:flex-col justify-around gap-6 items-center text-center rounded-3xl shadow-sm relative overflow-hidden">
+        {/* Intelligence Metrics Panel */}
+        <div className="bg-white border border-[#E5E5E8] p-6 w-full lg:w-96 flex flex-col gap-6 rounded-3xl shadow-sm relative overflow-hidden">
           {/* Radial score container */}
-          <div className="relative w-36 h-36 flex items-center justify-center">
-            {/* SVG circle */}
-            <svg className="w-full h-full transform -rotate-90">
-              <circle
-                cx="72"
-                cy="72"
-                r="64"
-                stroke="rgba(15,15,17,0.04)"
-                strokeWidth="8"
-                fill="transparent"
-              />
-              <circle
-                cx="72"
-                cy="72"
-                r="64"
-                stroke={currentScore >= 71 ? '#E54D80' : currentScore >= 41 ? '#D97706' : '#059669'}
-                strokeWidth="8"
-                strokeDasharray={2 * Math.PI * 64}
-                strokeDashoffset={2 * Math.PI * 64 * (1 - currentScore / 100)}
-                strokeLinecap="round"
-                fill="transparent"
-              />
-            </svg>
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-3xl font-serif font-bold text-[#0F0F11] tracking-tight">{currentScore}</span>
-              <span className="text-[8px] text-zinc-500 uppercase tracking-widest font-bold mt-0.5 font-mono">OPPORTUNITY</span>
+          <div className="flex items-center gap-6">
+            <div className="relative w-28 h-28 flex items-center justify-center shrink-0">
+              <svg className="w-full h-full transform -rotate-90">
+                <circle
+                  cx="56"
+                  cy="56"
+                  r="48"
+                  stroke="rgba(15,15,17,0.04)"
+                  strokeWidth="8"
+                  fill="transparent"
+                />
+                <circle
+                  cx="56"
+                  cy="56"
+                  r="48"
+                  stroke={scored.opportunityScore >= 60 ? '#E54D80' : scored.opportunityScore >= 35 ? '#D97706' : '#059669'}
+                  strokeWidth="8"
+                  strokeDasharray={2 * Math.PI * 48}
+                  strokeDashoffset={2 * Math.PI * 48 * (1 - scored.opportunityScore / 100)}
+                  strokeLinecap="round"
+                  fill="transparent"
+                />
+              </svg>
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <span className="text-2xl font-serif font-bold text-[#0F0F11] tracking-tight">{scored.opportunityScore}</span>
+                <span className="text-[7px] text-zinc-500 uppercase tracking-widest font-bold mt-0.5 font-mono">OPPORTUNITY</span>
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <div className="text-[9px] font-bold text-[#E54D80] bg-[#E54D80]/10 border border-[#E54D80]/20 px-2 py-0.5 rounded-full uppercase tracking-wider font-mono inline-block">
+                {scored.opportunityLevel} Opportunity
+              </div>
+              <div className="text-xs text-zinc-500 font-mono">Intelligence Engine™</div>
             </div>
           </div>
 
-          {/* Metrics indicators */}
-          <div className="flex-1 w-full space-y-4 font-mono">
+          {/* All 4 Metrics */}
+          <div className="space-y-3.5 font-mono">
             <div className="flex items-center justify-between border-b border-[#E5E5E8] pb-2.5">
               <div className="flex items-center gap-2 text-zinc-500 text-xs">
                 <Target className="w-4 h-4 text-[#E54D80]" />
-                <span>Opportunity Level</span>
+                <span>Opportunity Score™</span>
               </div>
               <span className={`text-xs font-bold uppercase tracking-wider ${
-                currentScore >= 71 ? 'text-[#E54D80]' : 'text-amber-600'
+                scored.opportunityScore >= 60 ? 'text-[#E54D80]' : 'text-amber-600'
               }`}>
-                {getOpportunityLabel(currentScore)}
+                {scored.opportunityScore}/100
               </span>
             </div>
 
             <div className="flex items-center justify-between border-b border-[#E5E5E8] pb-2.5">
               <div className="flex items-center gap-2 text-zinc-500 text-xs">
-                <DollarSign className="w-4 h-4 text-[#059669]" />
-                <span>Est. Service Value</span>
+                <Layers className="w-4 h-4 text-violet-500" />
+                <span>Service Fit Score™</span>
               </div>
-              <span className="text-xs font-bold text-[#0F0F11]">
-                ${opportunity.estimated_deal_value.toLocaleString()}
+              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${getFitColor(scored.bestFit.level)}`}>
+                {scored.bestFit.agencyType}
+              </span>
+            </div>
+
+            <div className="flex items-center justify-between border-b border-[#E5E5E8] pb-2.5">
+              <div className="flex items-center gap-2 text-zinc-500 text-xs">
+                <TrendingUp className="w-4 h-4 text-[#E54D80]" />
+                <span>Closing Probability™</span>
+              </div>
+              <span className="text-xs font-bold text-[#059669]">
+                {scored.closingProbability}%
               </span>
             </div>
 
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-zinc-500 text-xs">
-                <TrendingUp className="w-4 h-4 text-[#E54D80]" />
-                <span>Closing Probability</span>
+                <DollarSign className="w-4 h-4 text-[#059669]" />
+                <span>Deal Value™</span>
               </div>
-              <span className="text-xs font-bold text-[#059669]">
-                {opportunity.closing_probability}%
+              <span className="text-xs font-bold text-[#0F0F11]">
+                {scored.dealValue.formatted}
               </span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Main Grid: Audited components vs Competitor Analysis */}
+      {/* Main Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
-        {/* Left Column: Breakdown items */}
+        {/* Left Column: Breakdown + Service Fit */}
         <div className="lg:col-span-2 space-y-6">
+          {/* Vulnerability Diagnostics */}
           <div className="bg-white border border-[#E5E5E8] p-6 space-y-6 rounded-3xl shadow-sm">
             <h2 className="text-sm font-bold text-[#0F0F11] flex items-center gap-2 uppercase tracking-wider font-mono">
               <ListTodo className="w-4 h-4 text-[#E54D80]" />
@@ -327,14 +345,14 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
 
             <div className="space-y-6">
               {sections.map((sec) => {
-                const percent = (sec.score / sec.max) * 100;
-                const isCrit = percent <= 50;
+                const percent = sec.max > 0 ? (sec.score / sec.max) * 100 : 0;
+                const isActive = sec.score > 0;
                 return (
                   <div key={sec.title} className="border-b border-[#E5E5E8] pb-5 last:border-0 last:pb-0">
                     <div className="flex justify-between items-center mb-2">
                       <span className="text-xs font-bold text-[#0F0F11]">{sec.title}</span>
                       <span className="text-xs text-zinc-500 font-mono">
-                        {sec.score} / {sec.max} points
+                        +{sec.score} / {sec.max} points
                       </span>
                     </div>
 
@@ -342,7 +360,7 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
                     <div className="w-full bg-[#F4F4F6] h-2 rounded-full border border-[#E5E5E8] overflow-hidden">
                       <div 
                         className={`h-full rounded-full transition-all duration-500 ${
-                          isCrit ? 'bg-[#E54D80]' : percent <= 75 ? 'bg-[#D97706]' : 'bg-[#059669]'
+                          isActive ? 'bg-[#E54D80]' : 'bg-[#059669]'
                         }`}
                         style={{ width: `${percent}%` }}
                       />
@@ -367,6 +385,48 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
                   </div>
                 );
               })}
+            </div>
+          </div>
+
+          {/* Service Fit Score™ Panel */}
+          <div className="bg-white border border-[#E5E5E8] p-6 space-y-4 rounded-3xl shadow-sm">
+            <h2 className="text-sm font-bold text-[#0F0F11] flex items-center gap-2 uppercase tracking-wider font-mono">
+              <Layers className="w-4 h-4 text-violet-500" />
+              Service Fit Score™ — Agency Compatibility
+            </h2>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {scored.serviceFitScores.map(fit => (
+                <div key={fit.agencyType} className="bg-[#F9F9FB] border border-[#E5E5E8] p-4 rounded-xl">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-bold text-[#0F0F11]">{fit.agencyType}</span>
+                    <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full border font-mono ${getFitColor(fit.level)}`}>
+                      {fit.level}
+                    </span>
+                  </div>
+                  
+                  {/* Score bar */}
+                  <div className="w-full bg-[#E5E5E8] h-1.5 rounded-full overflow-hidden mb-3">
+                    <div 
+                      className={`h-full rounded-full ${fit.score >= 70 ? 'bg-[#E54D80]' : fit.score >= 45 ? 'bg-violet-500' : fit.score >= 20 ? 'bg-amber-500' : 'bg-zinc-400'}`}
+                      style={{ width: `${fit.score}%` }}
+                    />
+                  </div>
+                  
+                  <div className="flex items-center justify-between text-[10px] font-mono">
+                    <span className="text-zinc-500">Compatibility</span>
+                    <span className="font-bold text-[#0F0F11]">{fit.score}/100</span>
+                  </div>
+                  
+                  {fit.reasons.length > 0 && (
+                    <div className="mt-2 space-y-1">
+                      {fit.reasons.slice(0, 2).map((r, i) => (
+                        <div key={i} className="text-[9px] text-zinc-500 font-mono">• {r}</div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -396,7 +456,7 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
                   </div>
                   <div>
                     <span>Opp. Score:</span>
-                    <span className="text-[#E54D80] font-bold block mt-0.5">{currentScore}</span>
+                    <span className="text-[#E54D80] font-bold block mt-0.5">{scored.opportunityScore}</span>
                   </div>
                 </div>
               </div>
@@ -438,9 +498,9 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
                     {idx + 1}
                   </span>
                   <div>
-                    <p className="text-xs text-[#0F0F11] font-bold leading-relaxed">{service.split(' ($')[0]}</p>
+                    <p className="text-xs text-[#0F0F11] font-bold leading-relaxed">{service.split(' (')[0]}</p>
                     <p className="text-[10px] text-[#E54D80] font-bold mt-1 font-mono">
-                      Est. Service Fee: {service.includes('$') ? '$' + service.split('$')[1] : 'Included'}
+                      Est. Service Fee: {service.includes('₹') ? '₹' + service.split('₹')[1] : 'Included'}
                     </p>
                   </div>
                 </div>

@@ -12,14 +12,22 @@ import {
   Phone, 
   MapPin, 
   Sparkles,
-  AlertTriangle
+  AlertTriangle,
+  Layers,
+  Target,
+  DollarSign,
+  TrendingUp
 } from 'lucide-react';
 import { Business, Opportunity } from '@/types';
+import { scoreBusinessOpportunity, getVulnerabilityTags } from '@/lib/scoring';
+import { generateMockCompetitors } from '@/lib/mockData';
+import { ScoredOpportunity } from '@/types/scoring';
 
 export default function SavedLeadsPage() {
   const router = useRouter();
   const [savedLeads, setSavedLeads] = useState<Business[]>([]);
   const [opportunities, setOpportunities] = useState<Record<string, Opportunity>>({});
+  const [scoredMap, setScoredMap] = useState<Record<string, ScoredOpportunity>>({});
 
   useEffect(() => {
     const cachedLeads = localStorage.getItem('localradar_saved_leads');
@@ -32,6 +40,17 @@ export default function SavedLeadsPage() {
       setOpportunities(JSON.parse(cachedOpps));
     }
   }, []);
+
+  // Compute Intelligence Engine scores
+  useEffect(() => {
+    if (savedLeads.length === 0) return;
+    const map: Record<string, ScoredOpportunity> = {};
+    savedLeads.forEach(biz => {
+      const competitors = generateMockCompetitors(biz);
+      map[biz.id] = scoreBusinessOpportunity(biz, competitors);
+    });
+    setScoredMap(map);
+  }, [savedLeads]);
 
   const handleRemoveLead = (bizId: string) => {
     const updatedLeads = savedLeads.filter(b => b.id !== bizId);
@@ -46,27 +65,23 @@ export default function SavedLeadsPage() {
     localStorage.setItem('localradar_saved_opps', JSON.stringify(updatedOpps));
   };
 
-  const getOpportunityScore = (opp: Opportunity) => {
-    const rawScore = 100 - opp.total_score;
-    if (opp.opportunity_level === 'High') {
-      return Math.floor(71 + ((rawScore - 50) / 50) * 29);
-    } else if (opp.opportunity_level === 'Medium') {
-      return Math.floor(41 + ((rawScore - 25) / 24) * 29);
-    } else {
-      return Math.floor((rawScore / 24) * 40);
-    }
-  };
-
   const getScoreBadgeColor = (score: number) => {
-    if (score >= 71) return 'text-[#E54D80] bg-[#E54D80]/10 border-[#E54D80]/20';
-    if (score >= 41) return 'text-amber-600 bg-amber-500/10 border-amber-500/20';
+    if (score >= 60) return 'text-[#E54D80] bg-[#E54D80]/10 border-[#E54D80]/20';
+    if (score >= 35) return 'text-amber-600 bg-amber-500/10 border-amber-500/20';
     return 'text-emerald-600 bg-emerald-500/10 border-emerald-500/20';
   };
 
   const getOpportunityLabel = (score: number) => {
-    if (score >= 71) return 'High';
-    if (score >= 41) return 'Medium';
+    if (score >= 60) return 'High';
+    if (score >= 35) return 'Medium';
     return 'Low';
+  };
+
+  const getFitColor = (level: string) => {
+    if (level === 'Perfect Fit') return 'text-[#E54D80] bg-[#E54D80]/10 border-[#E54D80]/20';
+    if (level === 'Strong Fit') return 'text-violet-600 bg-violet-500/10 border-violet-500/20';
+    if (level === 'Moderate Fit') return 'text-amber-600 bg-amber-500/10 border-amber-500/20';
+    return 'text-zinc-500 bg-zinc-100 border-zinc-200';
   };
 
   return (
@@ -91,15 +106,18 @@ export default function SavedLeadsPage() {
                   <th className="p-4">Business Name</th>
                   <th className="p-4">Website</th>
                   <th className="p-4">Rating / Reviews</th>
-                  <th className="p-4">Phone</th>
                   <th className="p-4 text-center">Opportunity Score™</th>
+                  <th className="p-4 text-center">Service Fit™</th>
+                  <th className="p-4 text-center">Deal Value</th>
+                  <th className="p-4 text-center">Closing %</th>
                   <th className="p-4 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#E5E5E8]">
                 {savedLeads.map((biz) => {
-                  const opp = opportunities[biz.id];
-                  const score = opp ? getOpportunityScore(opp) : 0;
+                  const scored = scoredMap[biz.id];
+                  const score = scored?.opportunityScore ?? 0;
+                  const bestFit = scored?.bestFit;
                   return (
                     <tr key={biz.id} className="hover:bg-zinc-50 transition-colors text-[#0F0F11]">
                       <td className="p-4">
@@ -130,12 +148,6 @@ export default function SavedLeadsPage() {
                           <span className="text-zinc-400 font-mono">({biz.reviews_count} reviews)</span>
                         </div>
                       </td>
-                      <td className="p-4">
-                        <span className="text-xs text-zinc-500 flex items-center gap-1.5 font-mono">
-                          <Phone className="w-3.5 h-3.5 text-zinc-400" />
-                          {biz.phone || 'N/A'}
-                        </span>
-                      </td>
                       <td className="p-4 text-center">
                         <div className="inline-flex flex-col items-center">
                           <span className={`inline-block text-xs font-bold px-3 py-1 rounded-full border font-mono ${getScoreBadgeColor(score)}`}>
@@ -143,6 +155,28 @@ export default function SavedLeadsPage() {
                           </span>
                           <span className="text-[9px] text-zinc-400 mt-1 capitalize font-mono">{getOpportunityLabel(score)} Opportunity</span>
                         </div>
+                      </td>
+                      <td className="p-4 text-center">
+                        {bestFit ? (
+                          <div className="inline-flex flex-col items-center">
+                            <span className={`inline-block text-[10px] font-bold px-2.5 py-0.5 rounded-full border font-mono ${getFitColor(bestFit.level)}`}>
+                              {bestFit.agencyType}
+                            </span>
+                            <span className="text-[8px] text-zinc-400 font-mono mt-1">{bestFit.level}</span>
+                          </div>
+                        ) : (
+                          <span className="text-[10px] text-zinc-400 font-mono">—</span>
+                        )}
+                      </td>
+                      <td className="p-4 text-center">
+                        <span className="text-xs font-bold text-[#059669] font-mono">
+                          {scored?.dealValue.formatted ?? '—'}
+                        </span>
+                      </td>
+                      <td className="p-4 text-center">
+                        <span className={`text-xs font-bold font-mono ${(scored?.closingProbability ?? 0) >= 60 ? 'text-[#E54D80]' : (scored?.closingProbability ?? 0) >= 30 ? 'text-amber-600' : 'text-zinc-500'}`}>
+                          {scored?.closingProbability ?? 0}%
+                        </span>
                       </td>
                       <td className="p-4 text-right">
                         <div className="flex items-center justify-end gap-2">

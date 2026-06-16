@@ -1,4 +1,5 @@
 import { Business, Opportunity, Audit, Competitor, Pitch } from '@/types';
+import { scoreBusinessOpportunity, extractSignals } from '@/lib/scoring';
 
 // Simple seedable random number generator
 function seededRandom(str: string) {
@@ -9,7 +10,10 @@ function seededRandom(str: string) {
   return Math.abs(Math.sin(hash)) % 1;
 }
 
-// Scoring logic: Calculates opportunity details based on component scores
+/**
+ * @deprecated Use scoreBusinessOpportunity from @/lib/scoring instead.
+ * Kept for backward compatibility only.
+ */
 export function calculateLocalRadarScore(
   website: number,
   reviews: number,
@@ -19,10 +23,9 @@ export function calculateLocalRadarScore(
 ) {
   const total = website + reviews + seo + gbp + social;
   
-  // High opportunity means low score (they have many issues and need services)
   let opportunityLevel: 'High' | 'Medium' | 'Low' = 'Low';
-  let closingProbability = 15; // percent
-  let estimatedDealValue = 1200; // USD
+  let closingProbability = 15;
+  let estimatedDealValue = 1200;
 
   if (total <= 50) {
     opportunityLevel = 'High';
@@ -35,15 +38,8 @@ export function calculateLocalRadarScore(
   }
 
   return {
-    website,
-    reviews,
-    seo,
-    gbp,
-    social,
-    total,
-    opportunityLevel,
-    closingProbability,
-    estimatedDealValue
+    website, reviews, seo, gbp, social, total,
+    opportunityLevel, closingProbability, estimatedDealValue
   };
 }
 
@@ -68,27 +64,22 @@ export function generateLeads(category: string, city: string, country: string): 
   const generatedBizs: Business[] = [];
   const generatedOpps: Record<string, Opportunity> = {};
 
-  // Generate 8 mock leads based on input
   for (let i = 0; i < 8; i++) {
     const seed = `${cat}-${cit}-${i}`;
     const rand = seededRandom(seed);
     
-    // Construct name
     const template = businessTemplates[i % businessTemplates.length];
     const cleanCat = category.charAt(0).toUpperCase() + category.slice(1);
     const cleanCity = city.charAt(0).toUpperCase() + city.slice(1);
     const bizName = `${template.prefix} ${cleanCat} of ${cleanCity}`;
     
-    // Website state: some don't have websites (huge opportunity!)
     const hasWebsite = rand > 0.25;
     const domain = bizName.toLowerCase().replace(/[^a-z0-9]/g, '') + '.com';
     const website = hasWebsite ? `https://www.${domain}` : '';
     
-    // Rating & reviews
-    const rating = Math.round((2.5 + rand * 2.4) * 10) / 10; // 2.5 to 4.9
+    const rating = Math.round((2.5 + rand * 2.4) * 10) / 10;
     const reviewsCount = Math.floor(rand * 145);
 
-    // Phone format
     const areaCode = 214 + (i * 7) % 200;
     const phone = `(${areaCode}) 555-${1000 + i * 111}`;
     
@@ -106,33 +97,23 @@ export function generateLeads(category: string, city: string, country: string): 
       organization_id: 'mock-org-123'
     };
 
-    // Calculate score components based on template conditions
-    // Website score max 25
-    const websiteScore = hasWebsite ? Math.floor(10 + rand * 15) : 0;
-    // Reviews score max 25 (high reviews, high rating = high score; few reviews, bad rating = low score)
-    const reviewsScore = Math.floor((rating / 5) * 15 + (reviewsCount > 30 ? 10 : reviewsCount / 3));
-    // SEO score max 20
-    const seoScore = hasWebsite ? Math.floor(5 + rand * 15) : 0;
-    // GBP score max 15
-    const gbpScore = rating > 4.0 ? Math.floor(8 + rand * 7) : Math.floor(rand * 10);
-    // Social score max 15
-    const socialScore = rand > 0.4 ? Math.floor(5 + rand * 10) : 0;
-
-    const scoring = calculateLocalRadarScore(websiteScore, reviewsScore, seoScore, gbpScore, socialScore);
+    // Use the Intelligence Engine™ for scoring
+    const competitors = generateMockCompetitors(business);
+    const scored = scoreBusinessOpportunity(business, competitors);
 
     const opportunity: Opportunity = {
       id: `opp-${bizId}`,
       created_at: new Date().toISOString(),
       business_id: bizId,
-      website_score: scoring.website,
-      reviews_score: scoring.reviews,
-      seo_score: scoring.seo,
-      gbp_score: scoring.gbp,
-      social_score: scoring.social,
-      total_score: scoring.total,
-      opportunity_level: scoring.opportunityLevel,
-      estimated_deal_value: scoring.estimatedDealValue,
-      closing_probability: scoring.closingProbability
+      website_score: scored.websiteScore,
+      reviews_score: scored.reviewsScore,
+      seo_score: scored.seoScore,
+      gbp_score: scored.gbpScore,
+      social_score: scored.socialScore,
+      total_score: scored.opportunityScore,
+      opportunity_level: scored.opportunityLevel,
+      estimated_deal_value: scored.dealValue.max,
+      closing_probability: scored.closingProbability
     };
 
     generatedBizs.push(business);
@@ -141,10 +122,9 @@ export function generateLeads(category: string, city: string, country: string): 
 
   return {
     businesses: generatedBizs.sort((a, b) => {
-      // Sort by highest opportunity (lowest score first)
-      const scoreA = generatedOpps[a.id]?.total_score || 100;
-      const scoreB = generatedOpps[b.id]?.total_score || 100;
-      return scoreA - scoreB;
+      const scoreA = generatedOpps[a.id]?.total_score || 0;
+      const scoreB = generatedOpps[b.id]?.total_score || 0;
+      return scoreB - scoreA; // Higher opportunity score first
     }),
     opportunities: generatedOpps
   };
@@ -159,63 +139,46 @@ export function generateMockAudit(business: Business, opp: Opportunity): Audit {
   const recommendedServices: string[] = [];
 
   // Website Analysis
-  if (opp.website_score === 0) {
-    websiteIssues.push("No website detected. Business is losing 100% of online visitors.");
-    recommendedServices.push("Custom high-converting website design & deployment ($3,000 setup)");
-  } else {
-    if (opp.website_score < 15) {
-      websiteIssues.push("Poor mobile optimization. Layout is broken on iOS & Android devices.");
-      websiteIssues.push("Slow page load speed (above 4.2 seconds). High bounce rate.");
-      recommendedServices.push("Mobile performance optimization & page speed acceleration ($750)");
-    }
-    if (opp.website_score < 20) {
-      websiteIssues.push("Missing clear call-to-action (CTA) buttons on the header.");
-      websiteIssues.push("No SSL secure lock detected or configuration is faulty.");
-    }
+  if (opp.website_score >= 20) {
+    websiteIssues.push('No website detected. Business is losing 100% of online visitors.');
+    recommendedServices.push('Custom high-converting website design & deployment (₹30,000 setup)');
+  } else if (opp.website_score >= 15) {
+    websiteIssues.push('Outdated website detected. Poor mobile optimization.');
+    websiteIssues.push('Slow page load speed (above 4.2 seconds). High bounce rate.');
+    recommendedServices.push('Website redesign & mobile optimization (₹15,000)');
   }
 
-  // SEO Analysis
-  if (opp.seo_score < 10) {
-    seoIssues.push("No organic keywords ranking on Google page 1.");
-    seoIssues.push("Missing meta tags, title descriptions, and H1 tags on page.");
-    recommendedServices.push("Local SEO setup, keyword research & organic tag optimization ($1,200/mo)");
-  } else if (opp.seo_score < 16) {
-    seoIssues.push("Missing XML Sitemap. Google bots are struggling to crawl pages.");
-    seoIssues.push("Broken internal links and missing schema markup.");
+  // SEO / GBP Analysis
+  if (opp.seo_score >= 10) {
+    seoIssues.push('Incomplete Google Business Profile setup detected.');
+    seoIssues.push('Missing structured data and local SEO signals.');
+    recommendedServices.push('Local SEO & GBP optimization (₹10,000/mo)');
   }
 
   // Reviews Analysis
-  if (opp.reviews_score < 10) {
-    reviewIssues.push("Critically low review count compared to local industry average.");
-    reviewIssues.push("Negative review rating (below 3.8 stars) driving customers to competitors.");
-    recommendedServices.push("Review booster & reputation management campaign ($499/mo)");
-  } else if (opp.reviews_score < 18) {
-    reviewIssues.push("Unanswered reviews. Google prioritizes accounts that reply to reviews.");
-    reviewIssues.push("No recent feedback. Last review was submitted over 4 months ago.");
+  if (opp.reviews_score >= 15) {
+    reviewIssues.push('Critical review gap compared to local competitors.');
+    reviewIssues.push('Low review velocity — losing local map pack position.');
+    recommendedServices.push('Review generation & reputation campaign (₹5,000/mo)');
+  } else if (opp.reviews_score >= 10) {
+    reviewIssues.push('Moderate review gap detected. Needs improvement.');
   }
 
-  // GBP Analysis
-  if (opp.gbp_score < 8) {
-    gbpIssues.push("Unclaimed or unverified Google Business Profile.");
-    gbpIssues.push("Missing exact operating hours or correct categories.");
-    recommendedServices.push("Google Business Profile setup, claim & optimization ($500)");
-  } else if (opp.gbp_score < 12) {
-    gbpIssues.push("No photos posted to GBP. Businesses with photos get 35% more clicks.");
-    gbpIssues.push("Missing product catalog or Q&A section setup.");
+  // GBP/Revenue Analysis  
+  if (opp.gbp_score >= 8) {
+    gbpIssues.push('No booking system or lead capture form detected.');
+    gbpIssues.push('Missing appointment scheduling — losing walk-in revenue.');
+    recommendedServices.push('Online booking & lead capture setup (₹10,000)');
   }
 
   // Social Analysis
-  if (opp.social_score < 8) {
-    socialIssues.push("No active social profiles found (Facebook, Instagram, LinkedIn).");
-    recommendedServices.push("Social media branding kit & content calendar setup ($800/mo)");
-  } else if (opp.social_score < 12) {
-    socialIssues.push("Social media profiles are inactive. Last post was 6 months ago.");
-    socialIssues.push("Social links on website redirect to broken pages.");
+  if (opp.social_score >= 5) {
+    socialIssues.push('Active business but no social media automation.');
+    recommendedServices.push('Social media branding & automation (₹8,000/mo)');
   }
 
-  // Default recommendations if none triggered
   if (recommendedServices.length === 0) {
-    recommendedServices.push("AI Chatbot lead capture integration ($500/mo)");
+    recommendedServices.push('AI Chatbot lead capture integration (₹5,000/mo)');
   }
 
   return {
@@ -261,7 +224,6 @@ export function generateMockCompetitors(business: Business): Competitor[] {
 }
 
 export function generateMockPitch(business: Business, opp: Opportunity, audit: Audit): Pitch {
-  const missingServicesText = audit.recommended_services.map(s => `- ${s}`).join('\n');
   const scoreVal = opp.total_score;
 
   const coldEmail = `Subject: Quick question about ${business.name}'s website
@@ -295,7 +257,7 @@ Mind if I drop the link to the checklist here? Zero obligation!`;
   const websiteProposal = `# Web Design & Conversion Optimization Proposal
 
 Prepared for: ${business.name}
-Opportunity Score: ${opp.website_score}/25 (Website Component)
+Opportunity Score: ${scoreVal}/100
 
 ## Core Issues Identified:
 ${audit.website_issues.map(i => `- ${i}`).join('\n')}
@@ -307,12 +269,12 @@ ${audit.website_issues.map(i => `- ${i}`).join('\n')}
 4. Setup SSL security protocols.
 
 ## Investment:
-$2,500 One-time Setup Fee`;
+₹25,000 One-time Setup Fee`;
 
   const seoProposal = `# Local SEO & Rankings Expansion Proposal
 
 Prepared for: ${business.name}
-Opportunity Score: ${opp.seo_score}/20 (SEO Component)
+Opportunity Score: ${scoreVal}/100
 
 ## Core Issues Identified:
 ${audit.seo_issues.map(i => `- ${i}`).join('\n')}
@@ -324,7 +286,7 @@ ${audit.seo_issues.map(i => `- ${i}`).join('\n')}
 4. Implement review generation campaign to boost local map-pack positioning.
 
 ## Investment:
-$950 / month Retainer (3-month minimum commitment)`;
+₹10,000 / month Retainer (3-month minimum commitment)`;
 
   return {
     id: `pitch-${business.id}`,

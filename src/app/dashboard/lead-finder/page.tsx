@@ -24,11 +24,15 @@ import {
   Info,
   ShieldCheck,
   Building2,
-  ExternalLink
+  ExternalLink,
+  Target,
+  Layers
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { generateLeads } from '@/lib/mockData';
+import { generateLeads, generateMockCompetitors } from '@/lib/mockData';
+import { scoreBusinessOpportunity, getVulnerabilityTags } from '@/lib/scoring';
 import { Business, Opportunity } from '@/types';
+import { ScoredOpportunity } from '@/types/scoring';
 
 export default function LeadFinderPage() {
   const router = useRouter();
@@ -41,6 +45,7 @@ export default function LeadFinderPage() {
   
   const [leads, setLeads] = useState<Business[]>([]);
   const [opportunities, setOpportunities] = useState<Record<string, Opportunity>>({});
+  const [scoredMap, setScoredMap] = useState<Record<string, ScoredOpportunity>>({});
   const [savedLeadsList, setSavedLeadsList] = useState<string[]>([]);
   const [expandedRowId, setExpandedRowId] = useState<string | null>(null);
 
@@ -48,9 +53,9 @@ export default function LeadFinderPage() {
     'Initializing local revenue crawler...',
     'Scanning Google Maps listings & GBP registers...',
     'Resolving company web domains & mail servers...',
-    'Auditing website performance & core web vitals...',
-    'Analyzing review velocity & sentiment trends...',
-    'Generating AI sales intelligence & Opportunity Scores™...'
+    'Running Intelligence Engine™ diagnostics...',
+    'Computing Service Fit Score™ across agency types...',
+    'Generating Opportunity Scores™ & Deal Values...'
   ];
 
   useEffect(() => {
@@ -69,6 +74,17 @@ export default function LeadFinderPage() {
     }
     return () => clearInterval(interval);
   }, [loading]);
+
+  // Compute scored map whenever leads change
+  useEffect(() => {
+    if (leads.length === 0) return;
+    const map: Record<string, ScoredOpportunity> = {};
+    leads.forEach(biz => {
+      const competitors = generateMockCompetitors(biz);
+      map[biz.id] = scoreBusinessOpportunity(biz, competitors);
+    });
+    setScoredMap(map);
+  }, [leads]);
 
   // Load last searches and saved leads on mount
   useEffect(() => {
@@ -170,81 +186,49 @@ export default function LeadFinderPage() {
     }, 5000);
   };
 
-  // Mapped Opportunity Score™ (71-100 High, 41-70 Medium, 0-40 Low)
-  const getOpportunityScore = (opp: Opportunity) => {
-    const rawScore = 100 - opp.total_score;
-    if (opp.opportunity_level === 'High') {
-      return Math.floor(71 + ((rawScore - 50) / 50) * 29);
-    } else if (opp.opportunity_level === 'Medium') {
-      return Math.floor(41 + ((rawScore - 25) / 24) * 29);
-    } else {
-      return Math.floor((rawScore / 24) * 40);
-    }
-  };
+  // Intelligence Engine™ helper functions
+  const getScore = (bizId: string) => scoredMap[bizId]?.opportunityScore ?? opportunities[bizId]?.total_score ?? 0;
+  const getLevel = (bizId: string) => scoredMap[bizId]?.opportunityLevel ?? opportunities[bizId]?.opportunity_level ?? 'Low';
+  const getClosing = (bizId: string) => scoredMap[bizId]?.closingProbability ?? opportunities[bizId]?.closing_probability ?? 0;
+  const getDealValue = (bizId: string) => scoredMap[bizId]?.dealValue?.formatted ?? `₹${(opportunities[bizId]?.estimated_deal_value || 0).toLocaleString()}`;
+  const getBestFit = (bizId: string) => scoredMap[bizId]?.bestFit;
+  const getServiceFits = (bizId: string) => scoredMap[bizId]?.serviceFitScores ?? [];
 
   const getScoreColor = (score: number) => {
-    if (score >= 71) return 'text-[#E54D80] border-[#E54D80]/20 bg-[#E54D80]/10'; // High Opportunity
-    if (score >= 41) return 'text-amber-600 border-amber-500/20 bg-amber-500/10'; // Medium Opportunity
-    return 'text-emerald-600 border-emerald-500/20 bg-emerald-500/10'; // Low Opportunity
+    if (score >= 60) return 'text-[#E54D80] border-[#E54D80]/20 bg-[#E54D80]/10';
+    if (score >= 35) return 'text-amber-600 border-amber-500/20 bg-amber-500/10';
+    return 'text-emerald-600 border-emerald-500/20 bg-emerald-500/10';
   };
 
   const getScoreLabel = (score: number) => {
-    if (score >= 71) return 'High';
-    if (score >= 41) return 'Medium';
+    if (score >= 60) return 'High';
+    if (score >= 35) return 'Medium';
     return 'Low';
   };
 
-  const getDealValueString = (score: number) => {
-    if (score >= 71) return '$3,000 - $7,000';
-    if (score >= 41) return '$1,500 - $3,000';
-    return '$500 - $1,000';
+  const getFitColor = (level: string) => {
+    if (level === 'Perfect Fit') return 'text-[#E54D80] bg-[#E54D80]/10 border-[#E54D80]/20';
+    if (level === 'Strong Fit') return 'text-violet-600 bg-violet-500/10 border-violet-500/20';
+    if (level === 'Moderate Fit') return 'text-amber-600 bg-amber-500/10 border-amber-500/20';
+    return 'text-zinc-500 bg-zinc-100 border-zinc-200';
   };
 
-  const getOpportunityReasons = (biz: Business, opp: Opportunity) => {
-    const reasons: string[] = [];
-    if (!biz.website) {
-      reasons.push('No Website');
-    } else if (opp.website_score < 15) {
-      reasons.push('Weak Website');
-    }
-    if (biz.reviews_count < 20 || biz.rating < 4.0) {
-      reasons.push('Low Reviews');
-    }
-    if (opp.seo_score < 12) {
-      reasons.push('Weak SEO');
-    }
-    if (opp.social_score < 8 || !biz.website) {
-      reasons.push('No Booking System');
-    }
-    
-    if (reasons.length === 0) {
-      reasons.push('Weak SEO');
-    }
-    return reasons;
-  };
-
-  const getTrendText = (id: string) => {
-    const hash = id.charCodeAt(id.length - 1) || 0;
-    const value = (hash % 12) + 4;
-    return `+${value}% demand`;
+  const getTags = (bizId: string) => {
+    const scored = scoredMap[bizId];
+    if (scored) return getVulnerabilityTags(scored);
+    return ['Analyzing...'];
   };
 
   // Stats computation
   const stats = searched && leads.length > 0 ? {
     found: leads.length,
-    high: leads.filter(l => opportunities[l.id] && getOpportunityScore(opportunities[l.id]) >= 71).length,
+    high: leads.filter(l => getScore(l.id) >= 60).length,
     pipeline: leads.reduce((sum, l) => {
-      const opp = opportunities[l.id];
-      if (!opp) return sum;
-      const score = getOpportunityScore(opp);
-      if (score >= 71) return sum + 5000;
-      if (score >= 41) return sum + 2250;
-      return sum + 750;
+      const scored = scoredMap[l.id];
+      if (scored) return sum + scored.dealValue.max;
+      return sum + (opportunities[l.id]?.estimated_deal_value || 0);
     }, 0),
-    avgScore: Math.round(leads.reduce((sum, l) => {
-      const opp = opportunities[l.id];
-      return sum + (opp ? getOpportunityScore(opp) : 0);
-    }, 0) / leads.length)
+    avgScore: Math.round(leads.reduce((sum, l) => sum + getScore(l.id), 0) / leads.length)
   } : {
     found: 124,
     high: 38,
@@ -254,11 +238,12 @@ export default function LeadFinderPage() {
 
   // Top 5 opportunities
   const topOpportunities = [...leads]
-    .map(l => {
-      const opp = opportunities[l.id];
-      const score = opp ? getOpportunityScore(opp) : 0;
-      return { lead: l, opp, score };
-    })
+    .map(l => ({
+      lead: l,
+      opp: opportunities[l.id],
+      score: getScore(l.id),
+      scored: scoredMap[l.id]
+    }))
     .sort((a, b) => b.score - a.score)
     .slice(0, 5);
 
@@ -404,7 +389,7 @@ export default function LeadFinderPage() {
         )}
       </AnimatePresence>
 
-      {/* SECTION 2: Opportunity Summary Cards */}
+      {/* SECTION 2: Intelligence Summary Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { 
@@ -425,7 +410,7 @@ export default function LeadFinderPage() {
           },
           { 
             label: 'Potential Pipeline Value', 
-            val: `$${stats.pipeline.toLocaleString()}`, 
+            val: `₹${stats.pipeline.toLocaleString()}`, 
             desc: 'Suggested services contract value', 
             trend: 'High Yield',
             icon: DollarSign,
@@ -474,7 +459,7 @@ export default function LeadFinderPage() {
                 <Sparkles className="w-4 h-4 text-[#E54D80] fill-[#E54D80]/10" />
                 Priority Closing Dashboard (Top 5 Opportunities)
               </h2>
-              <p className="text-[11px] text-zinc-500">Highest response probabilities computed based on metadata vulnerabilities.</p>
+              <p className="text-[11px] text-zinc-500">Highest response probabilities computed by Intelligence Engine™.</p>
             </div>
             <span className="text-[9px] font-bold text-[#E54D80] bg-[#E54D80]/10 border border-[#E54D80]/20 px-2 py-0.5 rounded font-mono uppercase tracking-wide">
               Priority Targets
@@ -482,7 +467,8 @@ export default function LeadFinderPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-            {topOpportunities.map(({ lead, opp, score }, idx) => {
+            {topOpportunities.map(({ lead, opp, score, scored }, idx) => {
+              const bestFit = scored?.bestFit;
               return (
                 <motion.div
                   key={lead.id}
@@ -498,7 +484,11 @@ export default function LeadFinderPage() {
                       <span className={`text-[10px] font-bold font-mono px-2 py-0.5 rounded border ${getScoreColor(score)}`}>
                         {score} pts
                       </span>
-                      <span className="text-[9px] text-[#E54D80] font-mono">{getTrendText(lead.id)}</span>
+                      {bestFit && (
+                        <span className={`text-[8px] font-bold font-mono px-1.5 py-0.5 rounded border ${getFitColor(bestFit.level)}`}>
+                          {bestFit.agencyType}
+                        </span>
+                      )}
                     </div>
 
                     <h3 className="font-serif font-extrabold text-[#0F0F11] text-xs mt-3 leading-snug truncate group-hover:text-[#E54D80] transition-colors">
@@ -508,22 +498,19 @@ export default function LeadFinderPage() {
 
                     <div className="mt-3.5 space-y-1.5 border-t border-zinc-100 pt-3">
                       <div className="flex justify-between items-center text-[9px] font-mono">
-                        <span className="text-zinc-400">Pipeline Value</span>
-                        <span className="text-[#059669] font-bold">{getDealValueString(score)}</span>
+                        <span className="text-zinc-400">Deal Value</span>
+                        <span className="text-[#059669] font-bold">{getDealValue(lead.id)}</span>
                       </div>
                       <div className="flex justify-between items-center text-[9px] font-mono">
-                        <span className="text-zinc-400">Reviews</span>
-                        <span className="text-[#0F0F11] flex items-center gap-0.5">
-                          <Star className="w-2.5 h-2.5 text-[#FACC15] fill-[#FACC15]" />
-                          {lead.rating} ({lead.reviews_count})
-                        </span>
+                        <span className="text-zinc-400">Closing</span>
+                        <span className="text-[#0F0F11] font-bold">{getClosing(lead.id)}%</span>
                       </div>
                       <div className="flex justify-between items-center text-[9px] font-mono">
-                        <span className="text-zinc-400">Web Presence</span>
+                        <span className="text-zinc-400">Web</span>
                         {lead.website ? (
-                          <span className="text-[#059669] truncate max-w-[60px] inline-block">Active Domain</span>
+                          <span className="text-[#059669] truncate max-w-[60px] inline-block">Active</span>
                         ) : (
-                          <span className="text-[#E54D80] font-bold">No Website</span>
+                          <span className="text-[#E54D80] font-bold">None</span>
                         )}
                       </div>
                     </div>
@@ -552,7 +539,7 @@ export default function LeadFinderPage() {
         </div>
       )}
 
-      {/* SECTION 4: Opportunity Table */}
+      {/* SECTION 4: Intelligence Table */}
       {searched && !loading && (
         <div className="space-y-4">
           <div className="flex items-center justify-between border-b border-[#E5E5E8] pb-3">
@@ -571,18 +558,19 @@ export default function LeadFinderPage() {
                   <tr className="border-b border-[#E5E5E8] bg-[#F9F9FB] text-zinc-500 text-[9px] font-mono uppercase tracking-wider">
                     <th className="p-4">Business</th>
                     <th className="p-4 text-center">Opportunity Score™</th>
-                    <th className="p-4 text-center">Potential Deal Value</th>
-                    <th className="p-4">Reviews</th>
-                    <th className="p-4">Website Status</th>
-                    <th className="p-4">Verified Vulnerabilities</th>
+                    <th className="p-4 text-center">Service Fit™</th>
+                    <th className="p-4 text-center">Deal Value</th>
+                    <th className="p-4 text-center">Closing %</th>
+                    <th className="p-4">Vulnerabilities</th>
                     <th className="p-4 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#E5E5E8]">
                   {leads.map((biz) => {
                     const opp = opportunities[biz.id];
-                    const score = opp ? getOpportunityScore(opp) : 0;
-                    const reasons = opp ? getOpportunityReasons(biz, opp) : [];
+                    const score = getScore(biz.id);
+                    const tags = getTags(biz.id);
+                    const bestFit = getBestFit(biz.id);
                     const isExpanded = expandedRowId === biz.id;
 
                     return (
@@ -592,8 +580,8 @@ export default function LeadFinderPage() {
                           onClick={() => setExpandedRowId(isExpanded ? null : biz.id)}
                           className={`hover:bg-zinc-50 transition-colors cursor-pointer select-none ${isExpanded ? 'bg-zinc-50/70' : ''}`}
                         >
-                          <td className="p-4 max-w-[220px]">
-                            <div className="font-serif font-extrabold text-sm text-[#0F0F11] flex items-center gap-1.5 group-hover:text-[#E54D80]">
+                          <td className="p-4 max-w-[200px]">
+                            <div className="font-serif font-extrabold text-sm text-[#0F0F11]">
                               {biz.name}
                             </div>
                             <div className="text-[10px] text-zinc-400 font-mono mt-0.5 truncate">{biz.address}</div>
@@ -609,39 +597,32 @@ export default function LeadFinderPage() {
                             </div>
                           </td>
                           <td className="p-4 text-center">
-                            <span className="text-xs font-bold text-[#059669] font-mono">
-                              {getDealValueString(score)}
-                            </span>
-                            <div className="text-[8px] text-zinc-400 font-mono mt-0.5 uppercase">Contract Range</div>
-                          </td>
-                          <td className="p-4">
-                            <div className="flex items-center gap-1 text-xs text-[#0F0F11]">
-                              <Star className="w-3.5 h-3.5 text-[#FACC15] fill-[#FACC15]" />
-                              <span className="font-bold">{biz.rating}</span>
-                              <span className="text-zinc-400 font-mono text-[10px]">({biz.reviews_count} reviews)</span>
-                            </div>
-                          </td>
-                          <td className="p-4">
-                            {biz.website ? (
-                              <a
-                                href={biz.website}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                onClick={(e) => e.stopPropagation()}
-                                className="text-xs text-[#E54D80] hover:underline inline-flex items-center gap-1 max-w-[150px] truncate font-mono"
-                              >
-                                <Globe className="w-3.5 h-3.5 text-zinc-400" />
-                                {biz.website.replace('https://www.', '')}
-                              </a>
+                            {bestFit ? (
+                              <div className="inline-flex flex-col items-center">
+                                <span className={`inline-block text-[10px] font-bold px-2.5 py-0.5 rounded-lg border font-mono ${getFitColor(bestFit.level)}`}>
+                                  {bestFit.agencyType}
+                                </span>
+                                <span className="text-[8px] text-zinc-400 font-mono mt-1">
+                                  {bestFit.score}/100
+                                </span>
+                              </div>
                             ) : (
-                              <span className="text-[9px] text-[#E54D80] bg-[#E54D80]/10 border border-[#E54D80]/20 px-2 py-0.5 rounded-lg font-bold font-mono">
-                                No Website
-                              </span>
+                              <span className="text-[10px] text-zinc-400 font-mono">—</span>
                             )}
+                          </td>
+                          <td className="p-4 text-center">
+                            <span className="text-xs font-bold text-[#059669] font-mono">
+                              {getDealValue(biz.id)}
+                            </span>
+                          </td>
+                          <td className="p-4 text-center">
+                            <span className={`text-xs font-bold font-mono ${getClosing(biz.id) >= 60 ? 'text-[#E54D80]' : getClosing(biz.id) >= 30 ? 'text-amber-600' : 'text-zinc-500'}`}>
+                              {getClosing(biz.id)}%
+                            </span>
                           </td>
                           <td className="p-4">
                             <div className="flex flex-wrap gap-1">
-                              {reasons.map((r) => (
+                              {tags.map((r) => (
                                 <span 
                                   key={r} 
                                   className="text-[8px] font-bold text-amber-600 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded font-mono"
@@ -701,7 +682,7 @@ export default function LeadFinderPage() {
                                   transition={{ duration: 0.3 }}
                                   className="overflow-hidden border-b border-[#E5E5E8]"
                                 >
-                                  <div className="p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                  <div className="p-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
                                     
                                     {/* Sub-column 1: Business Details */}
                                     <div className="space-y-4 border-r border-[#E5E5E8] pr-6">
@@ -745,43 +726,72 @@ export default function LeadFinderPage() {
                                       </div>
                                     </div>
 
-                                    {/* Sub-column 2: Diagnostics & Score Breakdown */}
+                                    {/* Sub-column 2: Score Breakdown */}
                                     <div className="space-y-4 border-r border-[#E5E5E8] pr-6">
                                       <h4 className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest font-mono">
-                                        Risk & Quality Diagnostics
+                                        Intelligence Breakdown
                                       </h4>
                                       
                                       <div className="space-y-2.5">
-                                        {[
-                                          { label: 'Website Score', val: opp?.website_score || 0, max: 25 },
-                                          { label: 'Reviews Strength', val: opp?.reviews_score || 0, max: 25 },
-                                          { label: 'Search SEO Value', val: opp?.seo_score || 0, max: 20 },
-                                          { label: 'Google Profile Status', val: opp?.gbp_score || 0, max: 15 },
-                                          { label: 'Social Velocity', val: opp?.social_score || 0, max: 15 }
-                                        ].map((bar) => {
-                                          const pct = (bar.val / bar.max) * 100;
-                                          const isWeak = pct <= 50;
-                                          return (
-                                            <div key={bar.label} className="space-y-1 font-mono text-[10px]">
-                                              <div className="flex justify-between">
-                                                <span className="text-zinc-400">{bar.label}</span>
-                                                <span className={isWeak ? 'text-[#E54D80] font-bold' : 'text-zinc-500'}>
-                                                  {bar.val}/{bar.max} ({isWeak ? 'Vulnerable' : 'Good'})
-                                                </span>
+                                        {(() => {
+                                          const scored = scoredMap[biz.id];
+                                          if (!scored) return null;
+                                          const bd = scored.breakdown;
+                                          return [
+                                            { label: 'Website Opp.', val: bd.websiteOpportunity.score, max: bd.websiteOpportunity.maxScore },
+                                            { label: 'Review Gap', val: bd.reviewGap.score, max: bd.reviewGap.maxScore },
+                                            { label: 'GBP Weakness', val: bd.gbpWeakness.score, max: bd.gbpWeakness.maxScore },
+                                            { label: 'Revenue Leak', val: bd.revenueLeakage.score, max: bd.revenueLeakage.maxScore },
+                                            { label: 'Growth Intent', val: bd.growthIntent.score, max: bd.growthIntent.maxScore }
+                                          ].map((bar) => {
+                                            const pct = bar.max > 0 ? (bar.val / bar.max) * 100 : 0;
+                                            const isStrong = pct >= 50;
+                                            return (
+                                              <div key={bar.label} className="space-y-1 font-mono text-[10px]">
+                                                <div className="flex justify-between">
+                                                  <span className="text-zinc-400">{bar.label}</span>
+                                                  <span className={isStrong ? 'text-[#E54D80] font-bold' : 'text-zinc-500'}>
+                                                    +{bar.val}/{bar.max}
+                                                  </span>
+                                                </div>
+                                                <div className="h-1 bg-[#E5E5E8] rounded-full overflow-hidden">
+                                                  <div 
+                                                    className={`h-full rounded-full ${isStrong ? 'bg-[#E54D80]' : 'bg-[#059669]'}`}
+                                                    style={{ width: `${pct}%` }}
+                                                  />
+                                                </div>
                                               </div>
-                                              <div className="h-1 bg-[#E5E5E8] rounded-full overflow-hidden">
-                                                <div 
-                                                  className={`h-full rounded-full ${isWeak ? 'bg-[#E54D80]' : 'bg-[#059669]'}`}
-                                                  style={{ width: `${pct}%` }}
-                                                />
-                                              </div>
-                                            </div>
-                                          );
-                                        })}
+                                            );
+                                          });
+                                        })()}
                                       </div>
                                     </div>
 
-                                    {/* Sub-column 3: AI recommendations & Pricing */}
+                                    {/* Sub-column 3: Service Fit Score™ */}
+                                    <div className="space-y-4 border-r border-[#E5E5E8] pr-6">
+                                      <h4 className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest font-mono flex items-center gap-1.5">
+                                        <Layers className="w-3 h-3 text-[#E54D80]" />
+                                        Service Fit Score™
+                                      </h4>
+                                      
+                                      <div className="space-y-2">
+                                        {getServiceFits(biz.id).map(fit => (
+                                          <div key={fit.agencyType} className="flex items-center justify-between p-2 rounded-lg bg-white border border-[#E5E5E8]">
+                                            <div className="flex items-center gap-2">
+                                              <span className="text-[10px] font-bold text-[#0F0F11] font-mono">{fit.agencyType}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                              <span className="text-[10px] font-bold font-mono text-zinc-500">{fit.score}/100</span>
+                                              <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded border font-mono ${getFitColor(fit.level)}`}>
+                                                {fit.level}
+                                              </span>
+                                            </div>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+
+                                    {/* Sub-column 4: AI Closing Strategy */}
                                     <div className="space-y-4 flex flex-col justify-between">
                                       <div className="space-y-2.5">
                                         <h4 className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest font-mono">
@@ -789,7 +799,7 @@ export default function LeadFinderPage() {
                                         </h4>
                                         <div className="p-3 bg-[#FFF0F5] border border-[#E54D80]/20 rounded-xl font-mono text-[10px] space-y-1.5">
                                           <div className="text-[#E54D80] font-bold uppercase tracking-wider text-[8px]">
-                                            Suggested Agency Package
+                                            Best Service Fit: {bestFit ? bestFit.agencyType : 'Analyzing...'}
                                           </div>
                                           <div className="text-[#0F0F11] text-xs font-bold font-sans">
                                             {!biz.website 
@@ -798,9 +808,7 @@ export default function LeadFinderPage() {
                                           </div>
                                           <div className="flex items-center gap-1.5 text-[#059669] font-bold text-sm mt-1.5">
                                             <DollarSign className="w-4 h-4" />
-                                            {!biz.website 
-                                              ? '$3,500 setup + $499/mo' 
-                                              : '$1,800 setup + $299/mo'}
+                                            {getDealValue(biz.id)}
                                             <span className="text-zinc-400 font-normal text-[8px] uppercase">Est. Revenue</span>
                                           </div>
                                         </div>
@@ -808,13 +816,13 @@ export default function LeadFinderPage() {
                                         <ul className="text-[10px] text-zinc-500 space-y-1 font-mono">
                                           <li className="flex items-start gap-1">
                                             <span className="text-[#E54D80]">•</span>
-                                            {!biz.website 
-                                              ? 'Client has 0 web domain. Sell local landing page.' 
-                                              : 'Resolve web audit performance lags.'}
+                                            Closing Probability: <span className="font-bold text-[#0F0F11]">{getClosing(biz.id)}%</span>
                                           </li>
                                           <li className="flex items-start gap-1">
                                             <span className="text-[#E54D80]">•</span>
-                                            Configure direct Google Booking webhook for immediate actions.
+                                            {!biz.website 
+                                              ? 'Client has 0 web domain. Sell local landing page.' 
+                                              : 'Resolve web audit performance lags.'}
                                           </li>
                                           <li className="flex items-start gap-1">
                                             <span className="text-[#E54D80]">•</span>

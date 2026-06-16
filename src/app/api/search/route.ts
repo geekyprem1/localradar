@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
-import { calculateLocalRadarScore } from '@/lib/mockData';
 import { Business, Opportunity } from '@/types';
+import { scoreBusinessOpportunity } from '@/lib/scoring';
+import { generateMockCompetitors } from '@/lib/mockData';
 
 export async function POST(request: Request) {
   try {
@@ -27,7 +28,6 @@ export async function POST(request: Request) {
       headers: {
         'Content-Type': 'application/json',
         'X-Goog-Api-Key': apiKey,
-        // Field mask specifies which parameters to request
         'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.nationalPhoneNumber,places.websiteUri,places.rating,places.userRatingCount',
       },
       body: JSON.stringify({
@@ -69,44 +69,23 @@ export async function POST(request: Request) {
         organization_id: 'mock-org-123'
       };
 
-      // Calculate opportunity scores dynamically
-      // 1. Website score: max 25. If no website, 0 opportunity points (they have full opportunity, so score is 0).
-      const websiteScore = website ? 25 : 0;
-      
-      // 2. Reviews score: max 25.
-      let reviewsScore = 20;
-      if (reviewsCount === 0) {
-        reviewsScore = 0;
-      } else if (rating <= 3.8) {
-        reviewsScore = 8;
-      } else if (rating <= 4.2) {
-        reviewsScore = 15;
-      }
-
-      // 3. SEO Presence: max 20.
-      const seoScore = website ? (index % 2 === 0 ? 12 : 16) : 0;
-
-      // 4. Google Business Profile: max 15.
-      const gbpScore = rating > 0 ? 12 : 5;
-
-      // 5. Social Presence: max 15.
-      const socialScore = website ? (index % 3 === 0 ? 5 : 12) : 0;
-
-      const scoring = calculateLocalRadarScore(websiteScore, reviewsScore, seoScore, gbpScore, socialScore);
+      // Use the Intelligence Engine™ for deterministic scoring
+      const competitors = generateMockCompetitors(business);
+      const scored = scoreBusinessOpportunity(business, competitors);
 
       const opportunity: Opportunity = {
         id: `opp-${bizId}`,
         created_at: new Date().toISOString(),
         business_id: bizId,
-        website_score: websiteScore,
-        reviews_score: reviewsScore,
-        seo_score: seoScore,
-        gbp_score: gbpScore,
-        social_score: socialScore,
-        total_score: scoring.total,
-        opportunity_level: scoring.opportunityLevel,
-        estimated_deal_value: scoring.estimatedDealValue,
-        closing_probability: scoring.closingProbability
+        website_score: scored.websiteScore,
+        reviews_score: scored.reviewsScore,
+        seo_score: scored.seoScore,
+        gbp_score: scored.gbpScore,
+        social_score: scored.socialScore,
+        total_score: scored.opportunityScore,
+        opportunity_level: scored.opportunityLevel,
+        estimated_deal_value: scored.dealValue.max,
+        closing_probability: scored.closingProbability
       };
 
       businesses.push(business);
