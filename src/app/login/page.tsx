@@ -1,18 +1,35 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth';
 import { motion } from 'framer-motion';
 import { ShieldAlert, Sparkles, Mail, Lock, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
 
 export default function LoginPage() {
-  const { signInWithSandbox } = useAuth();
+  const { signInWithSandbox, user } = useAuth();
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Check if Supabase keys are configured (not pointing to placeholders)
+  const isSupabaseConfigured = 
+    process.env.NEXT_PUBLIC_SUPABASE_URL && 
+    process.env.NEXT_PUBLIC_SUPABASE_URL !== 'https://mock-project-url.supabase.co' &&
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY &&
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY !== 'mock-anon-key-placeholder';
+
+  // Auto redirect if user is already authenticated
+  useEffect(() => {
+    if (user) {
+      router.push('/dashboard');
+    }
+  }, [user, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,10 +42,60 @@ export default function LoginPage() {
       return;
     }
 
-    // Since we are running local and Supabase might not be initialized,
-    // let's show an error if they try to sign in with non-sandbox but fall back gracefully
-    setError('Real email auth requires setting up your Supabase project keys in .env.local. Please use "Sign In via Sandbox Mode" below to test instantly!');
-    setLoading(false);
+    if (!isSupabaseConfigured) {
+      // Offline/Local Sandbox fallback warning
+      setError('Real email auth requires setting up your Supabase project keys in Vercel or your local .env.local file. Please use "Sign In via Sandbox Mode" below to test instantly!');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      if (isSignUp) {
+        // Sign Up with email
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              full_name: 'Agency Partner',
+            }
+          }
+        });
+        if (error) throw error;
+        alert('Verification email sent! Please check your inbox.');
+      } else {
+        // Sign In with password
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        if (error) throw error;
+      }
+    } catch (err: any) {
+      setError(err.message || 'Authentication failed. Please check your credentials.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    if (isSupabaseConfigured) {
+      try {
+        setLoading(true);
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: `${window.location.origin}/auth/callback`,
+          },
+        });
+        if (error) throw error;
+      } catch (err: any) {
+        setError(err.message || 'Google Sign-In failed.');
+        setLoading(false);
+      }
+    } else {
+      signInWithSandbox();
+    }
   };
 
   return (
@@ -115,26 +182,31 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <div className="relative my-6 text-center font-mono">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-[#26282D]"></div>
-            </div>
-            <span className="relative bg-[#141517] px-3 text-[10px] text-zinc-500 uppercase tracking-widest">OR TEST INSTANTLY</span>
-          </div>
+          {/* Conditional Sandbox Test Trigger Panel */}
+          {!isSupabaseConfigured && (
+            <>
+              <div className="relative my-6 text-center font-mono">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-[#26282D]"></div>
+                </div>
+                <span className="relative bg-[#141517] px-3 text-[10px] text-zinc-500 uppercase tracking-widest">OR TEST INSTANTLY</span>
+              </div>
 
-          {/* Sandbox login button */}
-          <button
-            onClick={signInWithSandbox}
-            className="w-full bg-[#10B981]/10 hover:bg-[#10B981]/20 border border-[#10B981]/30 text-[#10B981] font-bold text-sm py-3 rounded-full transition-all flex items-center justify-center gap-2 cursor-pointer group shadow-sm font-mono"
-          >
-            <Sparkles className="w-4 h-4 text-[#10B981] animate-pulse" />
-            Sign In via Sandbox Mode
-            <ArrowRight className="w-4 h-4 text-[#10B981]/70 group-hover:translate-x-1 transition-transform" />
-          </button>
+              {/* Sandbox login button */}
+              <button
+                onClick={signInWithSandbox}
+                className="w-full bg-[#10B981]/10 hover:bg-[#10B981]/20 border border-[#10B981]/30 text-[#10B981] font-bold text-sm py-3 rounded-full transition-all flex items-center justify-center gap-2 cursor-pointer group shadow-sm font-mono"
+              >
+                <Sparkles className="w-4 h-4 text-[#10B981] animate-pulse" />
+                Sign In via Sandbox Mode
+                <ArrowRight className="w-4 h-4 text-[#10B981]/70 group-hover:translate-x-1 transition-transform" />
+              </button>
+            </>
+          )}
 
-          {/* Google Auth mock */}
+          {/* Google Auth button (Dynamic redirect or sandbox) */}
           <button
-            onClick={signInWithSandbox}
+            onClick={handleGoogleSignIn}
             className="w-full mt-3 bg-[#0B0B0C] hover:bg-[#141517] border border-[#26282D] text-[#A1A1AA] hover:text-white font-bold text-sm py-3 rounded-full transition-all flex items-center justify-center gap-2 cursor-pointer font-mono"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24">
@@ -155,7 +227,7 @@ export default function LoginPage() {
                 d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
               />
             </svg>
-            Continue with Google
+            {isSupabaseConfigured ? 'Continue with Google' : 'Continue via Sandbox Google'}
           </button>
 
           <div className="mt-6 text-center text-xs text-zinc-500 font-sans">
