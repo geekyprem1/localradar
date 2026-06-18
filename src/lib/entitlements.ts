@@ -96,21 +96,62 @@ export async function getServerUser(request: Request) {
     }
 
     // Load profile from public.users using admin client to ensure reliable retrieval
-    const { data: profile } = await supabaseAdmin
+    let { data: profile } = await supabaseAdmin
       .from('users')
       .select('organization_id')
       .eq('id', user.id)
-      .single();
+      .maybeSingle();
+
+    let orgId = profile?.organization_id || '';
+
+    // Self-healing onboarding provisioning fallback if DB trigger failed or was bypassed
+    if (!profile || !orgId) {
+      try {
+        const fullName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Agency Partner';
+        
+        // 1. Create a default organization for the user
+        const { data: newOrg, error: orgErr } = await supabaseAdmin
+          .from('organizations')
+          .insert({
+            name: `${fullName} Agency`,
+            subscription_tier: 'free',
+            subscription_status: 'active'
+          })
+          .select('id')
+          .single();
+
+        if (!orgErr && newOrg) {
+          orgId = newOrg.id;
+          
+          // 2. Create the user profile row
+          const { data: newProfile, error: profErr } = await supabaseAdmin
+            .from('users')
+            .insert({
+              id: user.id,
+              email: user.email || '',
+              full_name: fullName,
+              organization_id: orgId
+            })
+            .select('organization_id')
+            .single();
+
+          if (!profErr && newProfile) {
+            profile = newProfile;
+          }
+        }
+      } catch (provisionErr) {
+        console.error('Failed self-healing provisioning:', provisionErr);
+      }
+    }
 
     let subscription_tier: 'free' | 'pro' | 'agency' | 'agency_plus' = 'free';
-    let orgId = profile?.organization_id || '';
 
     if (orgId) {
       const { data: org } = await supabaseAdmin
         .from('organizations')
         .select('subscription_tier')
         .eq('id', orgId)
-        .single();
+        .maybeSingle();
       if (org?.subscription_tier) {
         subscription_tier = org.subscription_tier as 'free' | 'pro' | 'agency' | 'agency_plus';
       }

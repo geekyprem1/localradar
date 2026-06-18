@@ -38,7 +38,7 @@ export async function GET(request: Request) {
       .from('users')
       .select('full_name, organization_id')
       .eq('id', user.id)
-      .single();
+      .maybeSingle();
 
     if (profileErr) {
       return NextResponse.json({ success: false, message: profileErr.message }, { status: 500 });
@@ -51,7 +51,7 @@ export async function GET(request: Request) {
         .from('organizations')
         .select('name')
         .eq('id', profile.organization_id)
-        .single();
+        .maybeSingle();
       
       if (!orgErr && org?.name) {
         organizationName = org.name;
@@ -112,7 +112,7 @@ export async function POST(request: Request) {
       .from('users')
       .select('organization_id')
       .eq('id', user.id)
-      .single();
+      .maybeSingle();
 
     if (profileErr) {
       return NextResponse.json({ success: false, message: profileErr.message }, { status: 500 });
