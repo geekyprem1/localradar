@@ -32,32 +32,26 @@ export async function POST(request: Request) {
     const isLive = process.env.DODO_PAYMENTS_MODE === 'live';
 
     // 2. Sandbox/Mock Mode Fallback (if credentials are not configured in local environment)
-    if (!dodoApiKey || user.is_mock) {
-      console.warn('DodoPayments key not set or running in mock mode. Executing sandbox database fallback.');
-      
-      if (!user.is_mock) {
-        // Update database directly for real user in local sandbox environment
-        await supabase
-          .from('organizations')
-          .update({ subscription_tier: tier, subscription_status: 'active' })
-          .eq('id', user.organization_id);
-
-        const start = new Date();
-        const end = new Date();
-        end.setMonth(end.getMonth() + 1);
-
-        await supabase
-          .from('subscriptions')
-          .upsert({
-            organization_id: user.organization_id,
-            plan_tier: tier,
-            status: 'active',
-            current_period_start: start.toISOString(),
-            current_period_end: end.toISOString(),
-            updated_at: start.toISOString()
-          }, { onConflict: 'organization_id' }); // Avoid conflict on same organization
+    if (!dodoApiKey) {
+      if (user.is_mock) {
+        console.warn('[Sandbox] DodoPayments key not set. Executing sandbox checkout bypass.');
+        return NextResponse.json({
+          success: true,
+          message: `[Sandbox] Successfully updated organization to ${tier.toUpperCase()}`,
+          tier,
+          is_sandbox: true
+        });
+      } else {
+        console.error('[Billing Alert] DodoPayments API Key is missing in production environment variables.');
+        return NextResponse.json({ 
+          success: false, 
+          message: 'Billing provider is currently unconfigured. Please contact support.' 
+        }, { status: 500 });
       }
+    }
 
+    if (user.is_mock) {
+      console.warn('Running in mock mode. Executing sandbox database fallback.');
       return NextResponse.json({
         success: true,
         message: `[Sandbox] Successfully updated organization to ${tier.toUpperCase()}`,

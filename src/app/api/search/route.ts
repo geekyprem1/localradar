@@ -41,7 +41,7 @@ export async function POST(request: Request) {
 
     // 2. Search Throttling Protection (min 3 seconds between requests)
     const throttleKey = user.is_mock ? ip : user.organization_id;
-    const throttleCheck = checkSearchThrottle(throttleKey, 3000);
+    const throttleCheck = await checkSearchThrottle(throttleKey, user.is_mock, 3000);
     if (!throttleCheck.allowed) {
       return NextResponse.json({ 
         success: false, 
@@ -50,7 +50,7 @@ export async function POST(request: Request) {
     }
 
     // 2.1 Hourly Search Limit Check (30 searches per hour)
-    const hourlyCheck = checkHourlySearchLimit(throttleKey, 30);
+    const hourlyCheck = await checkHourlySearchLimit(throttleKey, user.is_mock, 30);
     if (!hourlyCheck.allowed) {
       return NextResponse.json({
         success: false,
@@ -59,7 +59,7 @@ export async function POST(request: Request) {
     }
 
     // 2.2 Daily Search Limit Check (Pro: 100, Agency: 300)
-    const dailyCheck = checkDailySearchLimit(throttleKey, user.subscription_tier as any);
+    const dailyCheck = await checkDailySearchLimit(throttleKey, user.subscription_tier as any, user.is_mock);
     if (!dailyCheck.allowed) {
       return NextResponse.json({
         success: false,
@@ -101,6 +101,43 @@ export async function POST(request: Request) {
             .in('business_id', bizIds);
 
           if (!oppErr && cachedOpps) {
+            // Enforce Subscription Limits & Usage Gates for Cache Hits
+            const check = await validateUsageAndEntitlement(
+              user.organization_id,
+              user.subscription_tier,
+              'search',
+              user.is_mock
+            );
+
+            if (!check.allowed) {
+              return NextResponse.json({ 
+                success: false, 
+                reason: check.reason,
+                message: check.reason === 'limit_exceeded' 
+                  ? 'You have reached your monthly search limit. Please upgrade your plan.' 
+                  : 'Feature locked on your current subscription plan.'
+              }, { status: 403 });
+            }
+
+            // Increment monthly search usage count
+            await incrementUsage(
+              user.organization_id,
+              user.subscription_tier,
+              'searches',
+              1,
+              user.is_mock
+            );
+
+            // Log search to DB search_logs for rate-limiting persistent count (even on cache hits)
+            await supabase.from('search_logs').insert({
+              organization_id: user.organization_id,
+              user_id: user.id,
+              niche: cleanNiche,
+              city: cleanCity,
+              country: cleanCountry,
+              results_count: cachedBizs.length,
+            });
+
             // Map back to TypeScript interface formats
             const formattedBizs: Business[] = cachedBizs.map(cb => ({
               id: cb.id,
@@ -148,7 +185,7 @@ export async function POST(request: Request) {
       }
     }
 
-    // 4. Enforce Subscription Limits & Usage Gates
+    // 4. Enforce Subscription Limits & Usage Gates (Cache Miss)
     const check = await validateUsageAndEntitlement(
       user.organization_id,
       user.subscription_tier,
@@ -166,7 +203,7 @@ export async function POST(request: Request) {
       }, { status: 403 });
     }
 
-    // 5. Increment monthly search usage count
+    // 5. Increment monthly search usage count (Cache Miss)
     await incrementUsage(
       user.organization_id,
       user.subscription_tier,

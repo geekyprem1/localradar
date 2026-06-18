@@ -4,7 +4,7 @@ import { supabase } from './supabase';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://mock-project-url.supabase.co';
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'mock-anon-key-placeholder';
 
-const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
 
 // In-memory cache for sandbox usage tracking (survives dev server reloads)

@@ -164,73 +164,15 @@ export default function PitchGeneratorPage() {
       const mockPitches = generateMockPitch(currentBiz, opp, audit);
       
       let mockValue = '';
-      let jsonKey = '';
-      let systemPrompt = '';
-
-      const bizType = currentBiz.name.toLowerCase().includes('dental') || currentBiz.name.toLowerCase().includes('dentist') 
-        ? 'Dental Practice' 
-        : currentBiz.name.toLowerCase().includes('plumbing') || currentBiz.name.toLowerCase().includes('drain')
-          ? 'Plumbing Business'
-          : 'Local Business';
-
-      const websiteStatus = currentBiz.website ? 'outdated / slow web presence' : 'missing website';
-      const reviewGap = 180 - (currentBiz.reviews_count || 0); // Competitor avg ~180
-      const formattedRevPotential = `₹${(opp.estimated_deal_value || 0).toLocaleString('en-IN')}`;
 
       if (tab === 'firstEmail') {
         mockValue = mockPitches.cold_email;
-        jsonKey = 'first_email';
-        systemPrompt = `You are a SaaS Growth Copywriter. Generate a highly personalized First Cold Email sequence hook.
-Business Details:
-- Type: ${bizType}
-- Website Status: ${websiteStatus}
-- Review Gap: Behind competitors by ${reviewGap} reviews
-- Revenue Potential: ${formattedRevPotential}
-
-Respond with a JSON object containing exactly one key "first_email":
-{
-  "first_email": "Subject: Quick question for [Business Name]\\n\\nHi Team,\\n\\nI was scanning [Niche] in [City] and noticed your website has a few issues... [Write body emphasizing the Website Status and Review Gap. Propose a quick call to resolve.]"
-}
-Ensure the output is clean JSON without markdown block wrappers.`;
       } else if (tab === 'followup') {
-        mockValue = `Subject: Following up on local audit details\n\nHi Team,\n\nI wanted to follow up on the site audit checklist I put together for ${currentBiz.name}.\n\nSpecifically, fixing your booking system leakage represents an estimated revenue potential of ${formattedRevPotential} in monthly appointments. Is this something you'd like to check out?\n\nBest,\n[Your Name]`;
-        jsonKey = 'followup_email';
-        systemPrompt = `You are a SaaS Copywriter. Generate a value-driven follow-up cold email.
-Business Details:
-- Type: ${bizType}
-- Revenue Potential: ${formattedRevPotential}
-
-Respond with a JSON object containing exactly one key "followup_email":
-{
-  "followup_email": "Subject: ...\\n\\n[Write follow-up email offering to walk through how fixing their online booking system can help capture the ${formattedRevPotential} contract potential.]"
-}
-Ensure the output is clean JSON without markdown block wrappers.`;
+        mockValue = `Subject: Following up on local audit details\n\nHi Team,\n\nI wanted to follow up on the site audit checklist I put together for ${currentBiz.name}.\n\nSpecifically, fixing your booking system leakage represents an estimated revenue potential of ₹${(opp.estimated_deal_value || 0).toLocaleString('en-IN')} in monthly appointments. Is this something you'd like to check out?\n\nBest,\n[Your Name]`;
       } else if (tab === 'linkedin') {
         mockValue = mockPitches.cold_dm;
-        jsonKey = 'linkedin_dm';
-        systemPrompt = `You are a SaaS Copywriter. Generate a brief, non-salesy LinkedIn DM sequence starting with their business type.
-Business Details:
-- Type: ${bizType}
-- Website Status: ${websiteStatus}
-
-Respond with a JSON object containing exactly one key "linkedin_dm":
-{
-  "linkedin_dm": "Hey [Name], I noticed your profile and loved your work as a ${bizType}. I did a quick vulnerability scan of your site and noticed a couple of loading speed bottlenecks. Happy to send over the audit link if you'd like? Zero pitch."
-}
-Ensure the output is clean JSON without markdown block wrappers.`;
       } else if (tab === 'whatsapp') {
-        mockValue = `Hey Team! 👋 I noticed your profile on Google Maps. Your business is highly rated, but you have a gap of ${reviewGap} reviews compared to competitors, and your phone list shows missed appointment inquiries. We put together a short checklist showing how you can easily automate bookings. Can I drop the checklist link here?`;
-        jsonKey = 'whatsapp_message';
-        systemPrompt = `You are a Copywriter. Generate a high-converting, extremely short WhatsApp check-in query (under 50 words).
-Business Details:
-- Niche: ${bizType}
-- Review Gap: Behind by ${reviewGap} reviews
-
-Respond with a JSON object containing exactly one key "whatsapp_message":
-{
-  "whatsapp_message": "Hey Team! [Write WhatsApp message offering a booking automation link due to the ${reviewGap} review gap.]"
-}
-Ensure the output is clean JSON without markdown block wrappers.`;
+        mockValue = `Hey Team! 👋 I noticed your profile on Google Maps. Your business is highly rated, but you have a gap of reviews compared to competitors, and your phone list shows missed appointment inquiries. We put together a short checklist showing how you can easily automate bookings. Can I drop the checklist link here?`;
       }
 
       try {
@@ -257,9 +199,8 @@ Ensure the output is clean JSON without markdown block wrappers.`;
           method: 'POST',
           headers,
           body: JSON.stringify({
-            systemPrompt,
-            userPrompt: `Generate pitch for ${currentBiz.name}`,
-            fallbackData: { [jsonKey]: mockValue }
+            businessId: currentBiz.id,
+            pitchType: tab
           })
         });
 
@@ -272,7 +213,7 @@ Ensure the output is clean JSON without markdown block wrappers.`;
           const data = responseData.data;
           setPitches(prev => ({
             ...prev,
-            [tab]: data[jsonKey] || mockValue
+            [tab]: data
           }));
         } else {
           setPitches(prev => ({ ...prev, [tab]: mockValue }));

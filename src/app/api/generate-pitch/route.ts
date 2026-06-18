@@ -41,14 +41,96 @@ export async function POST(request: Request) {
       }, { status: 403 });
     }
 
-    const { 
-      systemPrompt, 
-      userPrompt, 
-      fallbackData, 
-      clientModel 
-    } = await request.json();
+    const { businessId, pitchType } = await request.json();
+    if (!businessId || !pitchType) {
+      return NextResponse.json({ success: false, message: 'businessId and pitchType are required.' }, { status: 400 });
+    }
 
-    // 3. Increment usage tracking for pitches
+    if (!['firstEmail', 'followup', 'linkedin', 'whatsapp'].includes(pitchType)) {
+      return NextResponse.json({ success: false, message: 'Invalid pitchType.' }, { status: 400 });
+    }
+
+    // 3. Load Business Details (DB or Sandbox Mock fallback)
+    let bizName = 'Preston Dental Clinic';
+    let bizWebsite = 'https://www.prestondentalpractice.com';
+    let bizRating = 3.9;
+    let bizReviews = 34;
+    let bizPhone = '(214) 555-0199';
+    let bizAddress = '8383 Preston Rd, Dallas, TX 75225';
+
+    if (!user.is_mock) {
+      const { data: biz, error: bizErr } = await supabase
+        .from('businesses')
+        .select('*')
+        .eq('id', businessId)
+        .single();
+      
+      if (bizErr || !biz) {
+        return NextResponse.json({ success: false, message: 'Business not found.' }, { status: 404 });
+      }
+
+      bizName = biz.name;
+      bizWebsite = biz.website || 'None';
+      bizRating = Number(biz.rating || 0);
+      bizReviews = biz.reviews_count || 0;
+      bizPhone = biz.phone || 'None';
+      bizAddress = biz.address || 'None';
+    }
+
+    // 4. Construct Prompts Securely on Server
+    let systemPrompt = '';
+    const userPrompt = `Generate pitch for ${bizName}`;
+    let jsonKey = 'subject';
+    let mockValue = { subject: 'Improve Preston Dental Clinic Conversion', body: 'Cold Email body' };
+
+    if (pitchType === 'firstEmail') {
+      jsonKey = 'subject';
+      mockValue = { subject: `Improve ${bizName} Conversion`, body: `Hi team at ${bizName}, I saw your website and wanted to reach out...` };
+      systemPrompt = `You are a SaaS Growth Copywriter. Generate a highly personalized First Cold Email sequence hook.
+      Target Business: ${bizName}
+      Website: ${bizWebsite}
+      Rating: ${bizRating} (${bizReviews} reviews)
+      Phone: ${bizPhone}
+      Address: ${bizAddress}
+      Focus on: Website design issues, reputation improvement, and online booking systems.
+      Keep it brief, conversational, and direct. Output ONLY valid JSON in format:
+      {
+        "subject": "Subject line",
+        "body": "Email body content"
+      }`;
+    } else if (pitchType === 'followup') {
+      jsonKey = 'subject';
+      mockValue = { subject: `Mock follow up for ${bizName}`, body: `Just checking in to see if you read my previous email...` };
+      systemPrompt = `You are a SaaS Copywriter. Generate a value-driven follow-up cold email.
+      Target Business: ${bizName}
+      Provide value (e.g., offering a free mockup or audit details). Focus on scheduling a 10-minute call.
+      Output ONLY valid JSON in format:
+      {
+        "subject": "Subject line",
+        "body": "Follow-up email body content"
+      }`;
+    } else if (pitchType === 'linkedin') {
+      jsonKey = 'body';
+      mockValue = { body: `Hi, I noticed ${bizName} has some quick wins for local search rankings...` } as any;
+      systemPrompt = `You are a SaaS Copywriter. Generate a brief, non-salesy LinkedIn DM sequence starting with their business type.
+      Target Business: ${bizName}
+      Keep it under 100 words. Focus on establishing a connection.
+      Output ONLY valid JSON in format:
+      {
+        "body": "LinkedIn message content"
+      }`;
+    } else if (pitchType === 'whatsapp') {
+      jsonKey = 'body';
+      mockValue = { body: `Quick check for ${bizName}...` } as any;
+      systemPrompt = `You are a Copywriter. Generate a high-converting, extremely short WhatsApp check-in query (under 50 words).
+      Target Business: ${bizName}
+      Output ONLY valid JSON in format:
+      {
+        "body": "WhatsApp message content"
+      }`;
+    }
+
+    // 5. Increment usage tracking for pitches
     await incrementUsage(
       user.organization_id,
       user.subscription_tier,
@@ -57,9 +139,9 @@ export async function POST(request: Request) {
       user.is_mock
     );
 
-    // 4. Resolve API Key & Model
+    // 6. Resolve API Key & Model (Force model to deepseek-chat)
     let apiKey = '';
-    let resolvedModel = clientModel || 'deepseek/deepseek-chat';
+    const resolvedModel = 'deepseek/deepseek-chat';
 
     if (user.subscription_tier === 'agency' && !user.is_mock) {
       const { data: creds } = await supabase
@@ -80,12 +162,12 @@ export async function POST(request: Request) {
     const response = await generateAICompletion(
       systemPrompt,
       userPrompt,
-      fallbackData,
+      { [jsonKey]: mockValue[jsonKey as keyof typeof mockValue] },
       apiKey,
       resolvedModel
     );
 
-    // 5. Increment usage tracking for tokens
+    // 7. Increment usage tracking for tokens
     await incrementUsage(
       user.organization_id,
       user.subscription_tier,

@@ -1,5 +1,4 @@
-// In-memory rate limiting and search throttling for Serverless API routes
-// Prevents API key abuse, brute-force requests, and automated scraping loops
+import { supabaseAdmin } from './entitlements';
 
 interface RateLimitRecord {
   count: number;
@@ -52,70 +51,139 @@ export function checkRateLimit(
  * Throttles search frequency to prevent double-clicking or rapid bot scraping.
  * Default: Minimum 3 seconds (3000ms) between searches per Org / IP.
  */
-export function checkSearchThrottle(key: string, throttleMs = 3000): { allowed: boolean } {
-  const now = Date.now();
-  const lastSearchTime = searchThrottleStore.get(key);
+export async function checkSearchThrottle(
+  key: string,
+  isMock = false,
+  throttleMs = 3000
+): Promise<{ allowed: boolean }> {
+  if (isMock) {
+    const now = Date.now();
+    const lastSearchTime = searchThrottleStore.get(key);
 
-  if (lastSearchTime && now - lastSearchTime < throttleMs) {
-    return { allowed: false };
+    if (lastSearchTime && now - lastSearchTime < throttleMs) {
+      return { allowed: false };
+    }
+
+    searchThrottleStore.set(key, now);
+    return { allowed: true };
   }
 
-  searchThrottleStore.set(key, now);
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('search_logs')
+      .select('created_at')
+      .eq('organization_id', key)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (error) throw error;
+    if (data && data.created_at) {
+      const lastTime = new Date(data.created_at).getTime();
+      if (Date.now() - lastTime < throttleMs) {
+        return { allowed: false };
+      }
+    }
+  } catch (err) {
+    console.error('Error in checkSearchThrottle DB query:', err);
+  }
+
   return { allowed: true };
 }
 
 /**
  * Enforces hourly search limits (30 searches per hour).
  */
-export function checkHourlySearchLimit(key: string, limit = 30): { allowed: boolean } {
-  const now = Date.now();
-  const windowMs = 60 * 60 * 1000; // 1 hour
-  const record = hourlySearchStore.get(key);
+export async function checkHourlySearchLimit(
+  key: string,
+  isMock = false,
+  limit = 30
+): Promise<{ allowed: boolean }> {
+  if (isMock) {
+    const now = Date.now();
+    const windowMs = 60 * 60 * 1000; // 1 hour
+    const record = hourlySearchStore.get(key);
 
-  if (!record) {
-    hourlySearchStore.set(key, { count: 1, resetTime: now + windowMs });
-    return { allowed: true };
+    if (!record) {
+      hourlySearchStore.set(key, { count: 1, resetTime: now + windowMs });
+      return { allowed: true };
+    }
+
+    if (now > record.resetTime) {
+      record.count = 1;
+      record.resetTime = now + windowMs;
+      return { allowed: true };
+    }
+
+    record.count += 1;
+    return { allowed: record.count <= limit };
   }
 
-  if (now > record.resetTime) {
-    record.count = 1;
-    record.resetTime = now + windowMs;
-    return { allowed: true };
+  try {
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+    const { count, error } = await supabaseAdmin
+      .from('search_logs')
+      .select('*', { count: 'exact', head: true })
+      .eq('organization_id', key)
+      .gt('created_at', oneHourAgo);
+
+    if (error) throw error;
+    return { allowed: (count || 0) < limit };
+  } catch (err) {
+    console.error('Error in checkHourlySearchLimit DB query:', err);
   }
 
-  record.count += 1;
-  return { allowed: record.count <= limit };
+  return { allowed: true };
 }
 
 /**
  * Enforces daily search limits (Pro = 100, Agency = 300, Agency Plus = 1000).
  */
-export function checkDailySearchLimit(
+export async function checkDailySearchLimit(
   key: string,
-  tier: 'free' | 'pro' | 'agency' | 'agency_plus'
-): { allowed: boolean; limit: number } {
+  tier: 'free' | 'pro' | 'agency' | 'agency_plus',
+  isMock = false
+): Promise<{ allowed: boolean; limit: number }> {
   let limit = 10; // Free
   if (tier === 'pro') limit = 100;
   else if (tier === 'agency') limit = 300;
   else if (tier === 'agency_plus') limit = 1000;
 
-  const now = Date.now();
-  const windowMs = 24 * 60 * 60 * 1000; // 24 hours
-  const record = dailySearchStore.get(key);
+  if (isMock) {
+    const now = Date.now();
+    const windowMs = 24 * 60 * 60 * 1000; // 24 hours
+    const record = dailySearchStore.get(key);
 
-  if (!record) {
-    dailySearchStore.set(key, { count: 1, resetTime: now + windowMs });
-    return { allowed: true, limit };
+    if (!record) {
+      dailySearchStore.set(key, { count: 1, resetTime: now + windowMs });
+      return { allowed: true, limit };
+    }
+
+    if (now > record.resetTime) {
+      record.count = 1;
+      record.resetTime = now + windowMs;
+      return { allowed: true, limit };
+    }
+
+    record.count += 1;
+    return { allowed: record.count <= limit, limit };
   }
 
-  if (now > record.resetTime) {
-    record.count = 1;
-    record.resetTime = now + windowMs;
-    return { allowed: true, limit };
+  try {
+    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const { count, error } = await supabaseAdmin
+      .from('search_logs')
+      .select('*', { count: 'exact', head: true })
+      .eq('organization_id', key)
+      .gt('created_at', oneDayAgo);
+
+    if (error) throw error;
+    return { allowed: (count || 0) < limit, limit };
+  } catch (err) {
+    console.error('Error in checkDailySearchLimit DB query:', err);
   }
 
-  record.count += 1;
-  return { allowed: record.count <= limit, limit };
+  return { allowed: true, limit };
 }
 
 /**
