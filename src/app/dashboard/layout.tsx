@@ -14,16 +14,20 @@ import {
   User,
   Zap,
   Volume2,
-  Bookmark
+  Bookmark,
+  Lock
 } from 'lucide-react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
+import UnlockModal from '@/components/UnlockModal';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { user, loading, signOut } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isUnlockOpen, setIsUnlockOpen] = useState(false);
+  const [unlockType, setUnlockType] = useState<'audit' | 'pitch' | 'export' | 'developer_keys'>('pitch');
 
   useEffect(() => {
     if (!loading && !user) {
@@ -77,6 +81,31 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           {menuItems.map((item) => {
             const isActive = pathname === item.href;
             const Icon = item.icon;
+            const isLockedPitch = user.subscription_tier === 'free' && item.name === 'Pitch Engine';
+
+            if (isLockedPitch) {
+              return (
+                <button
+                  key={item.name}
+                  onClick={() => {
+                    setUnlockType('pitch');
+                    setIsUnlockOpen(true);
+                  }}
+                  className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-xs font-semibold tracking-wide transition-all duration-200 cursor-pointer border ${
+                    isActive 
+                      ? 'bg-[#0B0B0C] border-[#26282D] text-[#FFFFFF]' 
+                      : 'text-[#A1A1AA] hover:text-[#FFFFFF] hover:bg-[#0B0B0C]/50 border-transparent'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <Icon className={`w-4 h-4 ${isActive ? 'text-[#FFFFFF]' : 'text-[#A1A1AA]'}`} />
+                    {item.name}
+                  </div>
+                  <Lock className="w-3.5 h-3.5 text-[#F5A623]" />
+                </button>
+              );
+            }
+
             return (
               <Link
                 key={item.name}
@@ -162,6 +191,32 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 {menuItems.map((item) => {
                   const isActive = pathname === item.href;
                   const Icon = item.icon;
+                  const isLockedPitch = user.subscription_tier === 'free' && item.name === 'Pitch Engine';
+
+                  if (isLockedPitch) {
+                    return (
+                      <button
+                        key={item.name}
+                        onClick={() => {
+                          setMobileMenuOpen(false);
+                          setUnlockType('pitch');
+                          setIsUnlockOpen(true);
+                        }}
+                        className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-xs font-semibold tracking-wide transition-all border ${
+                          isActive 
+                            ? 'bg-[#0B0B0C] border-[#26282D] text-[#FFFFFF]' 
+                            : 'text-[#A1A1AA] hover:text-[#FFFFFF] hover:bg-[#0B0B0C]/50 border-transparent'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <Icon className="w-4 h-4" />
+                          {item.name}
+                        </div>
+                        <Lock className="w-3.5 h-3.5 text-[#F5A623]" />
+                      </button>
+                    );
+                  }
+
                   return (
                     <Link
                       key={item.name}
@@ -212,6 +267,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <main className="hidden md:block flex-1 p-8 relative z-10 overflow-y-auto max-w-full bg-[#0B0B0C]">
         {children}
       </main>
+
+      {/* Unlock Upsell Dialog */}
+      <UnlockModal
+        isOpen={isUnlockOpen}
+        onClose={() => setIsUnlockOpen(false)}
+        type={unlockType}
+      />
     </div>
   );
 }
