@@ -32,7 +32,8 @@ import {
   LineChart,
   ShieldCheck,
   CheckCircle2,
-  Flame
+  Flame,
+  Download
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { generateLeads, generateMockCompetitors } from '@/lib/mockData';
@@ -40,6 +41,9 @@ import { scoreBusinessOpportunity, getVulnerabilityTags } from '@/lib/scoring';
 import { Business, Opportunity } from '@/types';
 import { ScoredOpportunity } from '@/types/scoring';
 import OpportunityIntelligenceDrawer from '@/components/OpportunityIntelligenceDrawer';
+import { useAuth } from '@/lib/auth';
+import { supabase } from '@/lib/supabase';
+import UnlockModal from '@/components/UnlockModal';
 
 
 interface RecentSearch {
@@ -50,6 +54,7 @@ interface RecentSearch {
 
 export default function LeadFinderPage() {
   const router = useRouter();
+  const { user } = useAuth();
   const [niche, setNiche] = useState('');
   const [city, setCity] = useState('');
   const [country, setCountry] = useState('United States');
@@ -66,6 +71,100 @@ export default function LeadFinderPage() {
   // Drawer state for the slide-over intelligence panel
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
   const [hotLeadsMap, setHotLeadsMap] = useState<Record<string, boolean>>({});
+
+  // Unlock Modal control
+  const [isUnlockOpen, setIsUnlockOpen] = useState(false);
+  const [unlockType, setUnlockType] = useState<'audit' | 'pitch' | 'export' | 'developer_keys'>('audit');
+  const [usageStats, setUsageStats] = useState<{
+    searches_used: number;
+    searches_limit: number;
+    searches_remaining: number;
+    soft_alert?: string | null;
+  } | null>(null);
+
+  const fetchUsage = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token || '';
+
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const mockUserStr = localStorage.getItem('localradar_mock_user');
+      if (mockUserStr) {
+        const mu = JSON.parse(mockUserStr);
+        headers['x-is-sandbox'] = 'true';
+        headers['x-user-id'] = mu.id;
+        headers['x-org-id'] = 'mock-org-123';
+        headers['x-user-tier'] = mu.subscription_tier;
+      }
+
+      const response = await fetch('/api/usage', { headers });
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        setUsageStats({
+          searches_used: data.searches_used,
+          searches_limit: data.searches_limit,
+          searches_remaining: data.searches_remaining,
+          soft_alert: data.soft_alert
+        });
+      }
+    } catch (err) {
+      console.warn('Failed to load usage details:', err);
+    }
+  };
+
+  const triggerLockedModal = (type: 'audit' | 'pitch' | 'export' | 'developer_keys') => {
+    setUnlockType(type);
+    setIsUnlockOpen(true);
+  };
+
+  const handleExport = async (format: 'csv' | 'pdf') => {
+    if (user?.subscription_tier === 'free') {
+      triggerLockedModal('export');
+      return;
+    }
+
+    if (format === 'csv') {
+      const headers = "Business Name,Website,Rating,Reviews Count,Phone,Address,Opportunity Score,Closing Probability\n";
+      const rows = leads.map(l => {
+        const scoredOpp = opportunities[l.id];
+        const ratingVal = l.rating ?? 0;
+        const revsVal = l.reviews_count ?? 0;
+        const totalScoreVal = scoredOpp?.total_score ?? getScore(l.id);
+        const closingVal = scoredOpp?.closing_probability ?? getClosing(l.id);
+        return `"${l.name.replace(/"/g, '""')}","${(l.website || '').replace(/"/g, '""')}",${ratingVal},${revsVal},"${(l.phone || '').replace(/"/g, '""')}","${(l.address || '').replace(/"/g, '""')}",${totalScoreVal},${closingVal}`;
+      }).join("\n");
+
+      const blob = new Blob([headers + rows], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", `localradar_leads_${new Date().toISOString().substring(0, 10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } else {
+      const targetBizId = selectedLeadId || (leads.length > 0 ? leads[0].id : null);
+      if (!targetBizId) {
+        alert("No business available to export. Please perform a search first.");
+        return;
+      }
+
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token || '';
+      
+      const isSandbox = user?.is_mock ? 'true' : 'false';
+      const tier = user?.subscription_tier || 'pro';
+      
+      window.open(`/api/export/pdf?businessId=${targetBizId}&token=${token}&sandbox=${isSandbox}&tier=${tier}`, '_blank');
+    }
+  };
 
   const refreshHotLeadsMap = () => {
     const hotMap: Record<string, boolean> = {};
@@ -144,6 +243,8 @@ export default function LeadFinderPage() {
       setRecentSearches(seeds);
       localStorage.setItem('localradar_recent_searches', JSON.stringify(seeds));
     }
+
+    fetchUsage();
   }, []);
 
   const toggleSaveLead = (biz: Business) => {
@@ -209,12 +310,28 @@ export default function LeadFinderPage() {
     const key = localStorage.getItem('localradar_dev_google_places_key') || '';
 
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token || '';
+
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const mockUserStr = localStorage.getItem('localradar_mock_user');
+      if (mockUserStr) {
+        const mu = JSON.parse(mockUserStr);
+        headers['x-is-sandbox'] = 'true';
+        headers['x-user-id'] = mu.id;
+        headers['x-org-id'] = 'mock-org-123';
+        headers['x-user-tier'] = mu.subscription_tier;
+      }
+
       const response = await fetch('/api/search', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-google-places-key': key
-        },
+        headers,
         body: JSON.stringify({ niche: finalNiche, city: finalCity, country: finalCountry })
       });
 
@@ -227,6 +344,11 @@ export default function LeadFinderPage() {
         localStorage.setItem('localradar_latest_opps', JSON.stringify(data.opportunities));
         setLoading(false);
         setSearched(true);
+        fetchUsage();
+        return;
+      } else if (data.reason === 'limit_exceeded') {
+        setLoading(false);
+        triggerLockedModal('audit');
         return;
       }
     } catch (err) {
@@ -245,6 +367,7 @@ export default function LeadFinderPage() {
       
       setLoading(false);
       setSearched(true);
+      fetchUsage();
     }, 4500);
   };
 
@@ -370,6 +493,14 @@ export default function LeadFinderPage() {
   return (
     <div className="space-y-8 max-w-7xl mx-auto font-sans text-[#FFFFFF] pb-16 relative">
       
+      {/* Soft usage warning alert */}
+      {usageStats?.soft_alert && (
+        <div className="bg-[#FF5C5C]/10 border border-[#FF5C5C]/25 text-[#FF5C5C] text-xs px-4 py-2.5 rounded-xl flex items-center gap-2 font-mono">
+          <span className="font-bold">⚠️ Notice:</span>
+          <span>{usageStats.soft_alert}</span>
+        </div>
+      )}
+      
       {/* Top Header / Premium Context Line */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[rgba(255,255,255,0.08)] pb-6">
         <div>
@@ -387,6 +518,13 @@ export default function LeadFinderPage() {
         
         {/* Saved Searches / Counters top metadata */}
         <div className="flex items-center gap-4 text-xs font-mono font-normal">
+          {usageStats && (
+            <div className="bg-[#141517] border border-[#26282D] px-3 py-1.5 rounded-lg flex items-center gap-1.5">
+              <Zap className="w-3.5 h-3.5 text-[#2DD4A7]" />
+              <span className="text-[#A1A1AA]">Usage:</span>{' '}
+              <span className="text-white font-semibold">{usageStats.searches_used}/{usageStats.searches_limit}</span>
+            </div>
+          )}
           <div className="bg-[#141517] border border-[#26282D] px-3 py-1.5 rounded-lg">
             <span className="text-[#A1A1AA]">Saved Opportunities:</span>{' '}
             <span className="text-white font-semibold">{savedLeadsList.length}</span>
@@ -469,6 +607,26 @@ export default function LeadFinderPage() {
             )}
           </button>
         </form>
+
+        {/* Quick Suggestion Tags */}
+        <div className="mt-4 flex items-center gap-2 flex-wrap text-xs font-normal">
+          <span className="text-[#71717A] font-mono">Suggestions:</span>
+          {[
+            { niche: 'Dentists', city: 'Austin', country: 'United States' },
+            { niche: 'Roofers', city: 'Dallas', country: 'United States' },
+            { niche: 'Gyms', city: 'Toronto', country: 'Canada' },
+            { niche: 'Plumbers', city: 'London', country: 'United Kingdom' }
+          ].map((tag) => (
+            <button
+              key={`${tag.niche}-${tag.city}`}
+              type="button"
+              onClick={() => handleSearch(undefined, tag.niche, tag.city, tag.country)}
+              className="bg-[#0B0B0C] hover:bg-[#141517] border border-[#26282D]/85 hover:border-zinc-500 px-2.5 py-1 rounded-md text-[10px] font-mono text-[#A1A1AA] hover:text-white transition-all cursor-pointer"
+            >
+              💡 {tag.niche} in {tag.city}
+            </button>
+          ))}
+        </div>
 
         {/* Recent Searches, Saved Searches & Popular Niches */}
         <div className="mt-4 pt-4 border-t border-[#26282D] grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-normal">
@@ -744,7 +902,19 @@ export default function LeadFinderPage() {
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-[#71717A]">Revenue Potential™</span>
-                        <span className="text-[#2DD4A7] font-semibold text-xs">{getDealValue(lead.id)}</span>
+                        {user?.subscription_tier === 'free' ? (
+                          <span 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              triggerLockedModal('audit');
+                            }}
+                            className="text-[10px] font-mono text-[#2DD4A7]/60 hover:text-[#2DD4A7] transition-colors cursor-pointer select-none bg-[#2DD4A7]/5 px-2 py-0.5 rounded border border-[#2DD4A7]/10 blur-[0.5px] hover:blur-none"
+                          >
+                            🔒 Locked
+                          </span>
+                        ) : (
+                          <span className="text-[#2DD4A7] font-semibold text-xs">{getDealValue(lead.id)}</span>
+                        )}
                       </div>
                       <div className="flex justify-between items-center border-t border-[#26282D]/40 pt-1.5 mt-1.5">
                         <span className="text-[#71717A]">Top Reason</span>
@@ -758,14 +928,26 @@ export default function LeadFinderPage() {
                   {/* Actions */}
                   <div className="mt-5 pt-3 border-t border-[#26282D] space-y-2">
                     <button
-                      onClick={() => setSelectedLeadId(lead.id)}
+                      onClick={() => {
+                        if (user?.subscription_tier === 'free') {
+                          triggerLockedModal('audit');
+                        } else {
+                          setSelectedLeadId(lead.id);
+                        }
+                      }}
                       className="w-full bg-[#0B0B0C] hover:bg-[#141517] border border-[#26282D] text-[#A1A1AA] hover:text-[#FFFFFF] text-[10px] font-bold py-1.5 rounded-lg transition-all flex items-center justify-center gap-1 cursor-pointer font-mono"
                     >
                       <Info className="w-3.5 h-3.5 text-[#71717A]" />
                       View Intelligence
                     </button>
                     <button
-                      onClick={() => router.push(`/dashboard/pitch?bizId=${lead.id}`)}
+                      onClick={() => {
+                        if (user?.subscription_tier === 'free') {
+                          triggerLockedModal('pitch');
+                        } else {
+                          router.push(`/dashboard/pitch?bizId=${lead.id}`);
+                        }
+                      }}
                       className="w-full bg-gradient-to-r from-[#2DD4A7] to-[#14B88C] hover:opacity-95 text-[#0B0B0C] text-[10px] font-extrabold py-1.5 rounded-lg transition-all flex items-center justify-center gap-1 cursor-pointer font-mono shadow-sm"
                     >
                       <Send className="w-3.5 h-3.5 text-[#0B0B0C]" />
@@ -782,12 +964,31 @@ export default function LeadFinderPage() {
       {/* SECTION 4: Opportunity Intelligence Table */}
       {searched && !loading && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between border-b border-[#26282D] pb-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#26282D] pb-3">
             <h2 className="text-xs font-mono font-bold uppercase tracking-widest text-[#A1A1AA]">
               All Opportunity Diagnostics ({leads.length} Records)
             </h2>
-            <div className="text-[10px] text-[#71717A] font-mono">
-              Ranked by LocalRadar Intelligence Engine™ • Click any row to reveal full intelligence dossier.
+            <div className="flex items-center gap-2">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleExport('csv');
+                }}
+                className="bg-[#0B0B0C] hover:bg-[#141517] border border-[#26282D] text-white text-[10px] font-bold py-1.5 px-3 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer font-mono shadow-sm"
+              >
+                <Download className="w-3.5 h-3.5 text-zinc-400" />
+                Export CSV
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleExport('pdf');
+                }}
+                className="bg-[#0B0B0C] hover:bg-[#141517] border border-[#26282D] text-white text-[10px] font-bold py-1.5 px-3 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer font-mono shadow-sm"
+              >
+                <FileText className="w-3.5 h-3.5 text-zinc-400" />
+                Export PDF
+              </button>
             </div>
           </div>
 
@@ -815,7 +1016,13 @@ export default function LeadFinderPage() {
                     return (
                       <motion.tr 
                         key={biz.id}
-                        onClick={() => setSelectedLeadId(biz.id)}
+                        onClick={() => {
+                          if (user?.subscription_tier === 'free') {
+                            triggerLockedModal('audit');
+                          } else {
+                            setSelectedLeadId(biz.id);
+                          }
+                        }}
                         whileHover={{ backgroundColor: '#0B0B0C' }}
                         className="transition-colors cursor-pointer select-none"
                       >
@@ -857,20 +1064,44 @@ export default function LeadFinderPage() {
                           )}
                         </td>
                         <td className="py-5 px-6 text-center">
-                          <span className={`text-sm font-mono font-semibold ${
-                            getClosing(biz.id) >= 70 
-                              ? 'text-[#2DD4A7]' 
-                              : getClosing(biz.id) >= 40 
-                                ? 'text-[#F5A623]' 
-                                : 'text-[#FF5C5C]'
-                          }`}>
-                            {getClosing(biz.id)}%
-                          </span>
+                          {user?.subscription_tier === 'free' ? (
+                            <span 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                triggerLockedModal('audit');
+                              }}
+                              className="inline-block text-[10px] font-mono text-[#FAFAF9]/40 hover:text-white transition-colors cursor-pointer select-none bg-zinc-800/20 px-2 py-0.5 rounded border border-zinc-700/20 blur-[0.5px] hover:blur-none"
+                            >
+                              🔒 Locked
+                            </span>
+                          ) : (
+                            <span className={`text-sm font-mono font-semibold ${
+                              getClosing(biz.id) >= 70 
+                                ? 'text-[#2DD4A7]' 
+                                : getClosing(biz.id) >= 40 
+                                  ? 'text-[#F5A623]' 
+                                  : 'text-[#FF5C5C]'
+                            }`}>
+                              {getClosing(biz.id)}%
+                            </span>
+                          )}
                         </td>
                         <td className="py-5 px-6 text-center">
-                          <span className="text-sm font-semibold text-[#2DD4A7] font-mono">
-                            {getDealValue(biz.id)}
-                          </span>
+                          {user?.subscription_tier === 'free' ? (
+                            <span 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                triggerLockedModal('audit');
+                              }}
+                              className="inline-block text-[10px] font-mono text-[#2DD4A7]/60 hover:text-[#2DD4A7] transition-colors cursor-pointer select-none bg-[#2DD4A7]/5 px-2 py-0.5 rounded border border-[#2DD4A7]/10 blur-[0.5px] hover:blur-none"
+                            >
+                              🔒 Locked
+                            </span>
+                          ) : (
+                            <span className="text-sm font-semibold text-[#2DD4A7] font-mono">
+                              {getDealValue(biz.id)}
+                            </span>
+                          )}
                         </td>
                         <td className="py-5 px-6">
                           <div className="flex flex-wrap gap-1">
@@ -887,7 +1118,13 @@ export default function LeadFinderPage() {
                         <td className="py-5 px-6 text-right" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center justify-end gap-2">
                             <button
-                              onClick={() => toggleSaveLead(biz)}
+                              onClick={() => {
+                                if (user?.subscription_tier === 'free') {
+                                  triggerLockedModal('audit');
+                                } else {
+                                  toggleSaveLead(biz);
+                                }
+                              }}
                               className={`p-2 rounded-lg border transition-all cursor-pointer ${
                                 savedLeadsList.includes(biz.id)
                                   ? 'bg-[#2DD4A7]/10 border-[#2DD4A7]/30 text-[#2DD4A7] hover:bg-[#2DD4A7]/20'
@@ -899,14 +1136,26 @@ export default function LeadFinderPage() {
                             </button>
                             
                             <button
-                              onClick={() => router.push(`/dashboard/audit/${biz.id}`)}
+                              onClick={() => {
+                                if (user?.subscription_tier === 'free') {
+                                  triggerLockedModal('audit');
+                                } else {
+                                  router.push(`/dashboard/audit/${biz.id}`);
+                                }
+                              }}
                               className="bg-[#0B0B0C] hover:bg-[#141517] border border-[#26282D] text-[#A1A1AA] hover:text-[#FFFFFF] text-xs font-semibold px-4 py-2 rounded-lg transition-all font-mono cursor-pointer"
                             >
                               Audit
                             </button>
                             
                             <button
-                              onClick={() => router.push(`/dashboard/pitch?bizId=${biz.id}`)}
+                              onClick={() => {
+                                if (user?.subscription_tier === 'free') {
+                                  triggerLockedModal('pitch');
+                                } else {
+                                  router.push(`/dashboard/pitch?bizId=${biz.id}`);
+                                }
+                              }}
                               className="bg-gradient-to-r from-[#2DD4A7] to-[#14B88C] hover:opacity-95 text-[#0B0B0C] text-xs font-bold px-4 py-2 rounded-lg transition-all font-mono shadow-sm cursor-pointer"
                             >
                               Pitch
@@ -939,16 +1188,40 @@ export default function LeadFinderPage() {
           </div>
           
           <h2 className="text-[#FFFFFF] text-2xl font-serif font-extrabold tracking-tight">
-            Find businesses that need your services.
+            Welcome to LocalRadar! 🚀
           </h2>
-          <p className="text-[#A1A1AA] text-xs mt-2 max-w-sm mx-auto font-mono">
-            Search any niche and instantly discover high-probability opportunities losing revenue online.
+          <p className="text-[#A1A1AA] text-xs mt-2 max-w-md mx-auto font-mono">
+            Follow this 3-step quick start checklist to land your first paying client:
           </p>
+          
+          <div className="text-left max-w-md mx-auto mt-6 space-y-3 font-mono text-xs text-[#A1A1AA]">
+            <div className="p-3 bg-[#0B0B0C] border border-[#26282D] rounded-xl flex items-start gap-3">
+              <span className="bg-[#2DD4A7]/10 text-[#2DD4A7] w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[10px] font-bold">1</span>
+              <div>
+                <p className="text-white font-semibold">Search a Local Market</p>
+                <p className="text-[10px] mt-0.5 text-[#71717A]">Enter any service (e.g., Dentists) and a city (e.g., Austin) in the search console above.</p>
+              </div>
+            </div>
+            <div className="p-3 bg-[#0B0B0C] border border-[#26282D] rounded-xl flex items-start gap-3">
+              <span className="bg-[#2DD4A7]/10 text-[#2DD4A7] w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[10px] font-bold">2</span>
+              <div>
+                <p className="text-white font-semibold">Examine Intelligence Dossier</p>
+                <p className="text-[10px] mt-0.5 text-[#71717A]">Review their Opportunity Score, competitor gaps, booking leaks, and estimated deal value.</p>
+              </div>
+            </div>
+            <div className="p-3 bg-[#0B0B0C] border border-[#26282D] rounded-xl flex items-start gap-3">
+              <span className="bg-[#2DD4A7]/10 text-[#2DD4A7] w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[10px] font-bold">3</span>
+              <div>
+                <p className="text-white font-semibold">Generate & Send Pitch Sequence</p>
+                <p className="text-[10px] mt-0.5 text-[#71717A]">Instantly create highly personalized Cold Email, LinkedIn DM, WhatsApp pitch sequences, or export branded PDF audits.</p>
+              </div>
+            </div>
+          </div>
 
           {/* Quick-action helper niches */}
           <div className="mt-8 pt-6 border-t border-[#26282D] space-y-4">
             <h4 className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#71717A]">
-              Popular Agency Target Profiles
+              Or Try A Popular Target Profile:
             </h4>
             <div className="flex flex-wrap justify-center gap-2">
               {popularNiches.map((nicheName) => (
@@ -979,16 +1252,30 @@ export default function LeadFinderPage() {
           onToggleSave={(biz) => toggleSaveLead(biz)}
           onOpenPitch={(bizId) => {
             setSelectedLeadId(null);
-            router.push(`/dashboard/pitch?bizId=${bizId}`);
+            if (user?.subscription_tier === 'free') {
+              triggerLockedModal('pitch');
+            } else {
+              router.push(`/dashboard/pitch?bizId=${bizId}`);
+            }
           }}
           onOpenAudit={(bizId) => {
             setSelectedLeadId(null);
-            router.push(`/dashboard/audit/${bizId}`);
+            if (user?.subscription_tier === 'free') {
+              triggerLockedModal('audit');
+            } else {
+              router.push(`/dashboard/audit/${bizId}`);
+            }
           }}
           categoryName={niche || 'Agency Lead'}
         />
       )}
 
+      {/* Unlock Upsell Dialog */}
+      <UnlockModal
+        isOpen={isUnlockOpen}
+        onClose={() => setIsUnlockOpen(false)}
+        type={unlockType}
+      />
     </div>
   );
 }

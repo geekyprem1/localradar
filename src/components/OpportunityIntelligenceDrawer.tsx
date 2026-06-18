@@ -15,7 +15,8 @@ import {
   TrendingUp, 
   DollarSign, 
   Building2, 
-  Zap 
+  Zap,
+  ArrowUpRight
 } from 'lucide-react';
 import WhyThisLead from './WhyThisLead';
 import OpportunityBreakdown from './OpportunityBreakdown';
@@ -198,6 +199,39 @@ export default function OpportunityIntelligenceDrawer({
                   dealValueMin={scored.dealValue.min}
                   dealValueMax={scored.dealValue.max}
                 />
+
+                {/* SECTION 1.5: Discovered Contacts */}
+                <div className="bg-[#0B0B0C] border border-[#26282D] p-5 rounded-xl space-y-3">
+                  <h4 className="text-xs font-semibold text-[#A1A1AA] uppercase tracking-wider font-mono flex items-center gap-1.5">
+                    <Building2 className="w-4 h-4 text-[#A1A1AA]" />
+                    Discovered Contacts
+                  </h4>
+                  <div className="grid grid-cols-1 gap-2.5 font-mono text-xs">
+                    <div className="flex items-center justify-between border-b border-[#26282D] pb-2 font-normal text-[#A1A1AA]">
+                      <span>Business Email</span>
+                      <span className="text-white font-semibold">{business.business_email || 'Not Discovered'}</span>
+                    </div>
+                    <div className="flex items-center justify-between border-b border-[#26282D] pb-2 font-normal text-[#A1A1AA]">
+                      <span>Direct Contact Email</span>
+                      <span className="text-[#2DD4A7] font-semibold">{business.contact_email || 'Not Discovered'}</span>
+                    </div>
+                    <div className="flex items-center justify-between font-normal text-[#A1A1AA]">
+                      <span>Contact Page URL</span>
+                      {business.contact_page ? (
+                        <a 
+                          href={business.contact_page} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="text-[#2DD4A7] hover:underline flex items-center gap-1 font-semibold"
+                        >
+                          Visit Page <ArrowUpRight className="w-3.5 h-3.5" />
+                        </a>
+                      ) : (
+                        <span className="text-white/40">Not Discovered</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
 
                 {/* SECTION 2: Opportunity Breakdown */}
                 <OpportunityBreakdown

@@ -3,7 +3,7 @@ export interface Organization {
   created_at: string;
   name: string;
   stripe_customer_id?: string;
-  subscription_tier: 'free' | 'pro' | 'agency';
+  subscription_tier: 'free' | 'pro' | 'agency' | 'agency_plus';
   subscription_status: string;
 }
 
@@ -35,6 +35,9 @@ export interface Business {
   reviews_count: number;
   phone: string;
   address: string;
+  business_email?: string;
+  contact_email?: string;
+  contact_page?: string;
 }
 
 export interface Opportunity {

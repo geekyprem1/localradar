@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth';
+import { supabase } from '@/lib/supabase';
 import { Business, Opportunity } from '@/types';
 import { scoreBusinessOpportunity } from '@/lib/scoring';
 import { generateMockCompetitors } from '@/lib/mockData';
@@ -42,6 +43,15 @@ export default function DashboardOverviewPage() {
     dealValue: string;
     date: string;
   }[]>([]);
+
+  const [usageStats, setUsageStats] = useState<{
+    subscription_tier: string;
+    searches_used: number;
+    searches_limit: number;
+    searches_remaining: number;
+    next_billing_date: string;
+    soft_alert?: string | null;
+  } | null>(null);
 
   useEffect(() => {
     // Try to compute live stats from cached leads
@@ -97,6 +107,40 @@ export default function DashboardOverviewPage() {
       }
     }
   }, []);
+
+  useEffect(() => {
+    const fetchUsage = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const token = session?.access_token || '';
+
+        const headers: Record<string, string> = {
+          'Content-Type': 'application/json',
+        };
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+        
+        const mockUserStr = localStorage.getItem('localradar_mock_user');
+        if (mockUserStr) {
+          const mu = JSON.parse(mockUserStr);
+          headers['x-is-sandbox'] = 'true';
+          headers['x-user-id'] = mu.id;
+          headers['x-org-id'] = 'mock-org-123';
+          headers['x-user-tier'] = mu.subscription_tier;
+        }
+
+        const res = await fetch('/api/usage', { headers });
+        const data = await res.json();
+        if (data.success) {
+          setUsageStats(data);
+        }
+      } catch (err) {
+        console.warn('Failed to load usage stats:', err);
+      }
+    };
+    fetchUsage();
+  }, [user]);
 
   const formatLakhs = (num: number): string => {
     if (num >= 100000) {
@@ -169,6 +213,120 @@ export default function DashboardOverviewPage() {
           Find Opportunities
         </Link>
       </div>
+
+      {/* Subscription and Usage Status Card */}
+      {usageStats && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="bg-[#141517] border border-[#26282D] p-5 rounded-2xl relative overflow-hidden shadow-xl"
+        >
+          {/* Glassmorphic border glow */}
+          <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#2DD4A7]/30 to-transparent" />
+          
+          {usageStats.soft_alert && (
+            <div className="mb-4 bg-[#FF5C5C]/10 border border-[#FF5C5C]/25 text-[#FF5C5C] text-xs px-4 py-2.5 rounded-xl flex items-center gap-2 font-mono">
+              <span className="font-bold">⚠️ Notice:</span>
+              <span>{usageStats.soft_alert}</span>
+            </div>
+          )}
+
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            {/* Plan tier and billing cycle */}
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-2.5">
+                <span className="text-[10px] text-[#A1A1AA] uppercase tracking-wider font-mono">Current Plan</span>
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border font-mono uppercase ${
+                  usageStats.subscription_tier === 'agency_plus'
+                    ? 'bg-[#A855F7]/10 text-[#C084FC] border-[#C084FC]/25'
+                    : usageStats.subscription_tier === 'agency'
+                      ? 'bg-blue-500/10 text-blue-400 border-blue-400/20'
+                      : usageStats.subscription_tier === 'pro'
+                        ? 'bg-[#2DD4A7]/10 text-[#2DD4A7] border-[#2DD4A7]/20'
+                        : 'bg-zinc-800 text-zinc-400 border-zinc-700'
+                }`}>
+                  {usageStats.subscription_tier === 'agency_plus' ? 'agency plus' : usageStats.subscription_tier}
+                </span>
+              </div>
+              <h2 className="text-lg font-bold text-white tracking-tight capitalize font-sans">
+                {usageStats.subscription_tier === 'free' 
+                  ? 'Free Sandbox Access' 
+                  : usageStats.subscription_tier === 'pro' 
+                    ? 'Professional Partner' 
+                    : usageStats.subscription_tier === 'agency' 
+                      ? 'Agency Partner' 
+                      : 'Enterprise Agency Plus'}
+              </h2>
+              <p className="text-[10px] text-[#71717A] font-mono">
+                Next Billing Cycle: {new Date(usageStats.next_billing_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+              </p>
+            </div>
+
+            {/* Searches progress bar */}
+            <div className="flex-1 max-w-md space-y-2">
+              <div className="flex justify-between text-xs font-mono">
+                <span className="text-[#A1A1AA]">Searches Usage ({Math.round((usageStats.searches_used / usageStats.searches_limit) * 100)}%)</span>
+                <span className="text-white font-semibold">{usageStats.searches_used} / {usageStats.searches_limit} Used</span>
+              </div>
+              <div className="w-full bg-[#0B0B0C] border border-[#26282D] h-2 rounded-full overflow-hidden">
+                <div 
+                  className={`h-full transition-all duration-500 rounded-full ${
+                    (usageStats.searches_used / usageStats.searches_limit) > 0.8
+                      ? 'bg-[#FF5C5C]'
+                      : usageStats.subscription_tier === 'agency_plus'
+                        ? 'bg-[#A855F7]'
+                        : usageStats.subscription_tier === 'agency'
+                          ? 'bg-blue-500'
+                          : 'bg-[#2DD4A7]'
+                  }`}
+                  style={{ width: `${Math.min(100, (usageStats.searches_used / usageStats.searches_limit) * 100)}%` }}
+                />
+              </div>
+            </div>
+
+            {/* CTA button */}
+            <div className="flex items-center">
+              {usageStats.subscription_tier === 'free' && (
+                <Link 
+                  href="/dashboard/settings"
+                  className="w-full md:w-auto bg-[#2DD4A7] hover:bg-[#20BE94] text-[#090A0C] text-xs font-bold px-5 py-3 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer uppercase tracking-wider font-mono"
+                >
+                  Upgrade to Pro
+                  <Zap className="w-3.5 h-3.5 fill-[#090A0C]" />
+                </Link>
+              )}
+              {usageStats.subscription_tier === 'pro' && (
+                <Link 
+                  href="/dashboard/settings"
+                  className="w-full md:w-auto bg-blue-500 hover:bg-blue-600 text-white text-xs font-bold px-5 py-3 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer uppercase tracking-wider font-mono"
+                >
+                  Upgrade to Agency
+                  <Sparkles className="w-3.5 h-3.5 fill-white" />
+                </Link>
+              )}
+              {usageStats.subscription_tier === 'agency' && (
+                <Link 
+                  href="/dashboard/settings"
+                  className="w-full md:w-auto bg-gradient-to-r from-[#C084FC] to-[#A855F7] hover:opacity-95 text-white text-xs font-bold px-5 py-3 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer uppercase tracking-wider font-mono"
+                >
+                  Upgrade to Plus
+                  <Zap className="w-3.5 h-3.5 fill-white" />
+                </Link>
+              )}
+              {usageStats.subscription_tier === 'agency_plus' && (
+                <Link 
+                  href="/dashboard/settings"
+                  className="w-full md:w-auto bg-[#1C1E22] hover:bg-[#26282E] text-white border border-[#2B2D33] text-xs font-bold px-5 py-3 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer uppercase tracking-wider font-mono"
+                >
+                  Configure BYOK Keys
+                  <ArrowRight className="w-3.5 h-3.5 text-white" />
+                </Link>
+              )}
+            </div>
+          </div>
+        </motion.div>
+      )}
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">

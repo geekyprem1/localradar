@@ -13,46 +13,48 @@ import {
   MessageSquare,
   AlertTriangle,
   Building,
-  Zap
+  Zap,
+  Phone
 } from 'lucide-react';
 import { generateMockAudit, generateMockPitch, calculateLocalRadarScore } from '@/lib/mockData';
 import { Business, Opportunity, Pitch, Audit } from '@/types';
+import { useAuth } from '@/lib/auth';
+import { supabase } from '@/lib/supabase';
+
+type PitchTab = 'firstEmail' | 'followup' | 'linkedin' | 'whatsapp';
 
 export default function PitchGeneratorPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
   const preselectedBizId = searchParams ? searchParams.get('bizId') : null;
 
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [selectedBizId, setSelectedBizId] = useState<string>('');
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
   
-  const [activeTab, setActiveTab] = useState<'email' | 'dm' | 'website' | 'seo'>('email');
-  const [pitches, setPitches] = useState<{
-    email: string | null;
-    dm: string | null;
-    website: string | null;
-    seo: string | null;
-  }>({
-    email: null,
-    dm: null,
-    website: null,
-    seo: null
+  const [activeTab, setActiveTab] = useState<PitchTab>('firstEmail');
+  const [pitches, setPitches] = useState<Record<PitchTab, string | null>>({
+    firstEmail: null,
+    followup: null,
+    linkedin: null,
+    whatsapp: null
   });
 
-  const [loadingStates, setLoadingStates] = useState<{
-    email: boolean;
-    dm: boolean;
-    website: boolean;
-    seo: boolean;
-  }>({
-    email: false,
-    dm: false,
-    website: false,
-    seo: false
+  const [loadingStates, setLoadingStates] = useState<Record<PitchTab, boolean>>({
+    firstEmail: false,
+    followup: false,
+    linkedin: false,
+    whatsapp: false
   });
 
   const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (!authLoading && user && user.subscription_tier === 'free') {
+      router.replace('/dashboard/lead-finder');
+    }
+  }, [user, authLoading, router]);
 
   // Load leads from cache
   useEffect(() => {
@@ -104,20 +106,20 @@ export default function PitchGeneratorPage() {
   // Reset pitch when selected business changes
   useEffect(() => {
     setPitches({
-      email: null,
-      dm: null,
-      website: null,
-      seo: null
+      firstEmail: null,
+      followup: null,
+      linkedin: null,
+      whatsapp: null
     });
     setLoadingStates({
-      email: false,
-      dm: false,
-      website: false,
-      seo: false
+      firstEmail: false,
+      followup: false,
+      linkedin: false,
+      whatsapp: false
     });
   }, [selectedBizId]);
 
-  const handleGenerateTabPitch = async (tab: 'email' | 'dm' | 'website' | 'seo') => {
+  const handleGenerateTabPitch = async (tab: PitchTab) => {
     if (!selectedBizId) return;
 
     setLoadingStates(prev => ({ ...prev, [tab]: true }));
@@ -165,93 +167,99 @@ export default function PitchGeneratorPage() {
       let jsonKey = '';
       let systemPrompt = '';
 
-      if (tab === 'email') {
+      const bizType = currentBiz.name.toLowerCase().includes('dental') || currentBiz.name.toLowerCase().includes('dentist') 
+        ? 'Dental Practice' 
+        : currentBiz.name.toLowerCase().includes('plumbing') || currentBiz.name.toLowerCase().includes('drain')
+          ? 'Plumbing Business'
+          : 'Local Business';
+
+      const websiteStatus = currentBiz.website ? 'outdated / slow web presence' : 'missing website';
+      const reviewGap = 180 - (currentBiz.reviews_count || 0); // Competitor avg ~180
+      const formattedRevPotential = `₹${(opp.estimated_deal_value || 0).toLocaleString('en-IN')}`;
+
+      if (tab === 'firstEmail') {
         mockValue = mockPitches.cold_email;
-        jsonKey = 'cold_email';
-        systemPrompt = `You are a Conversion Rate Optimization expert, Senior Product Designer, and SaaS Growth Copywriter.
-Your task is to generate a highly personalized, high-converting Cold Email for a local business based on their scanned diagnostic details and web/GBP vulnerabilities.
-Respond with a JSON object containing exactly one key "cold_email":
+        jsonKey = 'first_email';
+        systemPrompt = `You are a SaaS Growth Copywriter. Generate a highly personalized First Cold Email sequence hook.
+Business Details:
+- Type: ${bizType}
+- Website Status: ${websiteStatus}
+- Review Gap: Behind competitors by ${reviewGap} reviews
+- Revenue Potential: ${formattedRevPotential}
+
+Respond with a JSON object containing exactly one key "first_email":
 {
-  "cold_email": "A professional and compelling cold email with a Subject line, customized for the business. Mention specific website issues. Keep it brief, and end with a direct call to action."
+  "first_email": "Subject: Quick question for [Business Name]\\n\\nHi Team,\\n\\nI was scanning [Niche] in [City] and noticed your website has a few issues... [Write body emphasizing the Website Status and Review Gap. Propose a quick call to resolve.]"
 }
-Ensure the output is clean JSON. Do not write any markdown code block wrappers (like \`\`\`json or \`\`\`) in your response. Just return the raw JSON text.`;
-      } else if (tab === 'dm') {
+Ensure the output is clean JSON without markdown block wrappers.`;
+      } else if (tab === 'followup') {
+        mockValue = `Subject: Following up on local audit details\n\nHi Team,\n\nI wanted to follow up on the site audit checklist I put together for ${currentBiz.name}.\n\nSpecifically, fixing your booking system leakage represents an estimated revenue potential of ${formattedRevPotential} in monthly appointments. Is this something you'd like to check out?\n\nBest,\n[Your Name]`;
+        jsonKey = 'followup_email';
+        systemPrompt = `You are a SaaS Copywriter. Generate a value-driven follow-up cold email.
+Business Details:
+- Type: ${bizType}
+- Revenue Potential: ${formattedRevPotential}
+
+Respond with a JSON object containing exactly one key "followup_email":
+{
+  "followup_email": "Subject: ...\\n\\n[Write follow-up email offering to walk through how fixing their online booking system can help capture the ${formattedRevPotential} contract potential.]"
+}
+Ensure the output is clean JSON without markdown block wrappers.`;
+      } else if (tab === 'linkedin') {
         mockValue = mockPitches.cold_dm;
-        jsonKey = 'cold_dm';
-        systemPrompt = `You are a Conversion Rate Optimization expert, Senior Product Designer, and SaaS Growth Copywriter.
-Your task is to generate a friendly, casual, and short social media direct message (Cold DM) for a local business offering value first based on their scanned diagnostic details and web/GBP vulnerabilities.
-Respond with a JSON object containing exactly one key "cold_dm":
+        jsonKey = 'linkedin_dm';
+        systemPrompt = `You are a SaaS Copywriter. Generate a brief, non-salesy LinkedIn DM sequence starting with their business type.
+Business Details:
+- Type: ${bizType}
+- Website Status: ${websiteStatus}
+
+Respond with a JSON object containing exactly one key "linkedin_dm":
 {
-  "cold_dm": "A friendly, casual, and short social media direct message (Instagram/Facebook) offering value first. Mention one critical vulnerability."
+  "linkedin_dm": "Hey [Name], I noticed your profile and loved your work as a ${bizType}. I did a quick vulnerability scan of your site and noticed a couple of loading speed bottlenecks. Happy to send over the audit link if you'd like? Zero pitch."
 }
-Ensure the output is clean JSON. Do not write any markdown code block wrappers (like \`\`\`json or \`\`\`) in your response. Just return the raw JSON text.`;
-      } else if (tab === 'website') {
-        mockValue = mockPitches.website_proposal;
-        jsonKey = 'website_proposal';
-        systemPrompt = `You are a Conversion Rate Optimization expert, Senior Product Designer, and SaaS Growth Copywriter.
-Your task is to generate a structured website proposal in Markdown formatting detailing the website redesign action plan, benefits, and investment for a local business.
-Respond with a JSON object containing exactly one key "website_proposal":
+Ensure the output is clean JSON without markdown block wrappers.`;
+      } else if (tab === 'whatsapp') {
+        mockValue = `Hey Team! 👋 I noticed your profile on Google Maps. Your business is highly rated, but you have a gap of ${reviewGap} reviews compared to competitors, and your phone list shows missed appointment inquiries. We put together a short checklist showing how you can easily automate bookings. Can I drop the checklist link here?`;
+        jsonKey = 'whatsapp_message';
+        systemPrompt = `You are a Copywriter. Generate a high-converting, extremely short WhatsApp check-in query (under 50 words).
+Business Details:
+- Niche: ${bizType}
+- Review Gap: Behind by ${reviewGap} reviews
+
+Respond with a JSON object containing exactly one key "whatsapp_message":
 {
-  "website_proposal": "A structured proposal in Markdown formatting detailing the website redesign action plan, benefits, and investment."
+  "whatsapp_message": "Hey Team! [Write WhatsApp message offering a booking automation link due to the ${reviewGap} review gap.]"
 }
-Ensure the output is clean JSON. Do not write any markdown code block wrappers (like \`\`\`json or \`\`\`) in your response. Just return the raw JSON text.`;
-      } else if (tab === 'seo') {
-        mockValue = mockPitches.seo_proposal;
-        jsonKey = 'seo_proposal';
-        systemPrompt = `You are a Conversion Rate Optimization expert, Senior Product Designer, and SaaS Growth Copywriter.
-Your task is to generate a structured local SEO proposal in Markdown formatting detailing the local SEO action plan, ranking benefits, and monthly retainer for a local business.
-Respond with a JSON object containing exactly one key "seo_proposal":
-{
-  "seo_proposal": "A structured proposal in Markdown formatting detailing the local SEO action plan, ranking benefits, and monthly retainer."
-}
-Ensure the output is clean JSON. Do not write any markdown code block wrappers (like \`\`\`json or \`\`\`) in your response. Just return the raw JSON text.`;
+Ensure the output is clean JSON without markdown block wrappers.`;
       }
 
       try {
-        const orKey = localStorage.getItem('localradar_dev_openrouter_key') || '';
-        const orModel = localStorage.getItem('localradar_dev_openrouter_model') || 'deepseek/deepseek-chat';
-        const oaKey = localStorage.getItem('localradar_dev_openai_key') || '';
-        
-        const apiKey = orKey || oaKey || '';
-        const modelName = orKey ? orModel : (oaKey ? 'gpt-4o-mini' : '');
+        const { data: { session } } = await supabase.auth.getSession();
+        const token = session?.access_token || '';
 
-        if (!apiKey) {
-          // No API Key, fallback to mock after small delay for Sandbox feel
-          await new Promise((resolve) => setTimeout(resolve, 850));
-          setPitches(prev => ({ ...prev, [tab]: mockValue }));
-          setLoadingStates(prev => ({ ...prev, [tab]: false }));
-          return;
+        const headers: Record<string, string> = {
+          'Content-Type': 'application/json'
+        };
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
         }
 
-        const userPrompt = `Generate the ${tab} proposal/sequence for:
-Business Name: ${currentBiz.name}
-Website: ${currentBiz.website || 'No website detected'}
-Rating: ${currentBiz.rating}/5 stars (${currentBiz.reviews_count} reviews)
-Phone: ${currentBiz.phone || 'None'}
-Address: ${currentBiz.address || 'None'}
-Opportunity Score: ${opp.total_score}/100
-Opportunity Level: ${opp.opportunity_level}
-
-Website Issues:
-${audit.website_issues.map(i => `- ${i}`).join('\n')}
-
-SEO & Google Business Profile Issues:
-${audit.seo_issues.map(i => `- ${i}`).join('\n')}
-
-Revenue Leakage / Other Issues:
-${audit.gbp_issues.map(i => `- ${i}`).join('\n')}`;
+        const mockUserStr = localStorage.getItem('localradar_mock_user');
+        if (mockUserStr) {
+          const mu = JSON.parse(mockUserStr);
+          headers['x-is-sandbox'] = 'true';
+          headers['x-user-id'] = mu.id;
+          headers['x-org-id'] = 'mock-org-123';
+          headers['x-user-tier'] = mu.subscription_tier;
+        }
 
         const res = await fetch('/api/generate-pitch', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
+          headers,
           body: JSON.stringify({
             systemPrompt,
-            userPrompt,
-            fallbackData: { [jsonKey]: mockValue },
-            clientApiKey: apiKey,
-            clientModel: modelName
+            userPrompt: `Generate pitch for ${currentBiz.name}`,
+            fallbackData: { [jsonKey]: mockValue }
           })
         });
 
@@ -279,13 +287,13 @@ ${audit.gbp_issues.map(i => `- ${i}`).join('\n')}`;
   };
 
   const getActiveContent = () => {
-    const val = pitches[activeTab] as any;
+    const val = pitches[activeTab];
     if (!val) return '';
 
     if (val && typeof val === 'object') {
-      if (val.Subject || val.Body || val.subject || val.body) {
-        const sub = val.Subject || val.subject || '';
-        const body = val.Body || val.body || '';
+      const sub = (val as any).Subject || (val as any).subject || '';
+      const body = (val as any).Body || (val as any).body || '';
+      if (sub || body) {
         return `Subject: ${sub}\n\n${body}`;
       }
       return JSON.stringify(val, null, 2);
@@ -302,13 +310,20 @@ ${audit.gbp_issues.map(i => `- ${i}`).join('\n')}`;
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const getTabLabel = (tab: 'email' | 'dm' | 'website' | 'seo') => {
-    if (tab === 'email') return 'Cold Email';
-    if (tab === 'dm') return 'Cold DM';
-    if (tab === 'website') return 'Website Proposal';
-    if (tab === 'seo') return 'SEO Proposal';
+  const getTabLabel = (tab: PitchTab) => {
+    if (tab === 'firstEmail') return 'First Email';
+    if (tab === 'followup') return 'Follow Up';
+    if (tab === 'linkedin') return 'LinkedIn DM';
+    if (tab === 'whatsapp') return 'WhatsApp Message';
     return 'Pitch';
   };
+
+  const tabsConfig = [
+    { id: 'firstEmail' as const, name: 'First Email', icon: Mail },
+    { id: 'followup' as const, name: 'Follow Up', icon: FileText },
+    { id: 'linkedin' as const, name: 'LinkedIn DM', icon: MessageSquare },
+    { id: 'whatsapp' as const, name: 'WhatsApp Message', icon: Phone }
+  ];
 
   return (
     <div className="space-y-8 max-w-5xl mx-auto font-sans text-white pb-16">
@@ -364,18 +379,13 @@ ${audit.gbp_issues.map(i => `- ${i}`).join('\n')}`;
           <div>
             {/* Tabs Row */}
             <div className="flex border-b border-[#26282D] pb-3 mb-6 overflow-x-auto gap-2.5">
-              {[
-                { id: 'email', name: 'Cold Email', icon: Mail },
-                { id: 'dm', name: 'Cold DM', icon: MessageSquare },
-                { id: 'website', name: 'Website Proposal', icon: Globe },
-                { id: 'seo', name: 'SEO Proposal', icon: FileText }
-              ].map((tab) => {
+              {tabsConfig.map((tab) => {
                 const TabIcon = tab.icon;
                 const isActive = activeTab === tab.id;
                 return (
                   <button
                     key={tab.id}
-                    onClick={() => setActiveTab(tab.id as any)}
+                    onClick={() => setActiveTab(tab.id)}
                     className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer border whitespace-nowrap font-mono ${
                       isActive 
                         ? 'bg-[#26282D] border-[#26282D] text-[#FAFAF9]' 

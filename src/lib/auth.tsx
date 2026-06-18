@@ -8,7 +8,7 @@ interface User {
   id: string;
   email: string;
   full_name?: string;
-  subscription_tier: 'free' | 'pro' | 'agency';
+  subscription_tier: 'free' | 'pro' | 'agency' | 'agency_plus';
   is_mock?: boolean;
 }
 
@@ -17,7 +17,7 @@ interface AuthContextType {
   loading: boolean;
   signInWithSandbox: () => void;
   signOut: () => Promise<void>;
-  updateSubscriptionTier: (tier: 'free' | 'pro' | 'agency') => void;
+  updateSubscriptionTier: (tier: 'free' | 'pro' | 'agency' | 'agency_plus') => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -48,7 +48,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             .eq('id', session.user.id)
             .single();
 
-          let subscription_tier: 'free' | 'pro' | 'agency' = 'free';
+          let subscription_tier: 'free' | 'pro' | 'agency' | 'agency_plus' = 'free';
           if (profile?.organization_id) {
             const { data: org } = await supabase
               .from('organizations')
@@ -119,7 +119,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     router.push('/');
   };
 
-  const updateSubscriptionTier = (tier: 'free' | 'pro' | 'agency') => {
+  const updateSubscriptionTier = (tier: 'free' | 'pro' | 'agency' | 'agency_plus') => {
     if (user) {
       const updatedUser = { ...user, subscription_tier: tier };
       if (user.is_mock) {

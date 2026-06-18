@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth';
+import { supabase } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   User, 
@@ -10,8 +11,15 @@ import {
   Check, 
   Zap,
   Save,
-  Lock
+  Lock,
+  Loader2,
+  Sparkles,
+  ArrowRight,
+  ShieldCheck,
+  Eye,
+  EyeOff
 } from 'lucide-react';
+import UnlockModal from '@/components/UnlockModal';
 
 export default function SettingsPage() {
   const { user, updateSubscriptionTier } = useAuth();
@@ -22,64 +30,211 @@ export default function SettingsPage() {
   const [orgName, setOrgName] = useState('My Local Agency');
   
   // API Keys state
-  const [openaiKey, setOpenaiKey] = useState('');
   const [googlePlacesKey, setGooglePlacesKey] = useState('');
+  const [openrouterKey, setOpenrouterKey] = useState('');
   const [supabaseUrl, setSupabaseUrl] = useState('');
   const [supabaseAnon, setSupabaseAnon] = useState('');
-  const [openrouterKey, setOpenrouterKey] = useState('');
-  const [openrouterModel, setOpenrouterModel] = useState('deepseek/deepseek-chat');
+  const [byokEnabled, setByokEnabled] = useState(false);
 
-  const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [saveMessage, setSaveMessage] = useState('Settings saved successfully!');
+  
+  // Unlock Modal control
+  const [isUnlockOpen, setIsUnlockOpen] = useState(false);
+  const [unlockType, setUnlockType] = useState<'audit' | 'pitch' | 'export' | 'developer_keys'>('developer_keys');
+
+  // Load profile and credentials
+  useEffect(() => {
+    if (user) {
+      setName(user.full_name || 'Agency Owner');
+      setEmail(user.email || 'agency@owner.com');
+    }
+  }, [user]);
 
   useEffect(() => {
-    // Load local developer override keys if configured
-    setOpenaiKey(localStorage.getItem('localradar_dev_openai_key') || '');
-    setGooglePlacesKey(localStorage.getItem('localradar_dev_google_places_key') || '');
-    setSupabaseUrl(localStorage.getItem('localradar_dev_supabase_url') || '');
-    setSupabaseAnon(localStorage.getItem('localradar_dev_supabase_anon') || '');
-    setOpenrouterKey(localStorage.getItem('localradar_dev_openrouter_key') || '');
-    setOpenrouterModel(localStorage.getItem('localradar_dev_openrouter_model') || 'deepseek/deepseek-chat');
-  }, []);
+    const fetchBYOKSettings = async () => {
+      if (user?.subscription_tier !== 'agency') return;
+
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const token = session?.access_token || '';
+
+        const headers: Record<string, string> = {
+          'Content-Type': 'application/json',
+        };
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        const mockUserStr = localStorage.getItem('localradar_mock_user');
+        if (mockUserStr) {
+          const mu = JSON.parse(mockUserStr);
+          headers['x-is-sandbox'] = 'true';
+          headers['x-user-id'] = mu.id;
+          headers['x-org-id'] = 'mock-org-123';
+          headers['x-user-tier'] = mu.subscription_tier;
+        }
+
+        const res = await fetch('/api/settings/byok', { headers });
+        const data = await res.json();
+        
+        if (data.success) {
+          setByokEnabled(data.byok_enabled);
+          setGooglePlacesKey(data.has_google_places_key ? '••••••••' : '');
+          setOpenrouterKey(data.has_openrouter_key ? '••••••••' : '');
+          setSupabaseUrl(data.has_supabase_url ? '••••••••' : '');
+          setSupabaseAnon(data.has_supabase_anon ? '••••••••' : '');
+        }
+      } catch (err) {
+        console.warn('Failed to load BYOK credentials:', err);
+      }
+    };
+
+    fetchBYOKSettings();
+  }, [user]);
 
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
+    setSaveMessage('Profile settings updated successfully!');
     setSaveSuccess(true);
     setTimeout(() => setSaveSuccess(false), 2000);
   };
 
-  const handleSaveKeys = (e: React.FormEvent) => {
+  const handleSaveKeys = async (e: React.FormEvent) => {
     e.preventDefault();
-    localStorage.setItem('localradar_dev_openai_key', openaiKey);
-    localStorage.setItem('localradar_dev_google_places_key', googlePlacesKey);
-    localStorage.setItem('localradar_dev_supabase_url', supabaseUrl);
-    localStorage.setItem('localradar_dev_supabase_anon', supabaseAnon);
-    localStorage.setItem('localradar_dev_openrouter_key', openrouterKey);
-    localStorage.setItem('localradar_dev_openrouter_model', openrouterModel);
-    
-    setSaveSuccess(true);
-    setTimeout(() => setSaveSuccess(false), 2000);
+    setIsSaving(true);
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token || '';
+
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const mockUserStr = localStorage.getItem('localradar_mock_user');
+      if (mockUserStr) {
+        const mu = JSON.parse(mockUserStr);
+        headers['x-is-sandbox'] = 'true';
+        headers['x-user-id'] = mu.id;
+        headers['x-org-id'] = 'mock-org-123';
+        headers['x-user-tier'] = mu.subscription_tier;
+      }
+
+      const payload = {
+        byok_enabled: byokEnabled,
+        google_places_key: googlePlacesKey,
+        openrouter_key: openrouterKey,
+        supabase_url: supabaseUrl,
+        supabase_anon: supabaseAnon,
+      };
+
+      const res = await fetch('/api/settings/byok', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setSaveMessage('Developer credentials saved securely!');
+        setSaveSuccess(true);
+        setTimeout(() => setSaveSuccess(false), 2000);
+      } else {
+        alert(data.message || 'Failed to save credentials.');
+      }
+    } catch (err) {
+      console.error('Failed to save BYOK keys:', err);
+      alert('An error occurred while saving your credentials.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const handleSubscriptionUpgrade = (tier: 'free' | 'pro' | 'agency') => {
-    updateSubscriptionTier(tier);
+  const handleSubscriptionUpgrade = async (tier: 'free' | 'pro' | 'agency' | 'agency_plus') => {
+    setIsSaving(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token || '';
+
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const mockUserStr = localStorage.getItem('localradar_mock_user');
+      if (mockUserStr) {
+        const mu = JSON.parse(mockUserStr);
+        headers['x-is-sandbox'] = 'true';
+        headers['x-user-id'] = mu.id;
+        headers['x-org-id'] = 'mock-org-123';
+        headers['x-user-tier'] = mu.subscription_tier;
+      }
+
+      const res = await fetch('/api/billing/upgrade', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ tier }),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        if (data.checkout_url) {
+          window.location.href = data.checkout_url;
+        } else {
+          updateSubscriptionTier(tier);
+          setSaveMessage(`Successfully upgraded to ${tier.toUpperCase()} plan!`);
+          setSaveSuccess(true);
+          setTimeout(() => setSaveSuccess(false), 2000);
+        }
+      } else {
+        alert(data.message || 'Upgrade failed.');
+      }
+    } catch (err) {
+      console.error('Upgrade error:', err);
+      alert('Failed to process plan upgrade.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const triggerLockedModal = (type: 'audit' | 'pitch' | 'export' | 'developer_keys') => {
+    setUnlockType(type);
+    setIsUnlockOpen(true);
   };
 
   const pricingTiers = [
     {
       id: 'free',
-      name: 'Free Starter',
+      name: 'Free Sandbox',
       price: '$0',
       period: 'forever',
-      features: ['20 leads scan/month', 'Basic opportunities audit', 'Cold Email pitches'],
+      features: [
+        '10 searches / month',
+        'Sandbox mode',
+        'Opportunity Score™',
+        'Why This Lead™ insights',
+      ],
       buttonText: 'Current Plan',
     },
     {
       id: 'pro',
-      name: 'Pro Finder',
+      name: 'Pro Partner',
       price: '$29',
       period: 'month',
-      features: ['1000 leads scan/month', 'Full vulnerability audit', 'SEO + Website pitches', 'Export CSV leads data'],
+      features: [
+        '250 searches / month',
+        'Live Google Places searches',
+        'Audit Drawer™ access',
+        'AI Pitch Generator™ access',
+        'PDF Export™ functionality',
+      ],
       buttonText: 'Upgrade to Pro',
     },
     {
@@ -87,10 +242,31 @@ export default function SettingsPage() {
       name: 'Agency Growth',
       price: '$79',
       period: 'month',
-      features: ['5000 leads scan/month', 'Full vulnerability audit', 'All pitches + proposals', 'Competitor gap analysis', 'CSV exports'],
+      features: [
+        '1,000 searches / month',
+        'Lead CRM Integration',
+        'Add Team Members',
+        'White Label PDF Exports',
+      ],
       buttonText: 'Upgrade to Agency',
+    },
+    {
+      id: 'agency_plus',
+      name: 'Agency Plus',
+      price: '$149',
+      period: 'month',
+      features: [
+        '5,000 searches / month',
+        'BYOK Required (Places Key)',
+        'BYOK Required (OpenRouter Key)',
+        'White Label branding',
+        'Developer API Access',
+      ],
+      buttonText: 'Upgrade to Plus',
     }
   ];
+
+  const currentTier = user?.subscription_tier || 'free';
 
   return (
     <div className="space-y-8 max-w-6xl mx-auto pb-16 font-sans text-white">
@@ -104,7 +280,7 @@ export default function SettingsPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
         
-        {/* Left Column forms */}
+        {/* Left Column: Profile & Subscription cards */}
         <div className="lg:col-span-2 space-y-6">
           {/* Profile form */}
           <div className="bg-[#141517] border border-[#26282D] p-6 rounded-2xl space-y-4 shadow-xl">
@@ -162,23 +338,31 @@ export default function SettingsPage() {
                 <CreditCard className="w-4 h-4 text-[#A1A1AA]" />
                 Subscription Plans
               </h3>
-              <span className="text-[9px] text-zinc-400 font-bold bg-[#0B0B0C] border border-[#26282D] px-2.5 py-1 rounded-full uppercase tracking-wider font-mono">
-                Active Tier: {user?.subscription_tier}
+              <span className="text-[9px] text-zinc-400 font-bold bg-[#0B0B0C] border border-[#26282D] px-2.5 py-1 rounded-full uppercase tracking-wider font-mono flex items-center gap-1.5">
+                Active Tier: 
+                <span className="text-[#2DD4A7] uppercase">{currentTier}</span>
               </span>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {pricingTiers.map((tier) => {
-                const isActive = user?.subscription_tier === tier.id;
+                const isActive = currentTier === tier.id;
                 return (
                   <div 
                     key={tier.id} 
                     className={`p-4 rounded-xl border flex flex-col justify-between ${
                       isActive 
-                        ? 'bg-zinc-800/10 border-[#FAFAF9] shadow-lg' 
+                        ? 'bg-zinc-800/10 border-[#FAFAF9] shadow-lg relative' 
                         : 'bg-[#0B0B0C] border-[#26282D]'
                     }`}
                   >
+                    {isActive && (
+                      <span className="absolute top-2 right-2 flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#2DD4A7] opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-[#2DD4A7]"></span>
+                      </span>
+                    )}
+
                     <div>
                       <h4 className="text-xs font-bold text-white">{tier.name}</h4>
                       <div className="mt-2 flex items-baseline">
@@ -189,7 +373,7 @@ export default function SettingsPage() {
                       <ul className="mt-4 space-y-2 text-[10px] text-[#A1A1AA] font-mono">
                         {tier.features.map((feat, i) => (
                           <li key={i} className="flex items-center gap-1.5">
-                            <Check className="w-3.5 h-3.5 text-[#2DD4A7]" />
+                            <Check className="w-3.5 h-3.5 text-[#2DD4A7] shrink-0" />
                             <span>{feat}</span>
                           </li>
                         ))}
@@ -205,7 +389,7 @@ export default function SettingsPage() {
                           : 'bg-gradient-to-r from-[#2DD4A7] to-[#14B88C] hover:opacity-95 text-[#0B0B0C] font-extrabold shadow-md'
                       }`}
                     >
-                      {isActive ? 'Active' : tier.buttonText}
+                      {isActive ? 'Active Plan' : tier.buttonText}
                     </button>
                   </div>
                 );
@@ -214,100 +398,244 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* Right Column: API credentials key inputs */}
-        <div className="bg-[#141517] border border-[#26282D] p-6 rounded-2xl space-y-4 shadow-xl">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-white flex items-center gap-2 uppercase tracking-wider font-mono">
-              <Key className="w-4 h-4 text-[#A1A1AA]" />
-              Developer Keys
-            </h3>
-            <span className="p-1.5 rounded-lg bg-[#0B0B0C] border border-[#26282D]" title="Encrypted Local Storage">
-              <Lock className="w-3.5 h-3.5 text-zinc-500" />
-            </span>
-          </div>
-
-          <p className="text-[10px] text-[#A1A1AA] leading-relaxed">
-            By default, LocalRadar runs in a Sandbox Simulator. Paste your own keys below to fetch live maps search, call real OpenAI models, and connect to your own Supabase databases.
-          </p>
-
-          <form onSubmit={handleSaveKeys} className="space-y-4 border-t border-[#26282D] pt-4">
-            <div className="space-y-1.5 border-b border-[#26282D] pb-4">
-              <label className="text-[9px] font-bold text-[#A1A1AA] uppercase tracking-wider block mb-1 font-mono">OpenRouter (DeepSeek v4 Flash)</label>
+        {/* Right Column: API Keys block (Tier Gated) */}
+        <div className="space-y-6">
+          
+          {/* FREE USER: Hide developer keys and show lock feature */}
+          {currentTier === 'free' && (
+            <div className="bg-[#141517] border border-[#26282D] p-6 rounded-2xl space-y-5 shadow-xl relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#F5A623]/25 to-transparent" />
               
-              <div className="space-y-1.5">
-                <label className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest font-mono">API Key</label>
-                <input
-                  type="password"
-                  placeholder="sk-or-v1-..."
-                  value={openrouterKey}
-                  onChange={(e) => setOpenrouterKey(e.target.value)}
-                  className="w-full bg-[#0B0B0C] border border-[#26282D] rounded-xl py-2 px-3 text-white text-xs focus:outline-none focus:border-zinc-500 transition-all font-mono"
-                />
+              <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-[#F5A623] font-bold">
+                <Lock className="w-4 h-4 text-[#F5A623]" />
+                🔒 Agency Feature
               </div>
 
-              <div className="space-y-1.5 mt-2.5">
-                <label className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest font-mono">Model Name</label>
-                <input
-                  type="text"
-                  placeholder="e.g. deepseek/deepseek-chat"
-                  value={openrouterModel}
-                  onChange={(e) => setOpenrouterModel(e.target.value)}
-                  className="w-full bg-[#0B0B0C] border border-[#26282D] rounded-xl py-2 px-3 text-white text-xs focus:outline-none focus:border-zinc-500 transition-all font-mono"
-                />
+              <div>
+                <h3 className="text-sm font-bold text-white">Developer Keys</h3>
+                <p className="text-[10px] text-[#A1A1AA] leading-relaxed mt-2">
+                  Bring Your Own Keys (BYOK) mode allows you to bypass monthly scan limits and connect to your own database schemas.
+                </p>
+              </div>
+
+              <div className="space-y-3 bg-[#0B0B0C] border border-[#202226] p-4 rounded-xl text-xs font-mono text-[#71717A]">
+                <div className="flex justify-between border-b border-[#202226] pb-2">
+                  <span>Google Places API</span>
+                  <span className="text-red-400/80">Locked</span>
+                </div>
+                <div className="flex justify-between border-b border-[#202226] pb-2">
+                  <span>OpenRouter AI Key</span>
+                  <span className="text-red-400/80">Locked</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Supabase Pipeline</span>
+                  <span className="text-red-400/80">Locked</span>
+                </div>
+              </div>
+
+              <button
+                onClick={() => triggerLockedModal('developer_keys')}
+                className="w-full bg-[#1C1E22] hover:bg-[#26282F] border border-[#2B2D33] text-white font-bold text-xs py-3 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer font-mono"
+              >
+                Upgrade to Agency
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+
+          {/* PRO & AGENCY USER: Hide developer keys and show infrastructure note */}
+          {(currentTier === 'pro' || currentTier === 'agency') && (
+            <div className="bg-[#141517] border border-[#26282D] p-6 rounded-2xl space-y-5 shadow-xl relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#2DD4A7]/20 to-transparent" />
+
+              <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-[#2DD4A7] font-bold">
+                <ShieldCheck className="w-4 h-4 text-[#2DD4A7]" />
+                SaaS Infrastructure
+              </div>
+
+              <div>
+                <h3 className="text-sm font-bold text-white">Developer Keys</h3>
+                <p className="text-[10px] text-[#A1A1AA] leading-relaxed mt-2">
+                  Your requests are fully powered by LocalRadar's internal servers and APIs. You do not need to provide any API credentials.
+                </p>
+              </div>
+
+              <div className="space-y-3 bg-[#0B0B0C] border border-[#202226] p-4 rounded-xl text-xs font-mono text-[#A1A1AA]">
+                <div className="flex justify-between items-center border-b border-[#202226] pb-2.5">
+                  <span className="text-white">Google Places API</span>
+                  <span className="text-[9px] bg-[#2DD4A7]/15 text-[#2DD4A7] border border-[#2DD4A7]/25 px-2 py-0.5 rounded-full font-bold uppercase">Included</span>
+                </div>
+                <div className="flex justify-between items-center border-b border-[#202226] pb-2.5">
+                  <span className="text-white">AI Search Credits</span>
+                  <span className="text-[9px] bg-[#2DD4A7]/15 text-[#2DD4A7] border border-[#2DD4A7]/25 px-2 py-0.5 rounded-full font-bold uppercase">Included</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-white">Vulnerability Audit</span>
+                  <span className="text-[9px] bg-[#2DD4A7]/15 text-[#2DD4A7] border border-[#2DD4A7]/25 px-2 py-0.5 rounded-full font-bold uppercase">Included</span>
+                </div>
+              </div>
+
+              <div className="pt-2 border-t border-[#202226] space-y-3">
+                <p className="text-[9px] text-[#71717A] leading-relaxed">
+                  Need to bring your own keys or hook up a custom database? Advanced Integrations are available on the Agency Plus Plan.
+                </p>
+                <button
+                  onClick={() => triggerLockedModal('developer_keys')}
+                  className="w-full bg-[#1C1E22] hover:bg-[#26282F] border border-[#2B2D33] text-white font-bold text-xs py-3 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer font-mono"
+                >
+                  Upgrade to Agency Plus
+                  <ArrowRight className="w-4 h-4" />
+                </button>
               </div>
             </div>
+          )}
 
-            <div className="space-y-1.5">
-              <label className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest font-mono">Google Places API Key</label>
-              <input
-                type="password"
-                placeholder="AIzaSy..."
-                value={googlePlacesKey}
-                onChange={(e) => setGooglePlacesKey(e.target.value)}
-                className="w-full bg-[#0B0B0C] border border-[#26282D] rounded-xl py-2 px-3 text-white text-xs focus:outline-none focus:border-zinc-500 transition-all font-mono"
-              />
+          {/* AGENCY PLUS USER: Show full advanced integrations & BYOK controls */}
+          {currentTier === 'agency_plus' && (
+            <div className="bg-[#141517] border border-[#26282D] p-6 rounded-2xl space-y-4 shadow-xl">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-bold text-white flex items-center gap-2 uppercase tracking-wider font-mono">
+                  <Key className="w-4 h-4 text-[#A1A1AA]" />
+                  Advanced Integrations
+                </h3>
+                <span className="p-1.5 rounded-lg bg-[#0B0B0C] border border-[#26282D]" title="Server-side Encrypted Credentials">
+                  <Lock className="w-3.5 h-3.5 text-[#2DD4A7]" />
+                </span>
+              </div>
+
+              <p className="text-[10px] text-[#A1A1AA] leading-relaxed">
+                Configure custom infrastructure credentials. Enabling BYOK bypasses LocalRadar server limits and routes requests using your keys.
+              </p>
+
+              {/* BYOK Toggle */}
+              <div className="flex items-center justify-between bg-[#0B0B0C] border border-[#26282D] p-3 rounded-xl">
+                <div className="space-y-0.5">
+                  <span className="text-xs font-bold text-white block">BYOK Mode</span>
+                  <span className="text-[9px] text-[#71717A] block font-mono">Bring Your Own Keys</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setByokEnabled(!byokEnabled)}
+                  className={`w-11 h-6 rounded-full transition-colors relative focus:outline-none cursor-pointer border ${
+                    byokEnabled 
+                      ? 'bg-[#2DD4A7] border-[#2DD4A7]' 
+                      : 'bg-zinc-800 border-zinc-700'
+                  }`}
+                >
+                  <span 
+                    className={`absolute top-0.5 left-0.5 bg-white w-4.5 h-4.5 rounded-full transition-transform shadow-md ${
+                      byokEnabled ? 'translate-x-5' : 'translate-x-0'
+                    }`}
+                  />
+                </button>
+              </div>
+
+              <form onSubmit={handleSaveKeys} className="space-y-4 border-t border-[#26282D] pt-4">
+                <div className="space-y-1.5">
+                  <label className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest block font-mono">Google Places API Key</label>
+                  <input
+                    type="password"
+                    placeholder={googlePlacesKey === '••••••••' ? '••••••••' : 'AIzaSy...'}
+                    value={googlePlacesKey === '••••••••' ? '' : googlePlacesKey}
+                    onChange={(e) => setGooglePlacesKey(e.target.value)}
+                    onFocus={(e) => {
+                      if (googlePlacesKey === '••••••••') {
+                        setGooglePlacesKey('');
+                      }
+                    }}
+                    onBlur={(e) => {
+                      if (googlePlacesKey === '') {
+                        setGooglePlacesKey('••••••••');
+                      }
+                    }}
+                    className="w-full bg-[#0B0B0C] border border-[#26282D] rounded-xl py-2 px-3 text-white text-xs focus:outline-none focus:border-zinc-500 transition-all font-mono"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest block font-mono">OpenRouter API Key</label>
+                  <input
+                    type="password"
+                    placeholder={openrouterKey === '••••••••' ? '••••••••' : 'sk-or-v1-...'}
+                    value={openrouterKey === '••••••••' ? '' : openrouterKey}
+                    onChange={(e) => setOpenrouterKey(e.target.value)}
+                    onFocus={(e) => {
+                      if (openrouterKey === '••••••••') {
+                        setOpenrouterKey('');
+                      }
+                    }}
+                    onBlur={(e) => {
+                      if (openrouterKey === '') {
+                        setOpenrouterKey('••••••••');
+                      }
+                    }}
+                    className="w-full bg-[#0B0B0C] border border-[#26282D] rounded-xl py-2 px-3 text-white text-xs focus:outline-none focus:border-zinc-500 transition-all font-mono"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest block font-mono">Supabase URL</label>
+                  <input
+                    type="text"
+                    placeholder={supabaseUrl === '••••••••' ? '••••••••' : 'https://your-project.supabase.co'}
+                    value={supabaseUrl === '••••••••' ? '' : supabaseUrl}
+                    onChange={(e) => setSupabaseUrl(e.target.value)}
+                    onFocus={(e) => {
+                      if (supabaseUrl === '••••••••') {
+                        setSupabaseUrl('');
+                      }
+                    }}
+                    onBlur={(e) => {
+                      if (supabaseUrl === '') {
+                        setSupabaseUrl('••••••••');
+                      }
+                    }}
+                    className="w-full bg-[#0B0B0C] border border-[#26282D] rounded-xl py-2 px-3 text-white text-xs focus:outline-none focus:border-zinc-500 transition-all font-mono"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest block font-mono">Supabase Anon Key</label>
+                  <input
+                    type="password"
+                    placeholder={supabaseAnon === '••••••••' ? '••••••••' : 'eyJhbG...'}
+                    value={supabaseAnon === '••••••••' ? '' : supabaseAnon}
+                    onChange={(e) => setSupabaseAnon(e.target.value)}
+                    onFocus={(e) => {
+                      if (supabaseAnon === '••••••••') {
+                        setSupabaseAnon('');
+                      }
+                    }}
+                    onBlur={(e) => {
+                      if (supabaseAnon === '') {
+                        setSupabaseAnon('••••••••');
+                      }
+                    }}
+                    className="w-full bg-[#0B0B0C] border border-[#26282D] rounded-xl py-2 px-3 text-white text-xs focus:outline-none focus:border-zinc-500 transition-all font-mono"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isSaving}
+                  className="w-full bg-gradient-to-r from-[#2DD4A7] to-[#14B88C] hover:opacity-95 text-[#0B0B0C] font-extrabold text-xs py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-md font-mono disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isSaving ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-3.5 h-3.5" />
+                      Save Credentials
+                    </>
+                  )}
+                </button>
+              </form>
             </div>
+          )}
 
-            <div className="space-y-1.5">
-              <label className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest font-mono">OpenAI API Key (Direct)</label>
-              <input
-                type="password"
-                placeholder="sk-..."
-                value={openaiKey}
-                onChange={(e) => setOpenaiKey(e.target.value)}
-                className="w-full bg-[#0B0B0C] border border-[#26282D] rounded-xl py-2 px-3 text-white text-xs focus:outline-none focus:border-zinc-500 transition-all font-mono"
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest font-mono">Supabase URL</label>
-              <input
-                type="text"
-                placeholder="https://your-project.supabase.co"
-                value={supabaseUrl}
-                onChange={(e) => setSupabaseUrl(e.target.value)}
-                className="w-full bg-[#0B0B0C] border border-[#26282D] rounded-xl py-2 px-3 text-white text-xs focus:outline-none focus:border-zinc-500 transition-all font-mono"
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest font-mono">Supabase Anon Key</label>
-              <input
-                type="password"
-                placeholder="eyJhbG..."
-                value={supabaseAnon}
-                onChange={(e) => setSupabaseAnon(e.target.value)}
-                className="w-full bg-[#0B0B0C] border border-[#26282D] rounded-xl py-2 px-3 text-white text-xs focus:outline-none focus:border-zinc-500 transition-all font-mono"
-              />
-            </div>
-
-            <button
-              type="submit"
-              className="w-full bg-gradient-to-r from-[#2DD4A7] to-[#14B88C] hover:opacity-95 text-[#0B0B0C] font-extrabold text-xs py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-md font-mono"
-            >
-              Save Credentials
-            </button>
-          </form>
         </div>
 
       </div>
@@ -322,10 +650,17 @@ export default function SettingsPage() {
             className="fixed bottom-6 right-6 bg-[#2DD4A7]/10 border border-[#2DD4A7]/20 text-[#2DD4A7] text-xs px-4 py-3 rounded-xl flex items-center gap-2 shadow-lg z-50 font-mono"
           >
             <Check className="w-4 h-4" />
-            <span>Settings saved successfully!</span>
+            <span>{saveMessage}</span>
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Unlock Upsell Dialog */}
+      <UnlockModal
+        isOpen={isUnlockOpen}
+        onClose={() => setIsUnlockOpen(false)}
+        type={unlockType}
+      />
     </div>
   );
 }

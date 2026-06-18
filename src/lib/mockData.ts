@@ -85,6 +85,11 @@ export function generateLeads(category: string, city: string, country: string): 
     
     const bizId = `biz-${i}-${Math.floor(rand * 100000)}`;
 
+    const cleanNameId = bizName.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const business_email = hasWebsite ? `info@${domain}` : `${cleanNameId}@gmail.com`;
+    const contact_email = hasWebsite ? `owner@${domain}` : `contact.${cleanNameId}@gmail.com`;
+    const contact_page = hasWebsite ? `https://www.${domain}/contact` : `https://facebook.com/${cleanNameId}`;
+
     const business: Business = {
       id: bizId,
       created_at: new Date().toISOString(),
@@ -94,7 +99,10 @@ export function generateLeads(category: string, city: string, country: string): 
       reviews_count: reviewsCount,
       phone,
       address: `${100 + i * 15} Main Street, ${cleanCity}, ${country.toUpperCase()}`,
-      organization_id: 'mock-org-123'
+      organization_id: 'mock-org-123',
+      business_email,
+      contact_email,
+      contact_page
     };
 
     // Use the Intelligence Engine™ for scoring

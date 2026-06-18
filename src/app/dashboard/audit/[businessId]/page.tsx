@@ -25,10 +25,12 @@ import { generateMockAudit, generateMockCompetitors } from '@/lib/mockData';
 import { scoreBusinessOpportunity } from '@/lib/scoring';
 import { Business, Opportunity, Audit, Competitor } from '@/types';
 import { ScoredOpportunity } from '@/types/scoring';
+import { useAuth } from '@/lib/auth';
 
 export default function AuditDetailsPage() {
   const params = useParams();
   const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
   const businessId = params?.businessId as string;
   
   const [business, setBusiness] = useState<Business | null>(null);
@@ -38,6 +40,12 @@ export default function AuditDetailsPage() {
   const [scored, setScored] = useState<ScoredOpportunity | null>(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (!authLoading && user && user.subscription_tier === 'free') {
+      router.replace('/dashboard/lead-finder');
+    }
+  }, [user, authLoading, router]);
 
   useEffect(() => {
     if (!businessId) return;
