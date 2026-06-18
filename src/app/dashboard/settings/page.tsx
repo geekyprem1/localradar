@@ -86,7 +86,7 @@ export default function SettingsPage() {
 
   useEffect(() => {
     const fetchBYOKSettings = async () => {
-      if (user?.subscription_tier !== 'agency') return;
+      if (user?.subscription_tier !== 'agency_plus') return;
 
       try {
         const { data: { session } } = await supabase.auth.getSession();
@@ -518,7 +518,7 @@ export default function SettingsPage() {
                 onClick={() => triggerLockedModal('developer_keys')}
                 className="w-full bg-[#1C1E22] hover:bg-[#26282F] border border-[#2B2D33] text-white font-bold text-xs py-3 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer font-mono"
               >
-                Upgrade to Agency
+                Upgrade to Agency Plus
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
