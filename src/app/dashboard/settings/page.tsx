@@ -20,9 +20,20 @@ import {
   EyeOff
 } from 'lucide-react';
 import UnlockModal from '@/components/UnlockModal';
+import { trackEvent } from '@/lib/analytics';
 
 export default function SettingsPage() {
   const { user, updateSubscriptionTier } = useAuth();
+
+  // Track billing checkout completion on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('status') === 'success') {
+        trackEvent('upgrade_checkout_completed', { tier: user?.subscription_tier || 'free' });
+      }
+    }
+  }, [user]);
   
   // Profile state
   const [name, setName] = useState(user?.full_name || 'Agency Owner');
@@ -293,12 +304,13 @@ export default function SettingsPage() {
   const pricingTiers = [
     {
       id: 'free',
-      name: 'Free Sandbox',
+      name: 'Free Plan',
       price: '$0',
       period: 'forever',
       features: [
         '10 searches / month',
-        'Sandbox mode',
+        'Live Google Places searches',
+        '10 visible results per search',
         'Opportunity Score™',
         'Why This Lead™ insights',
       ],
@@ -310,8 +322,9 @@ export default function SettingsPage() {
       price: '$29',
       period: 'month',
       features: [
-        '250 searches / month',
+        '500 searches / month',
         'Live Google Places searches',
+        'Full results visibility',
         'Audit Drawer™ access',
         'AI Pitch Generator™ access',
         'PDF Export™ functionality',
@@ -324,7 +337,9 @@ export default function SettingsPage() {
       price: '$79',
       period: 'month',
       features: [
-        '1,000 searches / month',
+        '2,000 searches / month',
+        'Live Google Places searches',
+        'Full results visibility',
         'Lead CRM Integration',
         'Add Team Members',
         'White Label PDF Exports',

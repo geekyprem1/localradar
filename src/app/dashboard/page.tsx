@@ -251,7 +251,7 @@ export default function DashboardOverviewPage() {
               </div>
               <h2 className="text-lg font-bold text-white tracking-tight capitalize font-sans">
                 {usageStats.subscription_tier === 'free' 
-                  ? 'Free Sandbox Access' 
+                  ? 'Free Plan Access' 
                   : usageStats.subscription_tier === 'pro' 
                     ? 'Professional Partner' 
                     : usageStats.subscription_tier === 'agency' 

@@ -16,7 +16,8 @@ import {
   DollarSign, 
   Building2, 
   Zap,
-  ArrowUpRight
+  ArrowUpRight,
+  Lock
 } from 'lucide-react';
 import WhyThisLead from './WhyThisLead';
 import OpportunityBreakdown from './OpportunityBreakdown';
@@ -27,6 +28,8 @@ import SalesStrategy from './SalesStrategy';
 
 import { Business } from '@/types';
 import { ScoredOpportunity } from '@/types/scoring';
+import { useAuth } from '@/lib/auth';
+import { trackEvent } from '@/lib/analytics';
 
 interface OpportunityIntelligenceDrawerProps {
   isOpen: boolean;
@@ -38,6 +41,7 @@ interface OpportunityIntelligenceDrawerProps {
   onOpenPitch: (bizId: string) => void;
   onOpenAudit: (bizId: string) => void;
   categoryName?: string; // Optional niche category name e.g. Dentists
+  onLockedAction?: (type: 'audit' | 'pitch' | 'export' | 'developer_keys') => void;
 }
 
 export default function OpportunityIntelligenceDrawer({
@@ -49,8 +53,11 @@ export default function OpportunityIntelligenceDrawer({
   onToggleSave,
   onOpenPitch,
   onOpenAudit,
-  categoryName = 'Agency Lead'
+  categoryName = 'Agency Lead',
+  onLockedAction
 }: OpportunityIntelligenceDrawerProps) {
+  const { user } = useAuth();
+  const isFree = user?.subscription_tier === 'free';
   
   // Local states for persistence of hot lead and notes
   const [isHotLead, setIsHotLead] = useState(false);
@@ -201,7 +208,20 @@ export default function OpportunityIntelligenceDrawer({
                 />
 
                 {/* SECTION 1.5: Discovered Contacts */}
-                <div className="bg-[#0B0B0C] border border-[#26282D] p-5 rounded-xl space-y-3">
+                <div className="bg-[#0B0B0C] border border-[#26282D] p-5 rounded-xl space-y-3 relative overflow-hidden">
+                  {isFree && (
+                    <div 
+                      onClick={() => {
+                        trackEvent('locked_contact_clicked', { business_id: business.id });
+                        if (onLockedAction) onLockedAction('audit');
+                      }}
+                      className="absolute inset-0 bg-[#0B0B0C]/80 backdrop-blur-[4px] flex flex-col items-center justify-center text-center p-4 z-10 cursor-pointer hover:bg-[#0B0B0C]/75 transition-all"
+                    >
+                      <Lock className="w-5 h-5 text-[#F5A623] mb-1.5 animate-pulse" />
+                      <span className="text-[10px] font-bold text-white uppercase tracking-wider font-mono">Contact Discovery Locked</span>
+                      <span className="text-[9px] text-[#71717A] mt-0.5">Upgrade to Pro to reveal business emails & pages</span>
+                    </div>
+                  )}
                   <h4 className="text-xs font-semibold text-[#A1A1AA] uppercase tracking-wider font-mono flex items-center gap-1.5">
                     <Building2 className="w-4 h-4 text-[#A1A1AA]" />
                     Discovered Contacts
@@ -393,7 +413,14 @@ export default function OpportunityIntelligenceDrawer({
             {/* Quick Actions Panel at bottom of Drawer */}
             <div className="mt-8 pt-4 border-t border-[#26282D] grid grid-cols-1 sm:grid-cols-3 gap-2.5 bg-[#0B0B0C]">
               <button
-                onClick={() => onToggleSave(business)}
+                onClick={() => {
+                  if (isFree) {
+                    trackEvent('locked_save_lead_clicked', { business_id: business.id });
+                    if (onLockedAction) onLockedAction('audit');
+                  } else {
+                    onToggleSave(business);
+                  }
+                }}
                 className={`w-full py-3 rounded-xl border font-mono text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                   isSaved 
                     ? 'bg-[#2DD4A7]/10 border-[#2DD4A7]/30 text-[#2DD4A7]' 
@@ -405,7 +432,14 @@ export default function OpportunityIntelligenceDrawer({
               </button>
 
               <button
-                onClick={() => onOpenAudit(business.id)}
+                onClick={() => {
+                  if (isFree) {
+                    trackEvent('locked_audit_clicked', { business_id: business.id });
+                    if (onLockedAction) onLockedAction('audit');
+                  } else {
+                    onOpenAudit(business.id);
+                  }
+                }}
                 className="w-full bg-[#141517] hover:bg-[#22242a] border border-[#26282D] text-white py-3 rounded-xl font-mono text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 <FileText className="w-4 h-4 text-[#71717A]" />
@@ -413,7 +447,14 @@ export default function OpportunityIntelligenceDrawer({
               </button>
 
               <button
-                onClick={() => onOpenPitch(business.id)}
+                onClick={() => {
+                  if (isFree) {
+                    trackEvent('locked_pitch_clicked', { business_id: business.id });
+                    if (onLockedAction) onLockedAction('pitch');
+                  } else {
+                    onOpenPitch(business.id);
+                  }
+                }}
                 className="w-full bg-gradient-to-r from-[#2DD4A7] to-[#14B88C] hover:opacity-95 text-[#0B0B0C] py-3 rounded-xl font-mono text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-[0_0_15px_rgba(45,212,167,0.15)]"
               >
                 <Send className="w-4 h-4 text-[#0B0B0C]" />

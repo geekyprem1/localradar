@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Lock, Check, Loader2, ArrowRight, X, Sparkles, HelpCircle, Code, ShieldAlert } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
+import { trackEvent } from '@/lib/analytics';
 
 interface UnlockModalProps {
   isOpen: boolean;
@@ -79,7 +80,14 @@ export default function UnlockModal({ isOpen, onClose, type, onUpgradeSuccess }:
 
   const config = getModalConfig();
 
+  useEffect(() => {
+    if (isOpen) {
+      trackEvent('upgrade_modal_opened', { gate_type: type, target_tier: config.targetTier });
+    }
+  }, [isOpen, type, config.targetTier]);
+
   const handleUpgrade = async () => {
+    trackEvent('upgrade_checkout_started', { target_tier: config.targetTier, gate_type: type });
     setIsUpgrading(true);
     try {
       const res = await fetch('/api/billing/upgrade', {

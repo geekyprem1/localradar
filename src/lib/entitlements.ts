@@ -33,14 +33,14 @@ export const PLAN_LIMITS: Record<'free' | 'pro' | 'agency' | 'agency_plus', Plan
     byokAllowed: false,
   },
   pro: {
-    searchesLimit: 250,
+    searchesLimit: 500,
     auditsAllowed: true,
     pitchesAllowed: true,
     exportsAllowed: true,
     byokAllowed: false,
   },
   agency: {
-    searchesLimit: 1000,
+    searchesLimit: 2000,
     auditsAllowed: true,
     pitchesAllowed: true,
     exportsAllowed: true,

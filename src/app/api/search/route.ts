@@ -5,7 +5,7 @@ import { generateMockCompetitors, generateLeads } from '@/lib/mockData';
 import { getServerUser, validateUsageAndEntitlement, incrementUsage } from '@/lib/entitlements';
 import { decrypt } from '@/lib/encryption';
 import { supabase } from '@/lib/supabase';
-import { checkRateLimit, checkSearchThrottle, checkHourlySearchLimit, checkDailySearchLimit } from '@/lib/rateLimit';
+import { checkRateLimit, checkSearchThrottle, checkHourlySearchLimit } from '@/lib/rateLimit';
 
 export async function POST(request: Request) {
   try {
@@ -49,21 +49,18 @@ export async function POST(request: Request) {
       }, { status: 429 });
     }
 
-    // 2.1 Hourly Search Limit Check (30 searches per hour)
-    const hourlyCheck = await checkHourlySearchLimit(throttleKey, user.is_mock, 30);
+    // 2.1 Dynamic Hourly Search Limit Check
+    let hourlyLimit = 30;
+    if (user.subscription_tier === 'free') hourlyLimit = 5;
+    else if (user.subscription_tier === 'pro') hourlyLimit = 30;
+    else if (user.subscription_tier === 'agency') hourlyLimit = 50;
+    else if (user.subscription_tier === 'agency_plus') hourlyLimit = 100;
+
+    const hourlyCheck = await checkHourlySearchLimit(throttleKey, user.is_mock, hourlyLimit);
     if (!hourlyCheck.allowed) {
       return NextResponse.json({
         success: false,
-        message: 'Hourly limit reached. You can perform up to 30 searches per hour.'
-      }, { status: 429 });
-    }
-
-    // 2.2 Daily Search Limit Check (Pro: 100, Agency: 300)
-    const dailyCheck = await checkDailySearchLimit(throttleKey, user.subscription_tier as any, user.is_mock);
-    if (!dailyCheck.allowed) {
-      return NextResponse.json({
-        success: false,
-        message: `Daily limit reached. Your current plan tier allows up to ${dailyCheck.limit} searches per day.`
+        message: `Hourly limit reached. You can perform up to ${hourlyLimit} searches per hour.`
       }, { status: 429 });
     }
 
@@ -174,10 +171,14 @@ export async function POST(request: Request) {
             });
 
             console.log(`[Cache Hit] Returning cached results for ${cleanNiche} in ${cleanCity} (Search ID: ${searchId})`);
+            const truncated = truncateResultsForFreePlan(formattedBizs, formattedOpps, user.subscription_tier);
             return NextResponse.json({
               success: true,
-              businesses: formattedBizs,
-              opportunities: formattedOpps,
+              businesses: truncated.businesses,
+              opportunities: truncated.opportunities,
+              totalResults: truncated.totalResults,
+              visibleResults: truncated.visibleResults,
+              hiddenResults: truncated.hiddenResults,
               cached: true
             });
           }
@@ -212,27 +213,7 @@ export async function POST(request: Request) {
       user.is_mock
     );
 
-    // 6. Handle Free Plan: No live search, return high-quality mock data
-    if (user.subscription_tier === 'free') {
-      const mockResult = generateLeads(niche, city, country);
-      
-      if (!user.is_mock) {
-        await supabase.from('search_logs').insert({
-          organization_id: user.organization_id,
-          user_id: user.id,
-          niche: cleanNiche,
-          city: cleanCity,
-          country: cleanCountry,
-          results_count: mockResult.businesses.length,
-        });
-      }
-
-      return NextResponse.json({
-        success: true,
-        businesses: mockResult.businesses,
-        opportunities: mockResult.opportunities
-      });
-    }
+    // 6. Free Plan mock handler removed - Free plan now runs live Google Places searches
 
     // 7. Resolve API Key for Pro, Agency, and Agency Plus
     let apiKey = '';
@@ -443,10 +424,14 @@ export async function POST(request: Request) {
       }
     }
 
+    const truncated = truncateResultsForFreePlan(businesses, opportunities, user.subscription_tier);
     return NextResponse.json({
       success: true,
-      businesses,
-      opportunities
+      businesses: truncated.businesses,
+      opportunities: truncated.opportunities,
+      totalResults: truncated.totalResults,
+      visibleResults: truncated.visibleResults,
+      hiddenResults: truncated.hiddenResults
     });
 
   } catch (error: any) {
@@ -456,4 +441,39 @@ export async function POST(request: Request) {
       message: error.message || 'Internal server error.' 
     }, { status: 500 });
   }
+}
+
+function truncateResultsForFreePlan(
+  businesses: Business[],
+  opportunities: Record<string, Opportunity>,
+  tier: string
+) {
+  const totalResults = businesses.length;
+  if (tier !== 'free') {
+    return {
+      businesses,
+      opportunities,
+      totalResults,
+      visibleResults: totalResults,
+      hiddenResults: 0,
+    };
+  }
+
+  const visibleBizs = businesses.slice(0, 10);
+  const visibleBizIds = new Set(visibleBizs.map(b => b.id));
+  
+  const visibleOpps: Record<string, Opportunity> = {};
+  Object.keys(opportunities).forEach(bizId => {
+    if (visibleBizIds.has(bizId)) {
+      visibleOpps[bizId] = opportunities[bizId];
+    }
+  });
+
+  return {
+    businesses: visibleBizs,
+    opportunities: visibleOpps,
+    totalResults,
+    visibleResults: visibleBizs.length,
+    hiddenResults: Math.max(0, totalResults - visibleBizs.length),
+  };
 }

@@ -44,6 +44,7 @@ import OpportunityIntelligenceDrawer from '@/components/OpportunityIntelligenceD
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 import UnlockModal from '@/components/UnlockModal';
+import { trackEvent } from '@/lib/analytics';
 
 
 interface RecentSearch {
@@ -81,6 +82,10 @@ export default function LeadFinderPage() {
     searches_remaining: number;
     soft_alert?: string | null;
   } | null>(null);
+
+  const [totalResults, setTotalResults] = useState(0);
+  const [visibleResults, setVisibleResults] = useState(0);
+  const [hiddenResults, setHiddenResults] = useState(0);
 
   const fetchUsage = async () => {
     try {
@@ -223,6 +228,13 @@ export default function LeadFinderPage() {
       setLeads(JSON.parse(cachedLeads));
       setOpportunities(JSON.parse(cachedOpps));
       setSearched(true);
+      
+      const cachedTotal = localStorage.getItem('localradar_latest_total_results');
+      const cachedVisible = localStorage.getItem('localradar_latest_visible_results');
+      const cachedHidden = localStorage.getItem('localradar_latest_hidden_results');
+      if (cachedTotal !== null) setTotalResults(Number(cachedTotal));
+      if (cachedVisible !== null) setVisibleResults(Number(cachedVisible));
+      if (cachedHidden !== null) setHiddenResults(Number(cachedHidden));
     }
 
     const cachedSaved = localStorage.getItem('localradar_saved_leads');
@@ -248,6 +260,12 @@ export default function LeadFinderPage() {
   }, []);
 
   const toggleSaveLead = (biz: Business) => {
+    if (user?.subscription_tier === 'free') {
+      trackEvent('locked_save_lead_clicked', { business_id: biz.id });
+      triggerLockedModal('audit');
+      return;
+    }
+
     const cachedSaved = localStorage.getItem('localradar_saved_leads');
     const cachedSavedOpps = localStorage.getItem('localradar_saved_opps');
     
@@ -338,10 +356,31 @@ export default function LeadFinderPage() {
       const data = await response.json();
 
       if (response.ok && data.success && data.businesses?.length > 0) {
+        const total = data.totalResults ?? data.businesses.length;
+        const visible = data.visibleResults ?? data.businesses.length;
+        const hidden = data.hiddenResults ?? 0;
+
         setLeads(data.businesses);
         setOpportunities(data.opportunities);
+        setTotalResults(total);
+        setVisibleResults(visible);
+        setHiddenResults(hidden);
+
         localStorage.setItem('localradar_latest_leads', JSON.stringify(data.businesses));
         localStorage.setItem('localradar_latest_opps', JSON.stringify(data.opportunities));
+        localStorage.setItem('localradar_latest_total_results', String(total));
+        localStorage.setItem('localradar_latest_visible_results', String(visible));
+        localStorage.setItem('localradar_latest_hidden_results', String(hidden));
+
+        if (user?.subscription_tier === 'free') {
+          trackEvent('free_search_completed', {
+            niche: finalNiche,
+            city: finalCity,
+            total_results: total,
+            visible_results: visible
+          });
+        }
+
         setLoading(false);
         setSearched(true);
         fetchUsage();
@@ -359,12 +398,40 @@ export default function LeadFinderPage() {
     setTimeout(() => {
       const { businesses, opportunities: opps } = generateLeads(finalNiche, finalCity, finalCountry);
       
-      setLeads(businesses);
-      setOpportunities(opps);
+      const isFreeUser = user?.subscription_tier === 'free';
+      const total = businesses.length;
+      const visibleBizs = isFreeUser ? businesses.slice(0, 10) : businesses;
+      const visibleBizIds = new Set(visibleBizs.map(b => b.id));
+      const visibleOpps: Record<string, Opportunity> = {};
+      Object.keys(opps).forEach(bizId => {
+        if (visibleBizIds.has(bizId)) {
+          visibleOpps[bizId] = opps[bizId];
+        }
+      });
+      const visible = visibleBizs.length;
+      const hidden = Math.max(0, total - visible);
+
+      setLeads(visibleBizs);
+      setOpportunities(visibleOpps);
+      setTotalResults(total);
+      setVisibleResults(visible);
+      setHiddenResults(hidden);
       
-      localStorage.setItem('localradar_latest_leads', JSON.stringify(businesses));
-      localStorage.setItem('localradar_latest_opps', JSON.stringify(opps));
+      localStorage.setItem('localradar_latest_leads', JSON.stringify(visibleBizs));
+      localStorage.setItem('localradar_latest_opps', JSON.stringify(visibleOpps));
+      localStorage.setItem('localradar_latest_total_results', String(total));
+      localStorage.setItem('localradar_latest_visible_results', String(visible));
+      localStorage.setItem('localradar_latest_hidden_results', String(hidden));
       
+      if (isFreeUser) {
+        trackEvent('free_search_completed', {
+          niche: finalNiche,
+          city: finalCity,
+          total_results: total,
+          visible_results: visible
+        });
+      }
+
       setLoading(false);
       setSearched(true);
       fetchUsage();
@@ -519,10 +586,21 @@ export default function LeadFinderPage() {
         {/* Saved Searches / Counters top metadata */}
         <div className="flex items-center gap-4 text-xs font-mono font-normal">
           {usageStats && (
-            <div className="bg-[#141517] border border-[#26282D] px-3 py-1.5 rounded-lg flex items-center gap-1.5">
-              <Zap className="w-3.5 h-3.5 text-[#2DD4A7]" />
-              <span className="text-[#A1A1AA]">Usage:</span>{' '}
-              <span className="text-white font-semibold">{usageStats.searches_used}/{usageStats.searches_limit}</span>
+            <div className={`px-3 py-1.5 rounded-lg flex items-center gap-1.5 ${
+              user?.subscription_tier === 'free' && usageStats.searches_remaining <= 3
+                ? 'bg-[#FF5C5C]/10 border-[#FF5C5C]/25 text-[#FF5C5C]'
+                : 'bg-[#141517] border-[#26282D]'
+            }`}>
+              <Zap className={`w-3.5 h-3.5 ${
+                user?.subscription_tier === 'free' && usageStats.searches_remaining <= 3
+                  ? 'text-[#FF5C5C]'
+                  : 'text-[#2DD4A7]'
+              }`} />
+              <span className={user?.subscription_tier === 'free' && usageStats.searches_remaining <= 3 ? 'text-[#FF5C5C]' : 'text-white font-semibold'}>
+                {user?.subscription_tier === 'free'
+                  ? `${usageStats.searches_remaining <= 3 ? '⚠ ' : ''}${usageStats.searches_remaining} free searches remaining this month`
+                  : `Usage: ${usageStats.searches_used}/${usageStats.searches_limit}`}
+              </span>
             </div>
           )}
           <div className="bg-[#141517] border border-[#26282D] px-3 py-1.5 rounded-lg">
@@ -536,6 +614,14 @@ export default function LeadFinderPage() {
           </div>
         </div>
       </div>
+
+      {/* Credit Warning Banner */}
+      {user?.subscription_tier === 'free' && usageStats && usageStats.searches_remaining <= 3 && (
+        <div className="bg-[#FF5C5C]/10 border border-[#FF5C5C]/25 text-[#FF5C5C] text-xs px-4 py-3 rounded-xl flex items-center gap-2 font-mono">
+          <span className="font-bold">⚠️ Warning:</span>
+          <span>Only {usageStats.searches_remaining} free search credits remaining this month. Upgrade to Pro to unlock unlimited searches and features.</span>
+        </div>
+      )}
 
       {/* SECTION 1: Compact Search Experience */}
       <div className="bg-[#141517] border border-[#26282D] p-6 rounded-2xl relative overflow-hidden shadow-2xl">
@@ -966,7 +1052,9 @@ export default function LeadFinderPage() {
         <div className="space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#26282D] pb-3">
             <h2 className="text-xs font-mono font-bold uppercase tracking-widest text-[#A1A1AA]">
-              All Opportunity Diagnostics ({leads.length} Records)
+              All Opportunity Diagnostics ({user?.subscription_tier === 'free' && hiddenResults > 0 
+                ? `Showing ${visibleResults} of ${totalResults} Records`
+                : `${leads.length} Records`})
             </h2>
             <div className="flex items-center gap-2">
               <button
@@ -1017,11 +1105,7 @@ export default function LeadFinderPage() {
                       <motion.tr 
                         key={biz.id}
                         onClick={() => {
-                          if (user?.subscription_tier === 'free') {
-                            triggerLockedModal('audit');
-                          } else {
-                            setSelectedLeadId(biz.id);
-                          }
+                          setSelectedLeadId(biz.id);
                         }}
                         whileHover={{ backgroundColor: '#0B0B0C' }}
                         className="transition-colors cursor-pointer select-none"
@@ -1267,6 +1351,18 @@ export default function LeadFinderPage() {
             }
           }}
           categoryName={niche || 'Agency Lead'}
+          onLockedAction={(type) => {
+            triggerLockedModal(type);
+          }}
+        />
+      )}
+
+      {/* Premium Upgrade Section */}
+      {searched && !loading && user?.subscription_tier === 'free' && hiddenResults > 0 && (
+        <UpgradeBanner
+          hiddenResults={hiddenResults}
+          totalResults={totalResults}
+          triggerLockedModal={triggerLockedModal}
         />
       )}
 
@@ -1277,5 +1373,47 @@ export default function LeadFinderPage() {
         type={unlockType}
       />
     </div>
+  );
+}
+
+interface UpgradeBannerProps {
+  hiddenResults: number;
+  totalResults: number;
+  triggerLockedModal: (type: 'audit' | 'pitch' | 'export' | 'developer_keys') => void;
+}
+
+function UpgradeBanner({ hiddenResults, totalResults, triggerLockedModal }: UpgradeBannerProps) {
+  useEffect(() => {
+    trackEvent('upgrade_banner_viewed', { hidden_results: hiddenResults, total_results: totalResults });
+  }, [hiddenResults, totalResults]);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-gradient-to-r from-[#141517] to-[#1C1E22] border border-[#26282D] rounded-2xl p-8 text-center max-w-2xl mx-auto shadow-2xl relative overflow-hidden mt-8"
+    >
+      {/* Decorative Blur Backgrounds */}
+      <div className="absolute -top-20 -right-20 w-44 h-44 bg-[#2DD4A7]/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-20 -left-20 w-44 h-44 bg-[#FAFAF9]/5 rounded-full blur-3xl pointer-events-none" />
+
+      <h3 className="text-xl font-serif font-semibold text-white flex items-center justify-center gap-2">
+        <span>🔒</span> {hiddenResults} Additional Opportunities Hidden
+      </h3>
+      
+      <p className="text-[#A1A1AA] text-xs mt-2 font-mono max-w-md mx-auto">
+        Upgrade to Pro to unlock all businesses, contact details, AI audits, AI pitch generation, PDF exports, and lead saving.
+      </p>
+
+      <button
+        onClick={() => {
+          trackEvent('upgrade_banner_clicked', { hidden_results: hiddenResults, total_results: totalResults });
+          triggerLockedModal('audit');
+        }}
+        className="mt-6 bg-gradient-to-r from-[#2DD4A7] to-[#14B88C] hover:opacity-95 text-[#0B0B0C] font-mono text-xs font-extrabold px-8 py-3 rounded-xl transition-all shadow-[0_0_15px_rgba(45,212,167,0.2)] hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+      >
+        Unlock all {totalResults} businesses instantly
+      </button>
+    </motion.div>
   );
 }
