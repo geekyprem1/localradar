@@ -46,10 +46,42 @@ export default function SettingsPage() {
 
   // Load profile and credentials
   useEffect(() => {
-    if (user) {
-      setName(user.full_name || 'Agency Owner');
-      setEmail(user.email || 'agency@owner.com');
-    }
+    const fetchProfileSettings = async () => {
+      if (!user) return;
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const token = session?.access_token || '';
+
+        const headers: Record<string, string> = {
+          'Content-Type': 'application/json',
+        };
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        const mockUserStr = localStorage.getItem('localradar_mock_user');
+        if (mockUserStr) {
+          const mu = JSON.parse(mockUserStr);
+          headers['x-is-sandbox'] = 'true';
+          headers['x-user-id'] = mu.id;
+          headers['x-org-id'] = 'mock-org-123';
+          headers['x-user-tier'] = mu.subscription_tier;
+        }
+
+        const res = await fetch('/api/settings/profile', { headers });
+        const data = await res.json();
+        
+        if (data.success) {
+          setName(data.full_name || '');
+          setEmail(user.email || 'agency@owner.com');
+          setOrgName(data.organization_name || 'My Local Agency');
+        }
+      } catch (err) {
+        console.warn('Failed to load profile settings:', err);
+      }
+    };
+
+    fetchProfileSettings();
   }, [user]);
 
   useEffect(() => {
@@ -94,11 +126,60 @@ export default function SettingsPage() {
     fetchBYOKSettings();
   }, [user]);
 
-  const handleSaveProfile = (e: React.FormEvent) => {
+  const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSaveMessage('Profile settings updated successfully!');
-    setSaveSuccess(true);
-    setTimeout(() => setSaveSuccess(false), 2000);
+    setIsSaving(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token || '';
+
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const mockUserStr = localStorage.getItem('localradar_mock_user');
+      if (mockUserStr) {
+        const mu = JSON.parse(mockUserStr);
+        headers['x-is-sandbox'] = 'true';
+        headers['x-user-id'] = mu.id;
+        headers['x-org-id'] = 'mock-org-123';
+        headers['x-user-tier'] = mu.subscription_tier;
+      }
+
+      const payload = {
+        full_name: name,
+        organization_name: orgName,
+      };
+
+      const res = await fetch('/api/settings/profile', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        if (mockUserStr) {
+          const mu = JSON.parse(mockUserStr);
+          mu.full_name = name;
+          localStorage.setItem('localradar_mock_user', JSON.stringify(mu));
+        }
+        
+        setSaveMessage('Profile settings updated successfully!');
+        setSaveSuccess(true);
+        setTimeout(() => setSaveSuccess(false), 2000);
+      } else {
+        alert(data.message || 'Failed to update profile settings.');
+      }
+    } catch (err) {
+      console.error('Failed to save profile settings:', err);
+      alert('An error occurred while saving your profile.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleSaveKeys = async (e: React.FormEvent) => {
