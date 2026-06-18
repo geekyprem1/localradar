@@ -1,4 +1,11 @@
+import { createClient } from '@supabase/supabase-js';
 import { supabase } from './supabase';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://mock-project-url.supabase.co';
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'mock-anon-key-placeholder';
+
+const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+
 
 // In-memory cache for sandbox usage tracking (survives dev server reloads)
 const sandboxUsageStore = new Map<string, {
@@ -88,8 +95,8 @@ export async function getServerUser(request: Request) {
       throw new Error('Unauthorized');
     }
 
-    // Load profile from public.users
-    const { data: profile } = await supabase
+    // Load profile from public.users using admin client to ensure reliable retrieval
+    const { data: profile } = await supabaseAdmin
       .from('users')
       .select('organization_id')
       .eq('id', user.id)
@@ -99,7 +106,7 @@ export async function getServerUser(request: Request) {
     let orgId = profile?.organization_id || '';
 
     if (orgId) {
-      const { data: org } = await supabase
+      const { data: org } = await supabaseAdmin
         .from('organizations')
         .select('subscription_tier')
         .eq('id', orgId)
@@ -155,7 +162,7 @@ export async function getUsageAndLimits(
   }
 
   try {
-    let { data: usage, error } = await supabase
+    let { data: usage, error } = await supabaseAdmin
       .from('usage_tracking')
       .select('*')
       .eq('organization_id', organizationId)
@@ -163,8 +170,8 @@ export async function getUsageAndLimits(
       .single();
 
     if (error && error.code === 'PGRST116') {
-      // Row not found, create new record
-      const { data: newUsage, error: initError } = await supabase
+      // Row not found, create new record using admin client (bypasses RLS restrictions)
+      const { data: newUsage, error: initError } = await supabaseAdmin
         .from('usage_tracking')
         .insert({
           organization_id: organizationId,
@@ -257,7 +264,7 @@ export async function incrementUsage(
     else if (type === 'exports') exportsVal += amount;
     else if (type === 'tokens') tokensVal += amount;
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('usage_tracking')
       .upsert({
         organization_id: organizationId,
