@@ -1,17 +1,17 @@
-@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,300..800;1,300..800&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400..600&display=swap');
 @import "tailwindcss";
 
 :root {
   --background: #0B0B0C;
   --foreground: #FAFAF9;
-  --primary: #2DD4A7;
-  --accent: #2DD4A7;
+  --primary: #0B7A5E;
+  --accent: #0B7A5E;
   --secondary-text: #A1A1AA;
   --secondary-bg: #141517;
   --border: #26282D;
   --font-serif: "Instrument Serif", Georgia, serif;
-  --font-sans: "Inter", sans-serif;
-  --font-mono: "Inter", sans-serif;
+  --font-sans: "Hanken Grotesk", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
 }
 
 @theme {

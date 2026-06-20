@@ -143,16 +143,19 @@ export default function RedesignedLandingPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#090A0B] via-[#0F172A] to-[#064e3b] p-3 sm:p-6 md:p-10 lg:p-14 font-sans selection:bg-[#10B981]/20 selection:text-[#10B981] relative overflow-hidden flex items-center justify-center">
-      
+    <div className="min-h-screen bg-[#0A0E0C] p-3 sm:p-6 md:p-10 lg:p-14 font-sans selection:bg-[#0B7A5E]/20 selection:text-[#0B7A5E] relative overflow-hidden flex items-center justify-center">
+      {/* Ambient depth — warm pine glow, not a flat neon gradient */}
+      <div className="pointer-events-none absolute -top-1/4 left-1/2 -translate-x-1/2 w-[80vw] h-[60vh] bg-[radial-gradient(ellipse_at_center,rgba(11,122,94,0.18),transparent_70%)]" />
+      <div className="pointer-events-none absolute bottom-0 right-0 w-[50vw] h-[50vh] bg-[radial-gradient(ellipse_at_bottom_right,rgba(40,30,18,0.45),transparent_70%)]" />
+
       {/* Centered Website Container - Framed Layout */}
-      <div className="w-full max-w-7xl bg-white text-[#0F0F11] rounded-[24px] sm:rounded-[36px] lg:rounded-[48px] shadow-2xl border border-white/20 overflow-hidden relative flex flex-col min-h-screen">
+      <div className="w-full max-w-7xl bg-[#FBFAF7] text-[#0F0F11] rounded-[24px] sm:rounded-[36px] lg:rounded-[48px] shadow-[0_40px_120px_-20px_rgba(0,0,0,0.5)] ring-1 ring-black/5 border border-white/40 overflow-hidden relative flex flex-col min-h-screen">
         
         {/* Navbar */}
         <nav className="sticky top-0 bg-white/80 backdrop-blur-lg border-b border-[#E5E5E8] z-50 px-6 py-4 flex-shrink-0">
           <div className="max-w-7xl mx-auto flex items-center justify-between">
             <Link href="/" className="flex items-center gap-2 text-lg font-bold tracking-tight text-[#0F0F11]">
-              <svg className="w-5 h-5 text-[#10B981]" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <svg className="w-5 h-5 text-[#0B7A5E]" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect x="3" y="3" width="7" height="7" rx="2" fill="currentColor" />
                 <rect x="14" y="3" width="7" height="7" rx="2" fill="currentColor" />
                 <rect x="3" y="14" width="7" height="7" rx="2" fill="currentColor" />
@@ -175,7 +178,7 @@ export default function RedesignedLandingPage() {
               </Link>
               <Link 
                 href="/login" 
-                className="bg-[#10B981] hover:bg-[#059669] text-white text-xs font-bold px-5 py-2.5 rounded-full transition-all cursor-pointer shadow-sm"
+                className="bg-[#0B7A5E] hover:bg-[#075E48] text-white text-xs font-bold px-5 py-2.5 rounded-full transition-all cursor-pointer shadow-sm"
               >
                 Get Started
               </Link>
@@ -189,7 +192,7 @@ export default function RedesignedLandingPage() {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-1.5 bg-[#10B981]/10 border border-[#10B981]/20 px-4 py-1.5 rounded-full text-[10px] font-bold text-[#10B981] tracking-widest uppercase mb-8"
+            className="inline-flex items-center gap-1.5 bg-[#0B7A5E]/10 border border-[#0B7A5E]/20 px-4 py-1.5 rounded-full text-[10px] font-bold text-[#0B7A5E] tracking-widest uppercase mb-8"
           >
             <Sparkles className="w-3.5 h-3.5" />
             AI-POWERED LOCAL OUTREACH ENGINE
@@ -202,7 +205,7 @@ export default function RedesignedLandingPage() {
             className="text-4xl sm:text-7xl font-serif font-light text-[#0F0F11] tracking-tight leading-[1.05] max-w-4xl mx-auto"
           >
             Find local businesses <br />
-            <span className="bg-gradient-to-r from-[#10B981] via-[#22C55E] to-[#10B981] bg-clip-text text-transparent font-normal">losing customers</span> online.
+            <span className="bg-gradient-to-r from-[#0B7A5E] to-[#15A37B] bg-clip-text text-transparent font-normal italic">losing customers</span> online.
           </motion.h1>
 
           <motion.p
@@ -222,7 +225,7 @@ export default function RedesignedLandingPage() {
           >
             <Link 
               href="/login" 
-              className="bg-[#10B981] hover:bg-[#059669] text-white text-xs font-bold px-7 py-3.5 rounded-full transition-all flex items-center gap-1.5 cursor-pointer group shadow-lg"
+              className="bg-[#0B7A5E] hover:bg-[#075E48] text-white text-xs font-bold px-7 py-3.5 rounded-full transition-all flex items-center gap-1.5 cursor-pointer group shadow-lg"
             >
               Start Scanning Free
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -262,15 +265,15 @@ export default function RedesignedLandingPage() {
         <section id="scanner" className="px-6 py-6 max-w-4xl mx-auto relative z-10 w-full">
           <div className="bg-[#141517] border border-[#26282D] rounded-3xl p-6 shadow-2xl relative overflow-hidden text-white min-h-[360px] flex flex-col justify-between">
             {/* Top green header banner */}
-            <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#10B981]/40 to-transparent" />
+            <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#0B7A5E]/40 to-transparent" />
             
             {/* Console Header */}
             <div className="flex items-center justify-between border-b border-[#26282D] pb-4 mb-4">
               <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#10B981]/60 animate-ping" />
-                <span className="w-2.5 h-2.5 rounded-full bg-[#10B981] absolute" />
+                <span className="w-2.5 h-2.5 rounded-full bg-[#0B7A5E]/60 animate-ping" />
+                <span className="w-2.5 h-2.5 rounded-full bg-[#0B7A5E] absolute" />
                 <span className="text-[10px] text-zinc-400 font-bold tracking-widest ml-3 uppercase font-mono">
-                  LIVE OPPORTUNITY SCANNER™
+                  Live Opportunity Scanner
                 </span>
               </div>
               <div className="text-[9px] bg-[#0B0B0C] border border-[#26282D] px-2.5 py-0.5 rounded font-mono text-[#9CA3AF]">
@@ -289,7 +292,7 @@ export default function RedesignedLandingPage() {
                     exit={{ opacity: 0 }}
                     className="text-center py-10 space-y-4"
                   >
-                    <div className="w-12 h-12 rounded-xl bg-[#0B0B0C] border border-[#26282D] flex items-center justify-center mx-auto text-[#10B981]">
+                    <div className="w-12 h-12 rounded-xl bg-[#0B0B0C] border border-[#26282D] flex items-center justify-center mx-auto text-[#0B7A5E]">
                       <Search className="w-5 h-5 animate-pulse" />
                     </div>
                     <h4 className="text-sm font-bold font-mono text-white">READY TO DIAGNOSE LOCAL MARKET</h4>
@@ -308,14 +311,14 @@ export default function RedesignedLandingPage() {
                     className="max-w-md mx-auto space-y-3.5 py-4 w-full text-left font-mono"
                   >
                     <div className="flex items-center gap-3">
-                      <Loader2 className="w-4 h-4 text-[#10B981] animate-spin" />
+                      <Loader2 className="w-4 h-4 text-[#0B7A5E] animate-spin" />
                       <span className="text-xs text-[#9CA3AF]">Resolving local business registries...</span>
                     </div>
                     
                     <div className="bg-[#0B0B0C] border border-[#26282D] p-4 rounded-xl space-y-2 text-[10px] text-zinc-400 shadow-inner">
                       {scanLogs.slice(0, scanLogIndex + 1).map((log, idx) => (
                         <div key={idx} className="flex items-start gap-2">
-                          <span className="text-[#10B981] font-bold">▶</span>
+                          <span className="text-[#0B7A5E] font-bold">▶</span>
                           <span>{log}</span>
                         </div>
                       ))}
@@ -334,7 +337,7 @@ export default function RedesignedLandingPage() {
                     {/* Leads details */}
                     <div className="md:col-span-2 space-y-3">
                       <div>
-                        <span className="text-[8px] font-bold text-[#10B981] uppercase tracking-wider">Identified Target</span>
+                        <span className="text-[8px] font-bold text-[#0B7A5E] uppercase tracking-wider">Identified Target</span>
                         <h4 className="text-base font-serif font-extrabold text-white mt-0.5">AK Fitness Gym & Boxing</h4>
                         <p className="text-[10px] text-zinc-500 mt-0.5">102 N Peak St, Dallas, TX 75226</p>
                       </div>
@@ -364,7 +367,7 @@ export default function RedesignedLandingPage() {
                         </div>
 
                         <div className="flex items-baseline gap-1">
-                          <span className="text-3xl font-bold text-[#10B981]">{counterValue}</span>
+                          <span className="text-3xl font-bold text-[#0B7A5E]">{counterValue}</span>
                           <span className="text-[10px] text-zinc-500">/ 100</span>
                         </div>
 
@@ -378,7 +381,7 @@ export default function RedesignedLandingPage() {
 
                       <Link
                         href="/login"
-                        className="w-full text-center bg-[#10B981] hover:bg-[#059669] text-white text-[10px] font-bold py-2 rounded-lg mt-4 block transition-all shadow-[0_0_15px_rgba(16,185,129,0.15)]"
+                        className="w-full text-center bg-[#0B7A5E] hover:bg-[#075E48] text-white text-[10px] font-bold py-2 rounded-lg mt-4 block transition-all shadow-[0_0_15px_rgba(16,185,129,0.15)]"
                       >
                         Generate AI Pitch
                       </Link>
@@ -399,7 +402,7 @@ export default function RedesignedLandingPage() {
         {/* SECTION 3: Pain Section */}
         <section id="how-it-works" className="px-6 py-20 text-center max-w-5xl mx-auto space-y-8 relative z-10 border-t border-[#E5E5E8]">
           <div className="space-y-4">
-            <p className="text-[10px] font-bold text-[#10B981] uppercase tracking-widest">PROSPECTING IS BROKEN</p>
+            <p className="text-[10px] font-bold text-[#0B7A5E] uppercase tracking-widest">PROSPECTING IS BROKEN</p>
             <h2 className="text-3xl sm:text-6xl font-serif text-[#0F0F11] tracking-tight leading-[1.1] max-w-3xl mx-auto">
               Opening Google Maps <span className="text-zinc-400">again.</span> <br />
               Checking websites <span className="text-zinc-400">again.</span> <br />
@@ -431,7 +434,7 @@ export default function RedesignedLandingPage() {
         {/* SECTION 4: Before vs After Workflow */}
         <section className="px-6 py-20 max-w-6xl mx-auto space-y-12 relative z-10 border-t border-[#E5E5E8]">
           <div className="text-center space-y-2">
-            <span className="text-[10px] font-bold text-[#10B981] uppercase tracking-widest">OUTREACH PARADIGM SHIFT</span>
+            <span className="text-[10px] font-bold text-[#0B7A5E] uppercase tracking-widest">OUTREACH PARADIGM SHIFT</span>
             <h2 className="text-2xl sm:text-4xl font-serif text-[#0F0F11] tracking-tight">Manual Guesswork vs Automated Intelligence</h2>
           </div>
 
@@ -466,18 +469,18 @@ export default function RedesignedLandingPage() {
             </div>
 
             {/* After: LocalRadar */}
-            <div className="bg-[#10B981]/5 border border-[#10B981]/20 p-6 rounded-3xl space-y-5 shadow-sm">
+            <div className="bg-[#0B7A5E]/5 border border-[#0B7A5E]/20 p-6 rounded-3xl space-y-5 shadow-sm">
               <div className="flex justify-between items-center">
-                <span className="text-[9px] font-bold text-[#10B981] bg-[#10B981]/15 px-2.5 py-1 rounded-full uppercase tracking-wider font-mono">
+                <span className="text-[9px] font-bold text-[#0B7A5E] bg-[#0B7A5E]/15 px-2.5 py-1 rounded-full uppercase tracking-wider font-mono">
                   With LocalRadar
                 </span>
-                <span className="text-[#10B981] font-mono text-[9px] font-bold">AUTOMATED INTELLIGENCE</span>
+                <span className="text-[#0B7A5E] font-mono text-[9px] font-bold">AUTOMATED INTELLIGENCE</span>
               </div>
               
               <h4 className="text-lg font-serif font-bold text-[#0F0F11]">The Direct Revenue Discovery Loop</h4>
               
               {/* Visual Workflow Steps */}
-              <div className="flex flex-col gap-2.5 font-mono text-[10px] text-[#10B981]">
+              <div className="flex flex-col gap-2.5 font-mono text-[10px] text-[#0B7A5E]">
                 {[
                   { label: 'Search Niche', desc: 'Scan any target city and category automatically' },
                   { label: 'Opportunity Score', desc: 'Instantly isolate businesses with score > 60' },
@@ -485,9 +488,9 @@ export default function RedesignedLandingPage() {
                   { label: 'AI Pitch Copy', desc: 'Copy tailored sequences highlighting exact vulnerabilities' },
                   { label: 'Close Client', desc: 'Convert qualified prospects with deterministic estimates' }
                 ].map((step, idx) => (
-                  <div key={idx} className="flex items-center gap-2 bg-white border border-[#10B981]/10 p-2 rounded-lg shadow-sm">
-                    <span className="w-5 h-5 rounded-full bg-[#10B981]/15 text-[#10B981] flex items-center justify-center font-bold">{idx+1}</span>
-                    <span className="font-extrabold text-[#10B981] min-w-[110px]">{step.label}</span>
+                  <div key={idx} className="flex items-center gap-2 bg-white border border-[#0B7A5E]/10 p-2 rounded-lg shadow-sm">
+                    <span className="w-5 h-5 rounded-full bg-[#0B7A5E]/15 text-[#0B7A5E] flex items-center justify-center font-bold">{idx+1}</span>
+                    <span className="font-extrabold text-[#0B7A5E] min-w-[110px]">{step.label}</span>
                     <span className="truncate text-zinc-500">{step.desc}</span>
                   </div>
                 ))}
@@ -499,7 +502,7 @@ export default function RedesignedLandingPage() {
         {/* SECTION 5: How Agencies Use LocalRadar */}
         <section className="px-6 py-20 max-w-6xl mx-auto space-y-12 border-t border-[#E5E5E8] relative z-10">
           <div className="text-center space-y-2">
-            <span className="text-[10px] font-bold text-[#10B981] uppercase tracking-widest">ICP SOLUTIONS</span>
+            <span className="text-[10px] font-bold text-[#0B7A5E] uppercase tracking-widest">ICP SOLUTIONS</span>
             <h2 className="text-2xl sm:text-4xl font-serif text-[#0F0F11] tracking-tight">Tailored workflows for your agency model</h2>
           </div>
 
@@ -516,7 +519,7 @@ export default function RedesignedLandingPage() {
                   <h4 className="text-sm font-serif font-bold text-[#0F0F11] mt-2">{item.title}</h4>
                   <p className="text-[#5C5C64] text-[11px] leading-relaxed mt-2">{item.desc}</p>
                 </div>
-                <Link href="/login" className="text-[10px] text-[#10B981] font-bold mt-6 flex items-center gap-1 group">
+                <Link href="/login" className="text-[10px] text-[#0B7A5E] font-bold mt-6 flex items-center gap-1 group">
                   Try this workflow
                   <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                 </Link>
@@ -531,19 +534,19 @@ export default function RedesignedLandingPage() {
             
             {/* Giant Metrics Viz Card */}
             <div className="flex justify-center relative">
-              <div className="absolute inset-0 bg-[#10B981]/5 rounded-full blur-3xl pointer-events-none" />
+              <div className="absolute inset-0 bg-[#0B7A5E]/5 rounded-full blur-3xl pointer-events-none" />
               
               <div className="bg-white border border-[#E5E5E8] p-6 max-w-md w-full rounded-3xl relative text-left space-y-6 shadow-xl">
                 <div className="flex justify-between items-center border-b border-zinc-100 pb-3">
                   <span className="text-[10px] font-bold text-zinc-400 font-mono">PROPRIETARY METRICS</span>
-                  <span className="text-[10px] font-bold text-[#10B981] bg-[#10B981]/10 px-2 py-0.5 rounded font-mono">Dossier active</span>
+                  <span className="text-[10px] font-bold text-[#0B7A5E] bg-[#0B7A5E]/10 px-2 py-0.5 rounded font-mono">Dossier active</span>
                 </div>
 
                 <div className="grid grid-cols-3 gap-3 font-mono text-center">
                   <div className="p-3 bg-zinc-50 border border-zinc-200 rounded-xl relative">
                     <span className="text-[8px] font-bold text-zinc-400 block uppercase">Opp Score</span>
-                    <span className="text-2xl font-extrabold text-[#10B981] block mt-1">90</span>
-                    <span className="text-[8px] text-[#10B981] font-bold uppercase tracking-wider block mt-1">HIGH</span>
+                    <span className="text-2xl font-extrabold text-[#0B7A5E] block mt-1">90</span>
+                    <span className="text-[8px] text-[#0B7A5E] font-bold uppercase tracking-wider block mt-1">HIGH</span>
                   </div>
 
                   <div className="p-3 bg-zinc-50 border border-zinc-200 rounded-xl">
@@ -578,7 +581,7 @@ export default function RedesignedLandingPage() {
 
             {/* Text explanation */}
             <div className="space-y-6 text-left">
-              <span className="text-[10px] font-bold text-[#10B981] bg-[#10B981]/10 border border-[#10B981]/20 px-2.5 py-1 rounded-full uppercase tracking-wider font-mono">
+              <span className="text-[10px] font-bold text-[#0B7A5E] bg-[#0B7A5E]/10 border border-[#0B7A5E]/20 px-2.5 py-1 rounded-full uppercase tracking-wider font-mono">
                 THE SYSTEM CORE
               </span>
               <h2 className="text-3xl sm:text-5xl font-serif text-[#0F0F11] tracking-tight leading-[1.1]">
@@ -587,10 +590,19 @@ export default function RedesignedLandingPage() {
               <p className="text-[#5C5C64] text-xs sm:text-sm leading-relaxed">
                 Evaluating local business listings based on 100% deterministic parameters. The lower the score, the higher the website opportunity—meaning it is a prime target for your web design, SEO, or automated booking service packages.
               </p>
-              <div className="space-y-2 text-zinc-500 text-xs">
-                <p>📍 <strong>Opportunity Score™</strong>: Evaluates site responsiveness, review velocity, and Maps listing gaps.</p>
-                <p>📈 <strong>Closing Probability™</strong>: Predicts transaction velocity based on business owner activity markers.</p>
-                <p>💰 <strong>Estimated Deal Value™</strong>: Automatically maps services based on local gap priorities.</p>
+              <div className="space-y-3.5 text-zinc-600 text-xs pt-1">
+                <div className="flex items-start gap-3">
+                  <Target className="w-4 h-4 text-[#0B7A5E] shrink-0 mt-0.5" />
+                  <p><strong className="text-[#0F0F11]">Opportunity Score</strong> — evaluates site responsiveness, review velocity, and Maps listing gaps.</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <TrendingUp className="w-4 h-4 text-[#0B7A5E] shrink-0 mt-0.5" />
+                  <p><strong className="text-[#0F0F11]">Closing Probability</strong> — predicts transaction velocity from business owner activity markers.</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <DollarSign className="w-4 h-4 text-[#0B7A5E] shrink-0 mt-0.5" />
+                  <p><strong className="text-[#0F0F11]">Estimated Deal Value</strong> — maps services automatically based on local gap priorities.</p>
+                </div>
               </div>
             </div>
 
@@ -600,7 +612,7 @@ export default function RedesignedLandingPage() {
         {/* SECTION 7: AUDIT PREVIEW */}
         <section className="px-6 py-20 max-w-6xl mx-auto space-y-12 border-t border-[#E5E5E8] relative z-10">
           <div className="text-center space-y-2">
-            <span className="text-[10px] font-bold text-[#10B981] uppercase tracking-widest">DIAGNOSTIC REPORT</span>
+            <span className="text-[10px] font-bold text-[#0B7A5E] uppercase tracking-widest">DIAGNOSTIC REPORT</span>
             <h2 className="text-2xl sm:text-4xl font-serif text-[#0F0F11] tracking-tight">Real-time local audits to build authority</h2>
           </div>
 
@@ -610,7 +622,7 @@ export default function RedesignedLandingPage() {
                 <p className="text-xs font-bold text-[#0F0F11]">Dallas Dental Clinic</p>
                 <p className="text-[10px] text-zinc-400 mt-0.5 font-mono">8383 Preston Rd, Dallas, TX 75225</p>
               </div>
-              <span className="text-xs font-bold text-[#10B981] bg-[#10B981]/10 border border-[#10B981]/20 px-3 py-1 rounded-full w-fit">
+              <span className="text-xs font-bold text-[#0B7A5E] bg-[#0B7A5E]/10 border border-[#0B7A5E]/20 px-3 py-1 rounded-full w-fit">
                 42/100 (High Opportunity)
               </span>
             </div>
@@ -646,7 +658,7 @@ export default function RedesignedLandingPage() {
         {/* SECTION 8: AI Pitch Generator Example (Tabs) */}
         <section className="px-6 py-20 max-w-6xl mx-auto space-y-12 border-t border-[#E5E5E8] relative z-10">
           <div className="text-center space-y-2">
-            <span className="text-[10px] font-bold text-[#10B981] uppercase tracking-widest">OUTREACH CONVERSION</span>
+            <span className="text-[10px] font-bold text-[#0B7A5E] uppercase tracking-widest">OUTREACH CONVERSION</span>
             <h2 className="text-2xl sm:text-4xl font-serif text-[#0F0F11] tracking-tight">Make them imagine the results</h2>
           </div>
 
@@ -668,7 +680,7 @@ export default function RedesignedLandingPage() {
                       onClick={() => setPitchTab(tab.id as any)}
                       className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                         isActive 
-                          ? 'bg-[#10B981]/15 border border-[#10B981]/30 text-[#10B981]' 
+                          ? 'bg-[#0B7A5E]/15 border border-[#0B7A5E]/30 text-[#0B7A5E]' 
                           : 'text-zinc-400 hover:text-zinc-600'
                       }`}
                     >
@@ -742,7 +754,7 @@ Outcomes of Analysis:
         {/* SECTION 9: Case Studies / RESULTS */}
         <section id="results" className="px-6 py-20 max-w-6xl mx-auto space-y-12 border-t border-[#E5E5E8] relative z-10">
           <div className="text-center space-y-2">
-            <span className="text-[10px] font-bold text-[#10B981] uppercase tracking-widest">PROVED AGENCY RESULTS</span>
+            <span className="text-[10px] font-bold text-[#0B7A5E] uppercase tracking-widest">PROVED AGENCY RESULTS</span>
             <h2 className="text-2xl sm:text-4xl font-serif text-[#0F0F11] tracking-tight">Real pipeline generated by users</h2>
           </div>
 
@@ -770,8 +782,8 @@ Outcomes of Analysis:
                 agency: 'AI Automation'
               }
             ].map((card, idx) => (
-              <div key={idx} className="bg-white border border-[#E5E5E8] p-5 rounded-2xl text-left space-y-4 shadow-sm relative group hover:border-[#10B981]/40 transition-colors">
-                <span className="text-[8px] font-bold text-[#10B981] uppercase tracking-widest">Pipeline Dossier</span>
+              <div key={idx} className="bg-white border border-[#E5E5E8] p-5 rounded-2xl text-left space-y-4 shadow-sm relative group hover:border-[#0B7A5E]/40 transition-colors">
+                <span className="text-[8px] font-bold text-[#0B7A5E] uppercase tracking-widest">Pipeline Dossier</span>
                 
                 <div className="grid grid-cols-2 gap-3.5 border-y border-zinc-100 py-3">
                   <div>
@@ -804,12 +816,13 @@ Outcomes of Analysis:
         {/* SECTION 10: Pricing with Average ROI & Prospection Comparison */}
         <section id="pricing" className="px-6 py-20 max-w-7xl mx-auto space-y-12 border-t border-[#E5E5E8] relative z-10">
           <div className="text-center space-y-4">
-            <span className="text-[10px] font-bold text-[#10B981] uppercase tracking-widest">TRANSPARENT TARIFFS</span>
+            <span className="text-[10px] font-bold text-[#0B7A5E] uppercase tracking-widest">TRANSPARENT TARIFFS</span>
             <h2 className="text-2xl sm:text-5xl font-serif text-[#0F0F11] tracking-tight">Flexible plans for any growth stage</h2>
             
             {/* Average ROI block */}
-            <div className="bg-[#10B981]/5 border border-[#10B981]/20 p-3 max-w-md mx-auto rounded-xl text-xs font-mono text-[#10B981]">
-              🎯 <strong>Average ROI</strong>: Close 1 client and pay for LocalRadar for years.
+            <div className="inline-flex items-center gap-2 bg-[#0B7A5E]/5 border border-[#0B7A5E]/20 px-4 py-2.5 max-w-md mx-auto rounded-xl text-xs font-mono text-[#0B7A5E]">
+              <Target className="w-3.5 h-3.5 shrink-0" />
+              <span><strong>Average ROI</strong> — close 1 client and pay for LocalRadar for years.</span>
             </div>
 
             {/* Monthly/Yearly toggle */}
@@ -820,7 +833,7 @@ Outcomes of Analysis:
                 className="w-11 h-6 bg-[#F4F4F6] rounded-full p-0.5 transition-all relative border border-[#E5E5E8] cursor-pointer"
               >
                 <div 
-                  className={`w-4.5 h-4.5 bg-[#10B981] rounded-full transition-all ${
+                  className={`w-4.5 h-4.5 bg-[#0B7A5E] rounded-full transition-all ${
                     billingPeriod === 'yearly' ? 'translate-x-5' : 'translate-x-0'
                   }`}
                 />
@@ -840,12 +853,12 @@ Outcomes of Analysis:
                 key={tier.name}
                 className={`p-5 rounded-3xl border flex flex-col justify-between transition-all duration-300 relative ${
                   tier.popular 
-                    ? 'bg-[#10B981]/5 border-[#10B981] shadow-md scale-102 z-10' 
+                    ? 'bg-[#0B7A5E]/5 border-[#0B7A5E] shadow-md scale-102 z-10' 
                     : 'bg-white border-[#E5E5E8] hover:border-zinc-300'
                 }`}
               >
                 {tier.popular && (
-                  <span className="absolute top-[-10px] right-4 bg-[#10B981] text-white text-[9px] font-bold tracking-wider uppercase px-2.5 py-0.5 rounded-full shadow-sm font-mono">
+                  <span className="absolute top-[-10px] right-4 bg-[#0B7A5E] text-white text-[9px] font-bold tracking-wider uppercase px-2.5 py-0.5 rounded-full shadow-sm font-mono">
                     Most Popular
                   </span>
                 )}
@@ -865,7 +878,7 @@ Outcomes of Analysis:
                   <ul className="mt-5 space-y-2.5 text-[10px] text-zinc-500 font-mono">
                     {tier.features.map((feat) => (
                       <li key={feat} className="flex items-center gap-1.5">
-                        <Check className="w-3.5 h-3.5 text-[#10B981] shrink-0" />
+                        <Check className="w-3.5 h-3.5 text-[#0B7A5E] shrink-0" />
                         <span>{feat}</span>
                       </li>
                     ))}
@@ -876,7 +889,7 @@ Outcomes of Analysis:
                   href="/login"
                   className={`w-full text-center text-xs font-bold py-3 rounded-xl mt-8 block transition-all ${
                     tier.popular
-                      ? 'bg-[#10B981] hover:bg-[#059669] text-white shadow-sm'
+                      ? 'bg-[#0B7A5E] hover:bg-[#075E48] text-white shadow-sm'
                       : 'bg-[#F4F4F6] hover:bg-[#E5E5E8] border border-[#E5E5E8] text-[#0F0F11]'
                   }`}
                 >
@@ -909,7 +922,7 @@ Outcomes of Analysis:
         {/* SECTION 11: FAQ */}
         <section id="faq" className="px-6 py-20 max-w-4xl mx-auto space-y-12 border-t border-[#E5E5E8] relative z-10 w-full font-sans">
           <div className="text-center space-y-2">
-            <span className="text-[10px] font-bold text-[#10B981] uppercase tracking-widest">COMMON ENQUIRIES</span>
+            <span className="text-[10px] font-bold text-[#0B7A5E] uppercase tracking-widest">COMMON ENQUIRIES</span>
             <h2 className="text-2xl sm:text-4xl font-serif text-[#0F0F11] tracking-tight">Frequently Asked Questions</h2>
           </div>
 
@@ -945,8 +958,8 @@ Outcomes of Analysis:
 
         {/* SECTION 12: Final CTA */}
         <section className="px-6 py-20 text-center max-w-4xl mx-auto relative z-10 border-t border-[#E5E5E8] w-full">
-          <div className="bg-[#10B981]/5 p-10 md:p-14 relative overflow-hidden border border-[#10B981]/20 rounded-3xl shadow-sm">
-            <div className="absolute top-0 right-0 w-40 h-40 bg-[#10B981]/5 rounded-full blur-3xl" />
+          <div className="bg-[#0B7A5E]/5 p-10 md:p-14 relative overflow-hidden border border-[#0B7A5E]/20 rounded-3xl shadow-sm">
+            <div className="absolute top-0 right-0 w-40 h-40 bg-[#0B7A5E]/5 rounded-full blur-3xl" />
             
             <h2 className="text-3xl sm:text-5xl font-serif font-bold text-[#0F0F11] tracking-tight leading-none">
               Your next client <br />
@@ -959,7 +972,7 @@ Outcomes of Analysis:
             <div className="mt-8 flex justify-center">
               <Link 
                 href="/login" 
-                className="bg-[#10B981] hover:bg-[#059669] text-white text-xs font-bold px-6 py-3.5 rounded-full transition-all flex items-center gap-1.5 cursor-pointer shadow-lg"
+                className="bg-[#0B7A5E] hover:bg-[#075E48] text-white text-xs font-bold px-6 py-3.5 rounded-full transition-all flex items-center gap-1.5 cursor-pointer shadow-lg"
               >
                 Get Started Free
                 <ArrowRight className="w-4 h-4 text-white" />
