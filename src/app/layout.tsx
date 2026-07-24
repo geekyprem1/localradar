@@ -1,35 +1,86 @@
-import type { Metadata } from 'next';
-import { Hanken_Grotesk, Instrument_Serif, JetBrains_Mono } from 'next/font/google';
+import type { Metadata, Viewport } from 'next';
+import { Inter, IBM_Plex_Mono } from 'next/font/google';
+import { GeistSans } from 'geist/font/sans';
 import { AuthProvider } from '@/lib/auth';
 import { ThemeProvider } from '@/lib/theme';
+import { DEFAULT_DESCRIPTION, DEFAULT_TITLE, SITE_NAME, SITE_URL } from '@/lib/seo';
 import './globals.css';
+/* Typography is inlined in globals.css (Tailwind v4 drops separate @import of custom sheets). */
 
-const hanken = Hanken_Grotesk({
+/**
+ * Typography stack (self-hosted via next/font — no render-blocking Google CSS):
+ * - Geist: primary UI
+ * - Inter: secondary / long-form body
+ * - IBM Plex Mono: data, labels, overlines
+ */
+const inter = Inter({
   subsets: ['latin'],
   display: 'swap',
-  variable: '--font-hanken',
+  variable: '--font-inter',
+  adjustFontFallback: true,
+  preload: true,
 });
 
-const instrumentSerif = Instrument_Serif({
+const ibmPlexMono = IBM_Plex_Mono({
   subsets: ['latin'],
-  weight: '400',
-  style: ['normal', 'italic'],
+  weight: ['400', '500', '600'],
   display: 'swap',
-  variable: '--font-instrument',
-});
-
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-jbmono',
+  variable: '--font-ibm-plex-mono',
+  adjustFontFallback: true,
+  preload: true,
 });
 
 export const metadata: Metadata = {
-  title: 'LocalRadar | Discover Local Business Gaps',
-  description: 'AI-Powered Local Business Intelligence. Scan niches, calculate opportunity scores, generate audits, and draft copy sequences to close clients.',
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: DEFAULT_TITLE,
+    template: `%s | ${SITE_NAME}`,
+  },
+  description: DEFAULT_DESCRIPTION,
+  applicationName: SITE_NAME,
+  keywords: [
+    'local lead generation',
+    'Google Maps leads',
+    'agency prospecting software',
+    'AI outreach generator',
+    'local SEO audit',
+    'opportunity scoring',
+    'Google Business analysis',
+  ],
+  authors: [{ name: SITE_NAME }],
+  creator: SITE_NAME,
+  openGraph: {
+    title: DEFAULT_TITLE,
+    description: DEFAULT_DESCRIPTION,
+    url: SITE_URL,
+    siteName: SITE_NAME,
+    locale: 'en_US',
+    type: 'website',
+    images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: SITE_NAME }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: DEFAULT_TITLE,
+    description: DEFAULT_DESCRIPTION,
+    images: ['/opengraph-image'],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true },
+  },
+  alternates: { canonical: '/' },
 };
 
-/** Runs before paint so theme class is on <html> and React cannot fight it with a hardcoded "dark". */
+export const viewport: Viewport = {
+  themeColor: [
+    { media: '(prefers-color-scheme: dark)', color: '#0B0B0C' },
+    { media: '(prefers-color-scheme: light)', color: '#F4F5F7' },
+  ],
+  width: 'device-width',
+  initialScale: 1,
+};
+
 const themeInitScript = `
 (function(){
   try {
@@ -55,18 +106,24 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      // Do NOT hardcode "dark" here — ThemeProvider + blocking script own light/dark classes.
-      // If "dark" is in React className, hydration overwrites classList and light mode never sticks.
-      className={`h-full antialiased ${hanken.variable} ${instrumentSerif.variable} ${jetbrainsMono.variable}`}
+      className={`h-full antialiased ${GeistSans.variable} ${inter.variable} ${ibmPlexMono.variable}`}
       suppressHydrationWarning
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
-      <body className="min-h-full bg-background text-foreground flex flex-col font-sans">
+      <body className={`${GeistSans.className} min-h-full bg-background text-foreground flex flex-col`}>
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-on-primary"
+        >
+          Skip to main content
+        </a>
         <ThemeProvider>
           <AuthProvider>
-            {children}
+            <div id="main-content" className="flex min-h-full flex-1 flex-col">
+              {children}
+            </div>
           </AuthProvider>
         </ThemeProvider>
       </body>

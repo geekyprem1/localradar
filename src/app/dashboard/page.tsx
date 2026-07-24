@@ -23,6 +23,8 @@ import { Business, Opportunity } from '@/types';
 import { scoreBusinessOpportunity } from '@/lib/scoring';
 import { generateMockCompetitors } from '@/lib/mockData';
 import { ScoredOpportunity } from '@/types/scoring';
+import EmptyState from '@/components/ui/EmptyState';
+import OnboardingBanner from '@/components/dashboard/OnboardingBanner';
 
 export default function DashboardOverviewPage() {
   const { user } = useAuth();
@@ -149,61 +151,61 @@ export default function DashboardOverviewPage() {
     return `₹${num.toLocaleString('en-IN')}`;
   };
 
+  const hasLiveData = Boolean(liveStats);
+
   const stats = [
     { 
       name: 'Potential Revenue', 
-      value: liveStats?.potentialRevenue || '₹22.4L', 
-      change: '+15%', 
+      value: liveStats?.potentialRevenue ?? '—', 
+      change: hasLiveData ? 'From last scan' : 'Run a scan', 
       icon: DollarSign, 
       color: 'var(--primary)' 
     },
     { 
       name: 'High Probability Clients', 
-      value: liveStats?.highProbClients.toString() || '17', 
-      change: '+24%', 
+      value: liveStats ? liveStats.highProbClients.toString() : '—', 
+      change: hasLiveData ? 'Close-ready' : 'Awaiting data', 
       icon: Target, 
       color: 'var(--foreground)' 
     },
     { 
       name: 'High Opportunity Clients', 
-      value: liveStats?.highOppClients.toString() || '8', 
-      change: '+12%', 
+      value: liveStats ? liveStats.highOppClients.toString() : '—', 
+      change: hasLiveData ? 'High fit' : 'Awaiting data', 
       icon: Zap, 
       color: '#F5A623' 
     },
     { 
       name: 'Weighted Opportunity', 
-      value: liveStats?.weightedOpportunity || '₹19.3L', 
-      change: '+8%', 
+      value: liveStats?.weightedOpportunity ?? '—', 
+      change: hasLiveData ? 'Probability-weighted' : 'Awaiting data', 
       icon: TrendingUp, 
       color: 'var(--primary)' 
     },
     { 
       name: 'Avg Closing Probability', 
-      value: liveStats ? `${liveStats.avgClosingProb}%` : '81%', 
-      change: '+5%', 
+      value: liveStats ? `${liveStats.avgClosingProb}%` : '—', 
+      change: hasLiveData ? 'Portfolio avg' : 'Awaiting data', 
       icon: Activity, 
       color: 'var(--primary)' 
     },
   ];
 
-  const recentLeads = recentLeadsData.length > 0 ? recentLeadsData : [
-    { name: 'Preston Hollow Family Dental', city: 'Dallas, TX', score: 72, opportunity: 'High', bestFit: 'Web Design', dealValue: '₹75,000 – ₹2,55,000', date: '2 hours ago' },
-    { name: 'Capital Plumbing & Drain', city: 'Austin, TX', score: 58, opportunity: 'Medium', bestFit: 'SEO', dealValue: '₹20,000 – ₹90,000', date: '4 hours ago' },
-    { name: 'Lone Star Spine Clinic', city: 'Houston, TX', score: 45, opportunity: 'Medium', bestFit: 'AI Automation', dealValue: '₹30,000 – ₹70,000', date: '1 day ago' },
-    { name: 'Downtown Eats Diner', city: 'Fort Worth, TX', score: 28, opportunity: 'Low', bestFit: 'Marketing Agency', dealValue: '₹5,000 – ₹15,000', date: '2 days ago' },
-  ];
+  const recentLeads = recentLeadsData;
 
   return (
     <div className="space-y-8 font-sans text-foreground">
       {/* Header and Welcome */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-serif font-semibold text-foreground flex items-center gap-2">
-            Welcome back, {user?.full_name?.split(' ')[0] || 'Agency Partner'} 
-            <Sparkles className="w-5 h-5 text-foreground animate-pulse" />
+          <h1 className="dash-title text-2xl font-semibold tracking-[-0.025em] text-foreground md:text-3xl">
+            Welcome back, {user?.full_name?.split(' ')[0] || 'there'}
           </h1>
-          <p className="text-secondary-text text-xs mt-1 font-mono">LocalRadar Intelligence Engine™ dashboard overview.</p>
+          <p className="mt-1.5 text-xs leading-relaxed text-secondary-text md:text-sm">
+            {hasLiveData
+              ? 'Metrics from your latest market scan.'
+              : 'Your pipeline metrics appear after the first scan.'}
+          </p>
         </div>
         <Link 
           href="/dashboard/lead-finder" 
@@ -213,6 +215,8 @@ export default function DashboardOverviewPage() {
           Find Opportunities
         </Link>
       </div>
+
+      <OnboardingBanner hasData={hasLiveData} />
 
       {/* Subscription and Usage Status Card */}
       {usageStats && (
@@ -351,7 +355,7 @@ export default function DashboardOverviewPage() {
                 </div>
               </div>
               <div className="mt-4 flex items-baseline gap-2">
-                <span className="text-2xl font-serif font-semibold text-foreground tracking-tight">{stat.value}</span>
+                <span className="metric-value text-2xl">{stat.value}</span>
               </div>
             </motion.div>
           );
@@ -360,77 +364,47 @@ export default function DashboardOverviewPage() {
 
       {/* Chart & Recent Activity Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Custom SVG Performance Chart */}
+        {/* Trends — empty until real scan history exists */}
         <div className="bg-secondary-bg border border-border p-6 lg:col-span-2 rounded-2xl space-y-6 shadow-xl relative overflow-hidden">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-sm font-bold text-foreground">Lead Discovery Trends</h3>
-              <p className="text-secondary-text text-xs mt-0.5 font-mono">Discovered leads by week over the last month</p>
+              <h3 className="text-sm font-bold text-foreground">Lead discovery</h3>
+              <p className="text-secondary-text text-xs mt-0.5 font-mono">Trends from your scans — not sample data</p>
             </div>
             <span className="text-[10px] font-bold text-secondary-text bg-background border border-border px-2.5 py-1 rounded-full font-mono uppercase">
-              Last 30 Days
+              Workspace
             </span>
           </div>
 
-          {/* Simple Beautiful SVG Line and Bar Chart */}
-          <div className="relative h-60 w-full flex items-end">
-            <svg className="w-full h-full absolute inset-0" viewBox="0 0 500 200" preserveAspectRatio="none">
-              {/* Gradients */}
-              <defs>
-                <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.1" />
-                  <stop offset="100%" stopColor="var(--primary)" stopOpacity="0" />
-                </linearGradient>
-              </defs>
-
-              {/* Grid lines */}
-              <line x1="0" y1="50" x2="500" y2="50" stroke="rgba(255,255,255,0.03)" strokeWidth="1" />
-              <line x1="0" y1="100" x2="500" y2="100" stroke="rgba(255,255,255,0.03)" strokeWidth="1" />
-              <line x1="0" y1="150" x2="500" y2="150" stroke="rgba(255,255,255,0.03)" strokeWidth="1" />
-
-              {/* Graph Line Area */}
-              <path
-                d="M 10 180 Q 120 120 220 140 T 400 60 T 490 30 L 490 200 L 10 200 Z"
-                fill="url(#chartGradient)"
-              />
-
-              {/* Graph Line */}
-              <path
-                d="M 10 180 Q 120 120 220 140 T 400 60 T 490 30"
-                fill="none"
-                stroke="#5C636E"
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
-
-              {/* Data Dots */}
-              <circle cx="10" cy="180" r="4" fill="#5C636E" stroke="var(--secondary-bg)" strokeWidth="2" />
-              <circle cx="150" cy="130" r="4" fill="#5C636E" stroke="var(--secondary-bg)" strokeWidth="2" />
-              <circle cx="280" cy="110" r="4" fill="#5C636E" stroke="var(--secondary-bg)" strokeWidth="2" />
-              <circle cx="400" cy="60" r="4" fill="#5C636E" stroke="var(--secondary-bg)" strokeWidth="2" />
-              <circle cx="490" cy="30" r="5" fill="var(--foreground)" stroke="var(--primary)" strokeWidth="2.5" />
-            </svg>
-            
-            {/* Chart X Labels */}
-            <div className="w-full flex justify-between text-[10px] text-zinc-500 pt-2 absolute bottom-[-24px] font-mono">
-              <span>Week 1</span>
-              <span>Week 2</span>
-              <span>Week 3</span>
-              <span>Week 4</span>
-              <span>Today</span>
+          {!hasLiveData ? (
+            <EmptyState
+              icon={Activity}
+              title="No trend data yet"
+              description="After you scan markets, this panel will show discovery activity from your workspace. We never fill it with demo numbers."
+              actionLabel="Run first scan"
+              actionHref="/dashboard/lead-finder"
+            />
+          ) : (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <div className="rounded-xl border border-border bg-background p-4">
+                  <p className="text-[10px] font-mono uppercase text-secondary-text">Recent leads</p>
+                  <p className="mt-1 text-2xl font-semibold text-foreground">{recentLeads.length}</p>
+                </div>
+                <div className="rounded-xl border border-border bg-background p-4">
+                  <p className="text-[10px] font-mono uppercase text-secondary-text">High opportunity</p>
+                  <p className="mt-1 text-2xl font-semibold text-primary">{liveStats?.highOppClients ?? 0}</p>
+                </div>
+                <div className="rounded-xl border border-border bg-background p-4">
+                  <p className="text-[10px] font-mono uppercase text-secondary-text">Avg close prob.</p>
+                  <p className="mt-1 text-2xl font-semibold text-foreground">{liveStats?.avgClosingProb ?? 0}%</p>
+                </div>
+              </div>
+              <p className="text-xs text-secondary-text font-mono">
+                Full historical charts ship with multi-scan history. Current snapshot reflects your last scan only.
+              </p>
             </div>
-          </div>
-
-          <div className="pt-4 flex gap-6 text-[10px] text-zinc-500 font-mono">
-            <div className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#5C636E]" />
-              <span>Scanned Lead Velocity</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-secondary-text" />
-              <span>Closing Conversion Rate</span>
-            </div>
-          </div>
+          )}
         </div>
 
         {/* Recent Activity List */}
@@ -438,42 +412,54 @@ export default function DashboardOverviewPage() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-bold text-foreground">Recent Opportunities</h3>
-              <Activity className="w-4 h-4 text-secondary-text" />
+              <Activity className="w-4 h-4 text-secondary-text" aria-hidden />
             </div>
-            
-            <div className="space-y-4 font-normal">
-              {recentLeads.map((lead) => (
-                <div key={lead.name} className="flex items-center justify-between border-b border-border pb-3 last:border-0 last:pb-0">
-                  <div className="max-w-[55%]">
-                    <p className="text-xs font-bold text-foreground truncate">{lead.name}</p>
-                    <p className="text-[10px] text-secondary-text mt-0.5 font-mono">{lead.city} • {lead.date}</p>
-                  </div>
-                  <div className="text-right space-y-1">
-                    <div className="flex items-center gap-1.5 justify-end">
-                      <span className={`inline-block text-[9px] font-bold px-2 py-0.5 rounded border font-mono ${
-                        lead.opportunity === 'High' 
-                          ? 'bg-primary/10 text-primary border-primary/25' 
-                          : lead.opportunity === 'Medium'
-                            ? 'bg-[#F5A623]/10 text-[#F5A623] border-[#F5A623]/25'
-                            : 'bg-[#FF5C5C]/10 text-[#FF5C5C] border-[#FF5C5C]/25'
-                      }`}>
-                        {lead.score}pts
-                      </span>
+
+            {recentLeads.length === 0 ? (
+              <EmptyState
+                icon={Search}
+                title="No scans yet"
+                description="Run your first market scan to populate opportunity scores and revenue estimates. Stats stay empty until real data is available."
+                actionLabel="Start a scan"
+                actionHref="/dashboard/lead-finder"
+              />
+            ) : (
+              <div className="space-y-4 font-normal">
+                {recentLeads.map((lead) => (
+                  <div key={lead.name} className="flex items-center justify-between border-b border-border pb-3 last:border-0 last:pb-0">
+                    <div className="max-w-[55%]">
+                      <p className="text-xs font-bold text-foreground truncate">{lead.name}</p>
+                      <p className="text-[10px] text-secondary-text mt-0.5 font-mono">{lead.city} • {lead.date}</p>
                     </div>
-                    <p className="text-[9px] text-primary font-mono font-bold">{lead.dealValue}</p>
+                    <div className="text-right space-y-1">
+                      <div className="flex items-center gap-1.5 justify-end">
+                        <span className={`inline-block text-[9px] font-bold px-2 py-0.5 rounded border font-mono ${
+                          lead.opportunity === 'High' 
+                            ? 'bg-primary/10 text-primary border-primary/25' 
+                            : lead.opportunity === 'Medium'
+                              ? 'bg-[#F5A623]/10 text-[#F5A623] border-[#F5A623]/25'
+                              : 'bg-[#FF5C5C]/10 text-[#FF5C5C] border-[#FF5C5C]/25'
+                        }`}>
+                          {lead.score}pts
+                        </span>
+                      </div>
+                      <p className="text-[9px] text-primary font-mono font-bold">{lead.dealValue}</p>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
 
-          <Link 
-            href="/dashboard/lead-finder" 
-            className="w-full mt-6 bg-background hover:bg-secondary-bg border border-border text-foreground font-bold text-xs py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer group font-mono"
-          >
-            Scan More Businesses
-            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-          </Link>
+          {recentLeads.length > 0 && (
+            <Link 
+              href="/dashboard/lead-finder" 
+              className="w-full mt-6 bg-background hover:bg-secondary-bg border border-border text-foreground font-bold text-xs py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer group font-mono"
+            >
+              Scan More Businesses
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            </Link>
+          )}
         </div>
       </div>
     </div>

@@ -86,6 +86,8 @@ export async function checkSearchThrottle(
     }
   } catch (err) {
     console.error('Error in checkSearchThrottle DB query:', err);
+    // Fail closed for non-mock when DB is required — prevent unlimited scraping
+    return { allowed: false };
   }
 
   return { allowed: true };
@@ -131,6 +133,7 @@ export async function checkHourlySearchLimit(
     return { allowed: (count || 0) < limit };
   } catch (err) {
     console.error('Error in checkHourlySearchLimit DB query:', err);
+    return { allowed: false };
   }
 
   return { allowed: true };

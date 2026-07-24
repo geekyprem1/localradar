@@ -1,20 +1,47 @@
-import { createClient } from '@supabase/supabase-js';
-import { supabase } from './supabase';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { isSandboxAuthAllowed } from './env';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://mock-project-url.supabase.co';
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'mock-anon-key-placeholder';
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 
-export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+function createAdminClient(): SupabaseClient | null {
+  if (!supabaseUrl || !serviceRoleKey) {
+    return null;
+  }
+  // Never fall back to the public anon key for admin operations
+  if (
+    serviceRoleKey === process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+    serviceRoleKey === 'mock-anon-key-placeholder'
+  ) {
+    console.error('[security] SUPABASE_SERVICE_ROLE_KEY must not equal the anon key');
+    return null;
+  }
+  return createClient(supabaseUrl, serviceRoleKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+}
 
+export const supabaseAdmin = createAdminClient() as SupabaseClient;
 
-// In-memory cache for sandbox usage tracking (survives dev server reloads)
-const sandboxUsageStore = new Map<string, {
-  searches_count: number;
-  audits_count: number;
-  pitches_count: number;
-  exports_count: number;
-  tokens_used: number;
-}>();
+export function requireSupabaseAdmin(): SupabaseClient {
+  const client = createAdminClient();
+  if (!client) {
+    throw new Error('Server misconfigured: SUPABASE_SERVICE_ROLE_KEY is required');
+  }
+  return client;
+}
+
+// In-memory cache for sandbox usage tracking (dev/demo only)
+const sandboxUsageStore = new Map<
+  string,
+  {
+    searches_count: number;
+    audits_count: number;
+    pitches_count: number;
+    exports_count: number;
+    tokens_used: number;
+  }
+>();
 
 export interface PlanLimits {
   searchesLimit: number;
@@ -24,30 +51,31 @@ export interface PlanLimits {
   byokAllowed: boolean;
 }
 
+/** Single source of truth for plan limits — keep marketing/settings in sync */
 export const PLAN_LIMITS: Record<'free' | 'pro' | 'agency' | 'agency_plus', PlanLimits> = {
   free: {
-    searchesLimit: 10,
+    searchesLimit: 20,
     auditsAllowed: false,
     pitchesAllowed: false,
     exportsAllowed: false,
     byokAllowed: false,
   },
   pro: {
-    searchesLimit: 500,
+    searchesLimit: 1000,
     auditsAllowed: true,
     pitchesAllowed: true,
     exportsAllowed: true,
     byokAllowed: false,
   },
   agency: {
-    searchesLimit: 2000,
+    searchesLimit: 5000,
     auditsAllowed: true,
     pitchesAllowed: true,
     exportsAllowed: true,
     byokAllowed: false,
   },
   agency_plus: {
-    searchesLimit: 5000,
+    searchesLimit: 10000,
     auditsAllowed: true,
     pitchesAllowed: true,
     exportsAllowed: true,
@@ -55,48 +83,99 @@ export const PLAN_LIMITS: Record<'free' | 'pro' | 'agency' | 'agency_plus', Plan
   },
 };
 
-/**
- * Helper to fetch or initialize the current user's profile and subscription tier server-side.
- */
-export async function getServerUser(request: Request) {
-  // Check headers
-  const authHeader = request.headers.get('Authorization') || '';
-  const token = authHeader.replace('Bearer ', '').trim();
-  
-  const isSandbox = request.headers.get('x-is-sandbox') === 'true';
-  const mockUserId = request.headers.get('x-user-id') || 'mock-user-123';
-  const mockOrgId = request.headers.get('x-org-id') || 'mock-org-123';
-  const mockTier = (request.headers.get('x-user-tier') || 'free') as 'free' | 'pro' | 'agency' | 'agency_plus';
+export type ServerUser = {
+  id: string;
+  email: string;
+  organization_id: string;
+  subscription_tier: 'free' | 'pro' | 'agency' | 'agency_plus';
+  is_mock: boolean;
+};
 
-  // If we are in Sandbox mode, or if Supabase keys aren't set, return mock info
-  if (!token || token === 'undefined' || token === 'null' || isSandbox) {
-    return {
-      id: mockUserId,
-      email: isSandbox ? 'sandbox@localradar.io' : 'guest@localradar.io',
-      organization_id: mockOrgId,
-      subscription_tier: mockTier,
-      is_mock: true,
-    };
+/**
+ * Resolve the authenticated user for API routes.
+ * Production: verified JWT only. Sandbox only when ALLOW_SANDBOX_AUTH is enabled (not in prod by default).
+ * Never trust client-supplied tier/org for real authorization.
+ */
+export async function getServerUser(request: Request): Promise<ServerUser | null> {
+  const authHeader = request.headers.get('Authorization') || '';
+  const token = authHeader.replace(/^Bearer\s+/i, '').trim();
+  const isSandboxHeader = request.headers.get('x-is-sandbox') === 'true';
+
+  // ── Sandbox path (dev/demo only) ──
+  if (isSandboxAuthAllowed() && (isSandboxHeader || !token || token === 'undefined' || token === 'null')) {
+    if (isSandboxHeader || !token || token === 'undefined' || token === 'null') {
+      // Fixed sandbox identity — do NOT accept client-chosen agency_plus tier for free
+      // Sandbox is always free unless explicitly elevated in memory after a sandbox checkout flow
+      const mockTier = (request.headers.get('x-user-tier') || 'free') as ServerUser['subscription_tier'];
+      const allowedSandboxTiers: ServerUser['subscription_tier'][] = ['free', 'pro', 'agency', 'agency_plus'];
+      const tier = allowedSandboxTiers.includes(mockTier) ? mockTier : 'free';
+
+      return {
+        id: 'mock-user-123',
+        email: 'sandbox@localradar.io',
+        organization_id: 'mock-org-123',
+        // In sandbox, allow tier header only for demo UX — never in production (gated above)
+        subscription_tier: tier,
+        is_mock: true,
+      };
+    }
+  }
+
+  // ── Production / configured path: require JWT ──
+  if (!token || token === 'undefined' || token === 'null') {
+    return null;
+  }
+
+  // Reject sandbox spoofing when sandbox is not allowed
+  if (isSandboxHeader && !isSandboxAuthAllowed()) {
+    return null;
   }
 
   try {
-    // Verify user JWT token with Supabase auth
-    const { data: { user }, error } = await supabase.auth.getUser(token);
-    if (error || !user) {
-      if (process.env.NODE_ENV === 'development') {
+    const { createClient } = await import('@supabase/supabase-js');
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    if (!url || !anon || url.includes('mock-project')) {
+      // No real Supabase — only sandbox path works
+      if (isSandboxAuthAllowed()) {
         return {
-          id: mockUserId,
-          email: 'sandbox-fallback@localradar.io',
-          organization_id: mockOrgId,
-          subscription_tier: mockTier,
+          id: 'mock-user-123',
+          email: 'sandbox@localradar.io',
+          organization_id: 'mock-org-123',
+          subscription_tier: 'free',
           is_mock: true,
         };
       }
-      throw new Error('Unauthorized');
+      return null;
     }
 
-    // Load profile from public.users using admin client to ensure reliable retrieval
-    let { data: profile } = await supabaseAdmin
+    const authClient = createClient(url, anon, {
+      auth: { persistSession: false, autoRefreshToken: false },
+      global: { headers: { Authorization: `Bearer ${token}` } },
+    });
+
+    const {
+      data: { user },
+      error,
+    } = await authClient.auth.getUser(token);
+
+    if (error || !user) {
+      return null;
+    }
+
+    const admin = createAdminClient();
+    if (!admin) {
+      // Can still identify user but cannot load org — free tier only
+      return {
+        id: user.id,
+        email: user.email || '',
+        organization_id: '',
+        subscription_tier: 'free',
+        is_mock: false,
+      };
+    }
+
+    let { data: profile } = await admin
       .from('users')
       .select('organization_id')
       .eq('id', user.id)
@@ -104,75 +183,61 @@ export async function getServerUser(request: Request) {
 
     let orgId = profile?.organization_id || '';
 
-    // Self-healing onboarding provisioning fallback if DB trigger failed or was bypassed
+    // Self-healing org provisioning
     if (!profile || !orgId) {
       try {
         const fullName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Agency Partner';
-        
-        // 1. Create a default organization for the user
-        const { data: newOrg, error: orgErr } = await supabaseAdmin
+        const { data: newOrg, error: orgErr } = await admin
           .from('organizations')
           .insert({
             name: `${fullName} Agency`,
             subscription_tier: 'free',
-            subscription_status: 'active'
+            subscription_status: 'active',
           })
           .select('id')
           .single();
 
         if (!orgErr && newOrg) {
           orgId = newOrg.id;
-          
-          // 2. Create the user profile row
-          const { data: newProfile, error: profErr } = await supabaseAdmin
+          const { data: newProfile } = await admin
             .from('users')
             .insert({
               id: user.id,
               email: user.email || '',
               full_name: fullName,
-              organization_id: orgId
+              organization_id: orgId,
             })
             .select('organization_id')
             .single();
-
-          if (!profErr && newProfile) {
-            profile = newProfile;
-          }
+          if (newProfile) profile = newProfile;
         }
       } catch (provisionErr) {
         console.error('Failed self-healing provisioning:', provisionErr);
       }
     }
 
-    let subscription_tier: 'free' | 'pro' | 'agency' | 'agency_plus' = 'free';
-
+    let subscription_tier: ServerUser['subscription_tier'] = 'free';
     if (orgId) {
-      const { data: org } = await supabaseAdmin
+      const { data: org } = await admin
         .from('organizations')
         .select('subscription_tier')
         .eq('id', orgId)
         .maybeSingle();
       if (org?.subscription_tier) {
-        subscription_tier = org.subscription_tier as 'free' | 'pro' | 'agency' | 'agency_plus';
+        subscription_tier = org.subscription_tier as ServerUser['subscription_tier'];
       }
     }
 
     return {
       id: user.id,
       email: user.email || '',
-      organization_id: orgId || mockOrgId,
+      organization_id: orgId,
       subscription_tier,
       is_mock: false,
     };
   } catch (error) {
-    console.warn('Authentication check failed, running in fallback mode:', error);
-    return {
-      id: mockUserId,
-      email: 'sandbox-fallback@localradar.io',
-      organization_id: mockOrgId,
-      subscription_tier: mockTier,
-      is_mock: true,
-    };
+    console.warn('Authentication check failed:', error);
+    return null;
   }
 }
 
@@ -181,7 +246,7 @@ export async function getUsageAndLimits(
   tier: 'free' | 'pro' | 'agency' | 'agency_plus',
   isMock: boolean = false
 ) {
-  const currentMonth = new Date().toISOString().substring(0, 7); // 'YYYY-MM'
+  const currentMonth = new Date().toISOString().substring(0, 7);
   const limits = PLAN_LIMITS[tier] || PLAN_LIMITS.free;
 
   if (isMock) {
@@ -195,15 +260,12 @@ export async function getUsageAndLimits(
       });
     }
     const usage = sandboxUsageStore.get(organizationId)!;
-    return {
-      usage,
-      limits,
-      month: currentMonth,
-    };
+    return { usage, limits, month: currentMonth };
   }
 
   try {
-    let { data: usage, error } = await supabaseAdmin
+    const admin = requireSupabaseAdmin();
+    let { data: usage, error } = await admin
       .from('usage_tracking')
       .select('*')
       .eq('organization_id', organizationId)
@@ -211,8 +273,7 @@ export async function getUsageAndLimits(
       .single();
 
     if (error && error.code === 'PGRST116') {
-      // Row not found, create new record using admin client (bypasses RLS restrictions)
-      const { data: newUsage, error: initError } = await supabaseAdmin
+      const { data: newUsage, error: initError } = await admin
         .from('usage_tracking')
         .insert({
           organization_id: organizationId,
@@ -225,10 +286,8 @@ export async function getUsageAndLimits(
         })
         .select('*')
         .single();
-      
-      if (!initError && newUsage) {
-        usage = newUsage;
-      }
+
+      if (!initError && newUsage) usage = newUsage;
     }
 
     const usageData = usage || {
@@ -239,11 +298,7 @@ export async function getUsageAndLimits(
       tokens_used: 0,
     };
 
-    return {
-      usage: usageData,
-      limits,
-      month: currentMonth,
-    };
+    return { usage: usageData, limits, month: currentMonth };
   } catch (err) {
     console.error('Error fetching usage from Supabase:', err);
     return {
@@ -285,14 +340,12 @@ export async function incrementUsage(
     else if (type === 'pitches') usage.pitches_count += amount;
     else if (type === 'exports') usage.exports_count += amount;
     else if (type === 'tokens') usage.tokens_used += amount;
-    
     sandboxUsageStore.set(organizationId, usage);
     return usage;
   }
 
   try {
     const { usage: currentUsage } = await getUsageAndLimits(organizationId, tier, false);
-    
     let searchesVal = currentUsage.searches_count;
     let auditsVal = currentUsage.audits_count;
     let pitchesVal = currentUsage.pitches_count;
@@ -305,18 +358,22 @@ export async function incrementUsage(
     else if (type === 'exports') exportsVal += amount;
     else if (type === 'tokens') tokensVal += amount;
 
-    const { data, error } = await supabaseAdmin
+    const admin = requireSupabaseAdmin();
+    const { data, error } = await admin
       .from('usage_tracking')
-      .upsert({
-        organization_id: organizationId,
-        month: currentMonth,
-        searches_count: searchesVal,
-        audits_count: auditsVal,
-        pitches_count: pitchesVal,
-        exports_count: exportsVal,
-        tokens_used: tokensVal,
-        updated_at: new Date().toISOString(),
-      }, { onConflict: 'organization_id,month' })
+      .upsert(
+        {
+          organization_id: organizationId,
+          month: currentMonth,
+          searches_count: searchesVal,
+          audits_count: auditsVal,
+          pitches_count: pitchesVal,
+          exports_count: exportsVal,
+          tokens_used: tokensVal,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'organization_id,month' }
+      )
       .select('*')
       .single();
 
@@ -341,17 +398,11 @@ export async function validateUsageAndEntitlement(
       return { allowed: false, reason: 'limit_exceeded' };
     }
   } else if (actionType === 'audit') {
-    if (!limits.auditsAllowed) {
-      return { allowed: false, reason: 'tier_restricted' };
-    }
+    if (!limits.auditsAllowed) return { allowed: false, reason: 'tier_restricted' };
   } else if (actionType === 'pitch') {
-    if (!limits.pitchesAllowed) {
-      return { allowed: false, reason: 'tier_restricted' };
-    }
+    if (!limits.pitchesAllowed) return { allowed: false, reason: 'tier_restricted' };
   } else if (actionType === 'export') {
-    if (!limits.exportsAllowed) {
-      return { allowed: false, reason: 'tier_restricted' };
-    }
+    if (!limits.exportsAllowed) return { allowed: false, reason: 'tier_restricted' };
   }
 
   return { allowed: true };

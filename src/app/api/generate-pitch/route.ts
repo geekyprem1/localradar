@@ -63,6 +63,7 @@ export async function POST(request: Request) {
         .from('businesses')
         .select('*')
         .eq('id', businessId)
+        .eq('organization_id', user.organization_id)
         .single();
       
       if (bizErr || !biz) {

@@ -470,10 +470,17 @@ export default function LeadFinderPage() {
   };
 
   const getFitColor = (level: string) => {
-    if (level === 'Perfect Fit') return 'text-foreground bg-border border-border';
-    if (level === 'Strong Fit') return 'text-secondary-text bg-secondary-bg border-border';
-    if (level === 'Moderate Fit') return 'text-muted-text bg-transparent border-border/60';
-    return 'text-muted-text bg-transparent border-border/40';
+    // Readable on both light & dark: tinted surface + strong label color
+    if (level === 'Perfect Fit') {
+      return 'text-primary bg-primary/15 border-primary/30';
+    }
+    if (level === 'Strong Fit') {
+      return 'text-foreground bg-primary/10 border-primary/25';
+    }
+    if (level === 'Moderate Fit') {
+      return 'text-secondary-text bg-background border-border';
+    }
+    return 'text-muted-text bg-transparent border-border';
   };
 
   const getTags = (bizId: string) => {
@@ -568,49 +575,67 @@ export default function LeadFinderPage() {
         </div>
       )}
       
-      {/* Top Header / Premium Context Line */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border pb-6">
-        <div>
-          <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-secondary-text font-semibold">
-            <Zap className="w-3.5 h-3.5 text-secondary-text animate-pulse" />
-            Opportunity Engine™
+      {/* Page header — title left, stats right */}
+      <div className="flex flex-col gap-5 border-b border-border pb-6 lg:flex-row lg:items-end lg:justify-between">
+        <div className="min-w-0 space-y-1.5">
+          <div className="flex items-center gap-2 font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-secondary-text">
+            <Zap className="h-3.5 w-3.5 shrink-0 text-primary" aria-hidden />
+            Opportunity Engine
           </div>
-          <h1 className="text-3xl font-serif font-semibold tracking-tight mt-1 text-foreground">Opportunity Finder™</h1>
-          <p className="text-secondary-text text-xs mt-1 flex items-center gap-1.5 font-normal">
-            <span className="text-secondary-text font-normal uppercase tracking-wider text-[10px] font-mono">Powered by LocalRadar Intelligence Engine™</span>
-            <span className="text-muted-text">•</span>
-            <span>Real-time local lead auditing and transaction valuation terminal.</span>
+          <h1 className="text-2xl font-semibold tracking-[-0.025em] text-foreground md:text-3xl">
+            Opportunity Finder
+          </h1>
+          <p className="max-w-lg text-sm leading-relaxed text-secondary-text">
+            Scan a niche and city, score local businesses, and prioritize who to contact first.
           </p>
         </div>
-        
-        {/* Saved Searches / Counters top metadata */}
-        <div className="flex items-center gap-4 text-xs font-mono font-normal">
+
+        <div className="flex flex-wrap items-stretch gap-2 sm:gap-3">
           {usageStats && (
-            <div className={`px-3 py-1.5 rounded-lg flex items-center gap-1.5 ${
-              user?.subscription_tier === 'free' && usageStats.searches_remaining <= 3
-                ? 'bg-[#FF5C5C]/10 border-[#FF5C5C]/25 text-[#FF5C5C]'
-                : 'bg-secondary-bg border-border'
-            }`}>
-              <Zap className={`w-3.5 h-3.5 ${
+            <div
+              className={`flex min-w-[9.5rem] flex-col justify-center gap-0.5 rounded-xl border px-3.5 py-2.5 ${
                 user?.subscription_tier === 'free' && usageStats.searches_remaining <= 3
-                  ? 'text-[#FF5C5C]'
-                  : 'text-primary'
-              }`} />
-              <span className={user?.subscription_tier === 'free' && usageStats.searches_remaining <= 3 ? 'text-[#FF5C5C]' : 'text-foreground font-semibold'}>
-                {user?.subscription_tier === 'free'
-                  ? `${usageStats.searches_remaining <= 3 ? '⚠ ' : ''}${usageStats.searches_remaining} free searches remaining this month`
-                  : `Usage: ${usageStats.searches_used}/${usageStats.searches_limit}`}
+                  ? 'border-[#FECACA] bg-[#FEF2F2]'
+                  : 'border-border bg-secondary-bg'
+              }`}
+            >
+              <span className="font-mono text-[9px] font-medium uppercase tracking-wider text-secondary-text">
+                Searches left
               </span>
+              <span
+                className={`text-sm font-semibold tabular-nums ${
+                  user?.subscription_tier === 'free' && usageStats.searches_remaining <= 3
+                    ? 'text-[#B91C1C]'
+                    : 'text-foreground'
+                }`}
+              >
+                {user?.subscription_tier === 'free'
+                  ? `${usageStats.searches_remaining} / ${usageStats.searches_limit}`
+                  : `${usageStats.searches_used} / ${usageStats.searches_limit}`}
+              </span>
+              {user?.subscription_tier === 'free' && (
+                <span className="text-[10px] text-muted-text">Free plan this month</span>
+              )}
             </div>
           )}
-          <div className="bg-secondary-bg border border-border px-3 py-1.5 rounded-lg">
-            <span className="text-secondary-text">Saved Opportunities:</span>{' '}
-            <span className="text-foreground font-semibold">{savedLeadsList.length}</span>
+
+          <div className="flex min-w-[7.5rem] flex-col justify-center gap-0.5 rounded-xl border border-border bg-secondary-bg px-3.5 py-2.5">
+            <span className="font-mono text-[9px] font-medium uppercase tracking-wider text-secondary-text">
+              Saved
+            </span>
+            <span className="text-sm font-semibold tabular-nums text-foreground">
+              {savedLeadsList.length}
+            </span>
+            <span className="text-[10px] text-muted-text">Opportunities</span>
           </div>
-          <div className="bg-secondary-bg border border-border px-3 py-1.5 rounded-lg flex items-center gap-1.5">
-            <LineChart className="w-3.5 h-3.5 text-secondary-text" />
-            <span className="text-secondary-text">Trend:</span>{' '}
-            <span className="text-foreground font-semibold">Optimal Target</span>
+
+          <div className="flex min-w-[7.5rem] flex-col justify-center gap-0.5 rounded-xl border border-border bg-secondary-bg px-3.5 py-2.5">
+            <span className="flex items-center gap-1 font-mono text-[9px] font-medium uppercase tracking-wider text-secondary-text">
+              <LineChart className="h-3 w-3" aria-hidden />
+              Focus
+            </span>
+            <span className="text-sm font-semibold text-foreground">High fit</span>
+            <span className="text-[10px] text-muted-text">Priority targets</span>
           </div>
         </div>
       </div>
@@ -994,7 +1019,7 @@ export default function LeadFinderPage() {
                               e.stopPropagation();
                               triggerLockedModal('audit');
                             }}
-                            className="text-[10px] font-mono text-primary/60 hover:text-primary transition-colors cursor-pointer select-none bg-primary/5 px-2 py-0.5 rounded border border-primary/10 blur-[0.5px] hover:blur-none"
+                            className="text-[10px] font-mono text-secondary-text hover:text-foreground transition-colors cursor-pointer select-none bg-background px-2 py-0.5 rounded border border-border"
                           >
                             🔒 Locked
                           </span>
@@ -1154,7 +1179,7 @@ export default function LeadFinderPage() {
                                 e.stopPropagation();
                                 triggerLockedModal('audit');
                               }}
-                              className="inline-block text-[10px] font-mono text-foreground/40 hover:text-foreground transition-colors cursor-pointer select-none bg-zinc-800/20 px-2 py-0.5 rounded border border-zinc-700/20 blur-[0.5px] hover:blur-none"
+                              className="inline-block text-[10px] font-mono text-secondary-text hover:text-foreground transition-colors cursor-pointer select-none bg-background px-2 py-0.5 rounded border border-border"
                             >
                               🔒 Locked
                             </span>
@@ -1163,8 +1188,8 @@ export default function LeadFinderPage() {
                               getClosing(biz.id) >= 70 
                                 ? 'text-primary' 
                                 : getClosing(biz.id) >= 40 
-                                  ? 'text-[#F5A623]' 
-                                  : 'text-[#FF5C5C]'
+                                  ? 'text-[#B45309]' 
+                                  : 'text-[#B91C1C]'
                             }`}>
                               {getClosing(biz.id)}%
                             </span>
@@ -1177,7 +1202,7 @@ export default function LeadFinderPage() {
                                 e.stopPropagation();
                                 triggerLockedModal('audit');
                               }}
-                              className="inline-block text-[10px] font-mono text-primary/60 hover:text-primary transition-colors cursor-pointer select-none bg-primary/5 px-2 py-0.5 rounded border border-primary/10 blur-[0.5px] hover:blur-none"
+                              className="inline-block text-[10px] font-mono text-secondary-text hover:text-foreground transition-colors cursor-pointer select-none bg-background px-2 py-0.5 rounded border border-border"
                             >
                               🔒 Locked
                             </span>

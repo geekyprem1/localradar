@@ -69,10 +69,11 @@ export async function POST(request: Request) {
       const fourteenDaysAgo = new Date();
       fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
 
-      // Query past searches matching inputs
+      // Query past searches for THIS organization only (prevent cross-tenant cache leak)
       const { data: cachedSearches, error: searchErr } = await supabase
         .from('searches')
         .select('id, created_at')
+        .eq('organization_id', user.organization_id)
         .eq('business_type', cleanNiche)
         .eq('city', cleanCity)
         .eq('country', cleanCountry)

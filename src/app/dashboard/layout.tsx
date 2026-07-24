@@ -17,7 +17,8 @@ import {
   Bookmark,
   Lock,
   Sun,
-  Moon
+  Moon,
+  CreditCard,
 } from 'lucide-react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -53,12 +54,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     return null;
   }
 
-  const menuItems = [
+  const menuItems: {
+    name: string;
+    href: string;
+    icon: typeof LayoutDashboard;
+    locked?: boolean;
+    comingSoon?: boolean;
+  }[] = [
     { name: 'Overview', href: '/dashboard', icon: LayoutDashboard },
-    { name: 'Opportunity Finder', href: '/dashboard/lead-finder', icon: Search },
-    { name: 'Saved Opportunities', href: '/dashboard/saved-leads', icon: Bookmark },
+    { name: 'Scans', href: '/dashboard/lead-finder', icon: Search },
+    { name: 'Saved Leads', href: '/dashboard/saved-leads', icon: Bookmark },
     { name: 'Pitch Engine', href: '/dashboard/pitch', icon: Volume2 },
-    { name: 'Settings & Billing', href: '/dashboard/settings', icon: Settings },
+    { name: 'Settings', href: '/dashboard/settings', icon: Settings },
+    { name: 'Billing', href: '/dashboard/settings', icon: CreditCard, comingSoon: true },
   ];
 
   const navActive =
@@ -75,21 +83,50 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <div className="w-6 h-6 rounded-lg bg-border border border-border flex items-center justify-center">
               <Zap className="w-3.5 h-3.5 text-foreground fill-foreground/10" />
             </div>
-            <span className="font-serif italic font-semibold tracking-wide text-lg text-foreground">LocalRadar</span>
+            <span className="text-[1.0625rem] font-semibold tracking-[-0.02em] text-foreground">LocalRadar</span>
           </div>
-          <div className="mt-2 text-[9px] uppercase tracking-wider text-secondary-text font-mono leading-tight">
+          <div className="metric-label mt-2 leading-tight">
             Revenue Intelligence Platform
           </div>
-          <div className="text-[7px] text-muted-text font-mono">
-            Powered by LocalRadar Intelligence Engine™
+          <div className="text-caption mt-0.5 text-muted-text">
+            LocalRadar Intelligence
           </div>
         </div>
 
-        <nav className="space-y-1 flex-1">
+        <nav className="space-y-1 flex-1" aria-label="Dashboard">
           {menuItems.map((item) => {
-            const isActive = pathname === item.href;
+            const isActive =
+              item.name === 'Overview'
+                ? pathname === '/dashboard'
+                : item.name === 'Scans'
+                  ? pathname.startsWith('/dashboard/lead-finder')
+                  : item.name === 'Saved Leads' || item.name === 'Exports'
+                    ? pathname.startsWith('/dashboard/saved-leads')
+                    : item.name === 'Pitch Engine'
+                      ? pathname.startsWith('/dashboard/pitch')
+                      : item.name === 'Settings'
+                        ? pathname.startsWith('/dashboard/settings')
+                        : false;
             const Icon = item.icon;
             const isLockedPitch = user.subscription_tier === 'free' && item.name === 'Pitch Engine';
+
+            if (item.comingSoon) {
+              return (
+                <div
+                  key={item.name}
+                  className="flex items-center justify-between px-4 py-3 rounded-xl text-xs font-semibold tracking-wide border border-transparent text-muted-text cursor-default"
+                  title="Billing self-serve is coming soon. Manage plan in Settings."
+                >
+                  <div className="flex items-center gap-3">
+                    <Icon className="w-4 h-4 text-muted-text" />
+                    {item.name}
+                  </div>
+                  <span className="text-[8px] uppercase tracking-wider font-mono text-muted-text border border-border px-1.5 py-0.5 rounded-full">
+                    Soon
+                  </span>
+                </div>
+              );
+            }
 
             if (isLockedPitch) {
               return (
@@ -107,7 +144,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     <Icon className={`w-4 h-4 ${isActive ? 'text-foreground' : 'text-secondary-text'}`} />
                     {item.name}
                   </div>
-                  <Lock className="w-3.5 h-3.5 text-[#F5A623]" />
+                  <Lock className="w-3.5 h-3.5 text-[#F5A623]" aria-label="Upgrade required" />
                 </button>
               );
             }
@@ -119,6 +156,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold tracking-wide transition-all duration-200 cursor-pointer border ${
                   isActive ? navActive : navInactive
                 }`}
+                aria-current={isActive ? 'page' : undefined}
               >
                 <Icon className={`w-4 h-4 ${isActive ? 'text-foreground' : 'text-secondary-text'}`} />
                 {item.name}
@@ -178,10 +216,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <div className="w-5 h-5 rounded bg-border flex items-center justify-center">
                 <Zap className="w-3.5 h-3.5 text-foreground fill-foreground/10" />
               </div>
-              <span className="font-serif italic font-semibold tracking-wide text-base text-foreground">LocalRadar</span>
+              <span className="text-[1rem] font-semibold tracking-[-0.02em] text-foreground">LocalRadar</span>
             </div>
-            <div className="text-[7px] text-muted-text font-mono leading-none mt-0.5">
-              Powered by LocalRadar Intelligence Engine™
+            <div className="text-caption text-muted-text leading-none mt-0.5">
+              LocalRadar Intelligence
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -211,11 +249,37 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               exit={{ opacity: 0, height: 0 }}
               className="border-b border-border bg-secondary-bg relative z-30 px-6 py-4 space-y-3 overflow-hidden shadow-md"
             >
-              <nav className="space-y-1">
+              <nav className="space-y-1" aria-label="Mobile dashboard">
                 {menuItems.map((item) => {
-                  const isActive = pathname === item.href;
+                  const isActive =
+                    item.name === 'Overview'
+                      ? pathname === '/dashboard'
+                      : item.name === 'Scans'
+                        ? pathname.startsWith('/dashboard/lead-finder')
+                        : item.name === 'Saved Leads' || item.name === 'Exports'
+                          ? pathname.startsWith('/dashboard/saved-leads')
+                          : item.name === 'Pitch Engine'
+                            ? pathname.startsWith('/dashboard/pitch')
+                            : item.name === 'Settings'
+                              ? pathname.startsWith('/dashboard/settings')
+                              : false;
                   const Icon = item.icon;
                   const isLockedPitch = user.subscription_tier === 'free' && item.name === 'Pitch Engine';
+
+                  if (item.comingSoon) {
+                    return (
+                      <div
+                        key={item.name}
+                        className="flex items-center justify-between px-4 py-2.5 rounded-xl text-xs font-semibold text-muted-text"
+                      >
+                        <div className="flex items-center gap-3">
+                          <Icon className="w-4 h-4" />
+                          {item.name}
+                        </div>
+                        <span className="text-[8px] uppercase font-mono border border-border px-1.5 py-0.5 rounded-full">Soon</span>
+                      </div>
+                    );
+                  }
 
                   if (isLockedPitch) {
                     return (

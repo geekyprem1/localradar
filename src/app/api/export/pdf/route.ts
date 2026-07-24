@@ -1,67 +1,75 @@
-import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { scoreBusinessOpportunity } from '@/lib/scoring';
 import { generateMockAudit, generateMockCompetitors } from '@/lib/mockData';
+import { getServerUser, validateUsageAndEntitlement } from '@/lib/entitlements';
+
+function escapeHtml(input: unknown): string {
+  return String(input ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const businessId = searchParams.get('businessId') || '';
-    const token = searchParams.get('token') || '';
-    const isSandbox = searchParams.get('sandbox') === 'true';
 
     if (!businessId) {
       return new Response('Business ID is required.', { status: 400 });
     }
 
-    let userTier: 'free' | 'pro' | 'agency' | 'agency_plus' = 'free';
-    let isMock = false;
+    // Prefer Authorization header; fall back to token query only for same-origin print windows
+    const headerAuth = request.headers.get('Authorization') || '';
+    const queryToken = searchParams.get('token') || '';
+    const sandboxFlag =
+      request.headers.get('x-is-sandbox') === 'true' || searchParams.get('sandbox') === 'true'
+        ? 'true'
+        : '';
+    const authRequest = new Request(request.url, {
+      headers: {
+        Authorization: headerAuth || (queryToken ? `Bearer ${queryToken}` : ''),
+        ...(sandboxFlag ? { 'x-is-sandbox': sandboxFlag } : {}),
+      },
+    });
 
-    // 1. Authenticate user session
-    if (isSandbox || !token || token === 'undefined') {
-      // Sandbox fallback mode
-      isMock = true;
-      const mockTier = (searchParams.get('tier') || 'free') as 'free' | 'pro' | 'agency' | 'agency_plus';
-      userTier = mockTier;
-    } else {
-      const { data: { user }, error } = await supabase.auth.getUser(token);
-      if (error || !user) {
-        return new Response('Unauthorized user session.', { status: 401 });
-      }
-
-      // Fetch profile
-      const { data: profile } = await supabase
-        .from('users')
-        .select('organization_id')
-        .eq('id', user.id)
-        .single();
-
-      if (profile?.organization_id) {
-        const { data: org } = await supabase
-          .from('organizations')
-          .select('subscription_tier')
-          .eq('id', profile.organization_id)
-          .single();
-        if (org?.subscription_tier) {
-          userTier = org.subscription_tier as any;
-        }
-      }
+    const user = await getServerUser(authRequest);
+    if (!user) {
+      return new Response('Unauthorized. Sign in to export audits.', { status: 401 });
     }
 
-    // 2. Entitlement check (PDF Export is locked on Free Plan)
-    if (userTier === 'free') {
+    const entitlement = await validateUsageAndEntitlement(
+      user.organization_id,
+      user.subscription_tier,
+      'export',
+      user.is_mock
+    );
+    if (!entitlement.allowed) {
       return new Response('PDF Export is locked on your current plan. Please upgrade to Pro.', { status: 403 });
     }
 
-    // 3. Load lead details (Database vs Sandbox Mock generator)
+    const isMock = user.is_mock;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let business: any = null;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let opportunity: any = null;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let audit: any = null;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let competitors: any[] = [];
 
-    if (!isMock) {
-      // Load from DB
-      const { data: biz } = await supabase.from('businesses').select('*').eq('id', businessId).single();
+    if (!isMock && user.organization_id) {
+      const { data: biz } = await supabase
+        .from('businesses')
+        .select('*')
+        .eq('id', businessId)
+        .eq('organization_id', user.organization_id)
+        .single();
+      if (!biz) {
+        return new Response('Business not found for your organization.', { status: 404 });
+      }
       const { data: opp } = await supabase.from('opportunities').select('*').eq('business_id', businessId).single();
       const { data: aud } = await supabase.from('audits').select('*').eq('business_id', businessId).single();
       const { data: comps } = await supabase.from('competitors').select('*').eq('business_id', businessId);
@@ -120,7 +128,7 @@ export async function GET(request: Request) {
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>LocalRadar Lead Audit - ${business.name}</title>
+  <title>LocalRadar Lead Audit - ${escapeHtml(business.name)}</title>
   <style>
     @media print {
       body {
@@ -299,10 +307,10 @@ export async function GET(request: Request) {
 
     <!-- Header -->
     <div class="header">
-      <h1 class="header-title">${business.name}</h1>
+      <h1 class="header-title">${escapeHtml(business.name)}</h1>
       <div class="header-subtitle">Vulnerability Audit & Valuation Summary</div>
       <p style="font-size: 12px; color: #71717a; margin-top: 8px; margin-bottom: 0;">
-        Scanned on: ${new Date().toLocaleDateString('en-US', { dateStyle: 'long' })} • Address: ${business.address}
+        Scanned on: ${new Date().toLocaleDateString('en-US', { dateStyle: 'long' })} • Address: ${escapeHtml(business.address)}
       </p>
     </div>
 
@@ -341,7 +349,7 @@ export async function GET(request: Request) {
     <div class="card" style="margin-bottom: 30px;">
       <h3 class="card-title">Why This Lead™ (Valuation Summary)</h3>
       <p style="font-size: 13px; color: #ffffff; line-height: 1.6; margin: 0;">
-        ${business.name} is actively losing high-value local prospects. 
+        ${escapeHtml(business.name)} is actively losing high-value local prospects. 
         ${!business.website ? ' They have no detected web domain, directing all mobile traffic to competitors.' : ' Their website structure is outdated with conversion friction.'}
         ${business.reviews_count < 30 ? ` They suffer from a reputation deficit of reviews compared to competitors.` : ''}
         No appointment booking or automated follow-up system was found, resulting in high inquiry drop-offs.
@@ -353,10 +361,10 @@ export async function GET(request: Request) {
       <h3 class="card-title">Detailed Vulnerability Diagnostics</h3>
       
       <div class="list-title">Website Gaps</div>
-      ${audit.website_issues.map((issue: string) => `
+      ${(audit.website_issues as string[]).map((issue: string) => `
         <div class="list-item">
           <span class="list-bullet">•</span>
-          <span>${issue}</span>
+          <span>${escapeHtml(issue)}</span>
         </div>
       `).join('') || '<div style="font-size:12px; color:#71717a;">None detected.</div>'}
 
@@ -364,7 +372,7 @@ export async function GET(request: Request) {
       ${audit.seo_issues.map((issue: string) => `
         <div class="list-item">
           <span class="list-bullet">•</span>
-          <span>${issue}</span>
+          <span>${escapeHtml(issue)}</span>
         </div>
       `).join('') || '<div style="font-size:12px; color:#71717a;">None detected.</div>'}
 

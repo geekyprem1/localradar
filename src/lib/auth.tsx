@@ -96,6 +96,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signInWithSandbox = () => {
+    // Production builds must not allow client-side sandbox privilege unless explicitly allowed
+    if (
+      process.env.NODE_ENV === 'production' &&
+      process.env.NEXT_PUBLIC_ALLOW_SANDBOX !== 'true'
+    ) {
+      console.warn('Sandbox sign-in is disabled in production.');
+      return;
+    }
     const sandboxUser: User = {
       id: 'mock-user-123',
       email: 'sandbox@localradar.io',

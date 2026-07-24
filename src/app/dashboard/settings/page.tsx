@@ -313,7 +313,7 @@ export default function SettingsPage() {
       price: '$0',
       period: 'forever',
       features: [
-        '10 searches / month',
+        '20 searches / month',
         'Live Google Places searches',
         '10 visible results per search',
         'Opportunity Score™',
@@ -327,7 +327,7 @@ export default function SettingsPage() {
       price: '$29',
       period: 'month',
       features: [
-        '500 searches / month',
+        '1,000 searches / month',
         'Live Google Places searches',
         'Full results visibility',
         'Audit Drawer™ access',
@@ -342,7 +342,7 @@ export default function SettingsPage() {
       price: '$79',
       period: 'month',
       features: [
-        '2,000 searches / month',
+        '5,000 searches / month',
         'Live Google Places searches',
         'Full results visibility',
         'Lead CRM Integration',
@@ -357,7 +357,7 @@ export default function SettingsPage() {
       price: '$149',
       period: 'month',
       features: [
-        '5,000 searches / month',
+        '10,000 searches / month',
         'BYOK Required (Places Key)',
         'BYOK Required (OpenRouter Key)',
         'White Label branding',
@@ -467,7 +467,7 @@ export default function SettingsPage() {
 
               <button
                 type="submit"
-                className="bg-background hover:bg-secondary-bg border border-border text-foreground text-xs font-bold px-4 py-2.5 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ml-auto shadow-sm font-mono"
+                className="ml-auto flex items-center gap-1.5 rounded-xl border border-border bg-secondary-bg px-4 py-2.5 text-xs font-bold text-foreground shadow-sm transition-all hover:bg-primary hover:text-on-primary hover:border-primary cursor-pointer font-mono"
               >
                 <Save className="w-3.5 h-3.5" />
                 Save Changes
@@ -562,24 +562,24 @@ export default function SettingsPage() {
                 </p>
               </div>
 
-              <div className="space-y-3 bg-background border border-[#202226] p-4 rounded-xl text-xs font-mono text-muted-text">
-                <div className="flex justify-between border-b border-[#202226] pb-2">
+              <div className="space-y-3 bg-[#F4F4F5] dark:bg-background border border-[#E4E4E7] dark:border-[#202226] p-4 rounded-xl text-xs font-mono text-[#3F3F46] dark:text-muted-text">
+                <div className="flex justify-between border-b border-[#E4E4E7] dark:border-[#202226] pb-2">
                   <span>Google Places API</span>
-                  <span className="text-red-400/80">Locked</span>
+                  <span className="text-[#B91C1C] font-semibold">Locked</span>
                 </div>
-                <div className="flex justify-between border-b border-[#202226] pb-2">
+                <div className="flex justify-between border-b border-[#E4E4E7] dark:border-[#202226] pb-2">
                   <span>OpenRouter AI Key</span>
-                  <span className="text-red-400/80">Locked</span>
+                  <span className="text-[#B91C1C] font-semibold">Locked</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Supabase Pipeline</span>
-                  <span className="text-red-400/80">Locked</span>
+                  <span className="text-[#B91C1C] font-semibold">Locked</span>
                 </div>
               </div>
 
               <button
                 onClick={() => triggerLockedModal('developer_keys')}
-                className="w-full bg-[#1C1E22] hover:bg-[#26282F] border border-[#2B2D33] text-foreground font-bold text-xs py-3 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer font-mono"
+                className="w-full bg-[#18181B] hover:bg-[#27272A] border border-[#3F3F46] text-[#FAFAF9] font-bold text-xs py-3 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer font-mono"
               >
                 Upgrade to Agency Plus
                 <ArrowRight className="w-4 h-4" />
@@ -625,7 +625,7 @@ export default function SettingsPage() {
                 </p>
                 <button
                   onClick={() => triggerLockedModal('developer_keys')}
-                  className="w-full bg-[#1C1E22] hover:bg-[#26282F] border border-[#2B2D33] text-foreground font-bold text-xs py-3 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer font-mono"
+                  className="w-full bg-[#18181B] hover:bg-[#27272A] border border-[#3F3F46] text-[#FAFAF9] font-bold text-xs py-3 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer font-mono"
                 >
                   Upgrade to Agency Plus
                   <ArrowRight className="w-4 h-4" />

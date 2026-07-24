@@ -1,0 +1,622 @@
+/*
+  LocalRadar Typography System
+  Fonts: Geist (UI) · Inter (secondary/body long-form) · IBM Plex Mono (data)
+  Inspired by Stripe, Linear, Vercel — no layout redesign, type only.
+*/
+
+/* ─── Font families (wired from next/font CSS variables) ─── */
+:root {
+  --font-ui: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-body: var(--font-inter), var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-data: var(--font-ibm-plex-mono), ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+
+  /* Backward-compatible aliases used across the app */
+  --font-sans: var(--font-ui);
+  --font-serif: var(--font-ui); /* display previously used Instrument Serif — map to Geist */
+  --font-mono: var(--font-data);
+  --font-secondary: var(--font-body);
+
+  /* ─── Semantic text colors (soft, never pure #000 / #fff) ─── */
+  --text-primary: #F4F4F5;
+  --text-secondary: #A1A1AA;
+  --text-muted: #71717A;
+  --text-disabled: #52525B;
+  --text-inverse: #18181B;
+  --text-success: #34D399;
+  --text-warning: #FBBF24;
+  --text-danger: #F87171;
+  --text-link: #2DD4A7;
+  --text-on-accent: #042F2E;
+
+  /* ─── Type scale (rem @ 16px root) ─── */
+  --type-display-xl: clamp(2.75rem, 5vw + 1rem, 4.5rem);   /* 44–72 */
+  --type-display-lg: clamp(2.25rem, 3.5vw + 1rem, 3.75rem); /* 36–60 */
+  --type-display-md: clamp(1.875rem, 2.5vw + 0.75rem, 3rem); /* 30–48 */
+  --type-display-sm: clamp(1.5rem, 1.5vw + 0.75rem, 2.25rem); /* 24–36 */
+
+  --type-h1: clamp(1.75rem, 1.2vw + 1rem, 2.25rem);  /* 28–36 */
+  --type-h2: clamp(1.5rem, 0.8vw + 1rem, 1.875rem);   /* 24–30 */
+  --type-h3: 1.25rem;   /* 20 */
+  --type-h4: 1.125rem;  /* 18 */
+  --type-h5: 1rem;      /* 16 */
+  --type-h6: 0.875rem;  /* 14 */
+
+  --type-body-xl: 1.25rem;   /* 20 */
+  --type-body-lg: 1.125rem;  /* 18 */
+  --type-body: 1rem;         /* 16 */
+  --type-body-sm: 0.875rem;  /* 14 */
+  --type-caption: 0.75rem;   /* 12 */
+  --type-overline: 0.6875rem;/* 11 */
+  --type-button: 0.875rem;   /* 14 */
+  --type-input: 0.875rem;    /* 14 */
+  --type-label: 0.75rem;     /* 12 */
+  --type-table: 0.8125rem;   /* 13 */
+  --type-metric: clamp(1.5rem, 1vw + 1rem, 2rem); /* 24–32 */
+  --type-badge: 0.6875rem;   /* 11 */
+  --type-mono: 0.8125rem;    /* 13 */
+
+  /* Line heights */
+  --leading-display: 1.05;
+  --leading-heading: 1.2;
+  --leading-body: 1.6;
+  --leading-body-tight: 1.45;
+  --leading-ui: 1.35;
+  --leading-label: 1.3;
+  --leading-none: 1;
+
+  /* Letter spacing */
+  --tracking-display: -0.035em;
+  --tracking-heading: -0.025em;
+  --tracking-body: -0.011em;
+  --tracking-label: 0.02em;
+  --tracking-overline: 0.14em;
+  --tracking-button: -0.01em;
+  --tracking-mono: -0.01em;
+  --tracking-metric: -0.03em;
+
+  /* Font weights */
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+  /* Measure */
+  --prose-width: 40rem; /* ~640px readable line length */
+  --prose-width-wide: 48rem;
+}
+
+html.light {
+  --text-primary: #18181B;
+  --text-secondary: #52525B;
+  --text-muted: #71717A;
+  --text-disabled: #A1A1AA;
+  --text-inverse: #FAFAF9;
+  --text-success: #059669;
+  --text-warning: #D97706;
+  --text-danger: #DC2626;
+  --text-link: #0D9488;
+  --text-on-accent: #042F2E;
+}
+
+/* Soften pure white/black text utilities toward semantic primary */
+html.dark,
+html:not(.light) {
+  --foreground: #F4F4F5;
+  --color-foreground: #F4F4F5;
+}
+
+html.light {
+  --foreground: #18181B;
+  --color-foreground: #18181B;
+}
+
+/* ─── Base ─── */
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "ss01" on, "cv11" on;
+}
+
+body {
+  font-family: var(--font-ui);
+  font-size: var(--type-body);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-body);
+  letter-spacing: var(--tracking-body);
+  color: var(--text-primary);
+  font-feature-settings: "ss01" on, "cv11" on, "kern" on;
+}
+
+/* Long-form marketing paragraphs prefer Inter for effortless reading */
+.prose-body,
+.font-secondary {
+  font-family: var(--font-body);
+}
+
+/* Tabular figures for metrics/pricing */
+.tabular-nums,
+.font-tabular {
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+/* ═══════════════════════════════════════
+   TYPE ROLES
+   ═══════════════════════════════════════ */
+
+.text-display-xl {
+  font-family: var(--font-ui);
+  font-size: var(--type-display-xl);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-display);
+  letter-spacing: var(--tracking-display);
+  color: var(--text-primary);
+}
+
+.text-display-lg {
+  font-family: var(--font-ui);
+  font-size: var(--type-display-lg);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-display);
+  letter-spacing: var(--tracking-display);
+  color: var(--text-primary);
+}
+
+.text-display-md {
+  font-family: var(--font-ui);
+  font-size: var(--type-display-md);
+  font-weight: var(--weight-semibold);
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  color: var(--text-primary);
+}
+
+.text-display-sm {
+  font-family: var(--font-ui);
+  font-size: var(--type-display-sm);
+  font-weight: var(--weight-semibold);
+  line-height: 1.15;
+  letter-spacing: -0.025em;
+  color: var(--text-primary);
+}
+
+.text-h1, h1.type-h1 {
+  font-family: var(--font-ui);
+  font-size: var(--type-h1);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-heading);
+  letter-spacing: var(--tracking-heading);
+  color: var(--text-primary);
+}
+
+.text-h2, h2.type-h2 {
+  font-family: var(--font-ui);
+  font-size: var(--type-h2);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-heading);
+  letter-spacing: var(--tracking-heading);
+  color: var(--text-primary);
+}
+
+.text-h3, h3.type-h3 {
+  font-family: var(--font-ui);
+  font-size: var(--type-h3);
+  font-weight: var(--weight-semibold);
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+
+.text-h4, h4.type-h4 {
+  font-family: var(--font-ui);
+  font-size: var(--type-h4);
+  font-weight: var(--weight-semibold);
+  line-height: 1.35;
+  letter-spacing: -0.015em;
+  color: var(--text-primary);
+}
+
+.text-h5, h5.type-h5 {
+  font-family: var(--font-ui);
+  font-size: var(--type-h5);
+  font-weight: var(--weight-semibold);
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+}
+
+.text-h6, h6.type-h6 {
+  font-family: var(--font-ui);
+  font-size: var(--type-h6);
+  font-weight: var(--weight-semibold);
+  line-height: 1.4;
+  letter-spacing: 0;
+  color: var(--text-primary);
+}
+
+.text-body-xl {
+  font-family: var(--font-body);
+  font-size: var(--type-body-xl);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-body);
+  letter-spacing: var(--tracking-body);
+  color: var(--text-secondary);
+}
+
+.text-body-lg {
+  font-family: var(--font-body);
+  font-size: var(--type-body-lg);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-body);
+  letter-spacing: var(--tracking-body);
+  color: var(--text-secondary);
+}
+
+.text-body {
+  font-family: var(--font-body);
+  font-size: var(--type-body);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-body);
+  letter-spacing: var(--tracking-body);
+  color: var(--text-secondary);
+}
+
+.text-body-sm {
+  font-family: var(--font-body);
+  font-size: var(--type-body-sm);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-body-tight);
+  letter-spacing: var(--tracking-body);
+  color: var(--text-secondary);
+}
+
+.text-caption {
+  font-family: var(--font-ui);
+  font-size: var(--type-caption);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-ui);
+  letter-spacing: 0;
+  color: var(--text-muted);
+}
+
+.text-overline {
+  font-family: var(--font-data);
+  font-size: var(--type-overline);
+  font-weight: var(--weight-medium);
+  line-height: var(--leading-label);
+  letter-spacing: var(--tracking-overline);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.text-button {
+  font-family: var(--font-ui);
+  font-size: var(--type-button);
+  font-weight: var(--weight-semibold);
+  line-height: 1;
+  letter-spacing: var(--tracking-button);
+}
+
+.text-input {
+  font-family: var(--font-ui);
+  font-size: var(--type-input);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-ui);
+  letter-spacing: var(--tracking-body);
+}
+
+.text-label {
+  font-family: var(--font-ui);
+  font-size: var(--type-label);
+  font-weight: var(--weight-medium);
+  line-height: var(--leading-label);
+  letter-spacing: var(--tracking-label);
+  color: var(--text-secondary);
+}
+
+.text-table-header {
+  font-family: var(--font-ui);
+  font-size: var(--type-table);
+  font-weight: var(--weight-medium);
+  line-height: var(--leading-ui);
+  letter-spacing: 0.01em;
+  color: var(--text-muted);
+}
+
+.text-table-cell {
+  font-family: var(--font-ui);
+  font-size: var(--type-table);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-ui);
+  letter-spacing: var(--tracking-body);
+  color: var(--text-primary);
+}
+
+.text-metric {
+  font-family: var(--font-ui);
+  font-size: var(--type-metric);
+  font-weight: var(--weight-semibold);
+  line-height: 1.1;
+  letter-spacing: var(--tracking-metric);
+  font-variant-numeric: tabular-nums lining-nums;
+  color: var(--text-primary);
+}
+
+.text-badge {
+  font-family: var(--font-ui);
+  font-size: var(--type-badge);
+  font-weight: var(--weight-medium);
+  line-height: 1.2;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.text-mono {
+  font-family: var(--font-data);
+  font-size: var(--type-mono);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-ui);
+  letter-spacing: var(--tracking-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Semantic color utilities */
+.text-primary-fg { color: var(--text-primary); }
+.text-secondary-fg { color: var(--text-secondary); }
+.text-muted-fg { color: var(--text-muted); }
+.text-disabled-fg { color: var(--text-disabled); }
+.text-inverse-fg { color: var(--text-inverse); }
+.text-success-fg { color: var(--text-success); }
+.text-warning-fg { color: var(--text-warning); }
+.text-danger-fg { color: var(--text-danger); }
+.text-link-fg { color: var(--text-link); }
+
+/* Links */
+a.text-link,
+.link {
+  color: var(--text-link);
+  text-underline-offset: 3px;
+}
+a.text-link:hover,
+.link:hover {
+  text-decoration: underline;
+}
+
+/* ─── Component defaults (typography only) ─── */
+
+/* Buttons: Linear/Stripe feel */
+button,
+[role="button"],
+.btn {
+  font-family: var(--font-ui);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-button);
+}
+
+/* Forms */
+input,
+textarea,
+select {
+  font-family: var(--font-ui);
+  font-size: var(--type-input);
+  font-weight: var(--weight-regular);
+  letter-spacing: var(--tracking-body);
+  line-height: var(--leading-ui);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-disabled);
+  opacity: 1;
+  font-weight: var(--weight-regular);
+}
+
+label {
+  font-family: var(--font-ui);
+  font-size: var(--type-label);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-label);
+  color: var(--text-secondary);
+}
+
+/* Tables */
+th {
+  font-family: var(--font-ui);
+  font-size: var(--type-table);
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.01em;
+  color: var(--text-muted);
+  text-align: left;
+}
+
+td {
+  font-family: var(--font-ui);
+  font-size: var(--type-table);
+  font-weight: var(--weight-regular);
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Navigation */
+nav a,
+nav button {
+  font-family: var(--font-ui);
+  font-weight: var(--weight-medium);
+  letter-spacing: -0.01em;
+}
+
+/* Code / mono blocks */
+code, kbd, pre, samp {
+  font-family: var(--font-data);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ─── Marketing prose measure ─── */
+.prose-marketing {
+  max-width: var(--prose-width);
+}
+
+.prose-marketing-wide {
+  max-width: var(--prose-width-wide);
+}
+
+/* Hero display — explicit sizes (avoid Tailwind --text-* token collisions) */
+h1.hero-display,
+.hero-display {
+  font-family: var(--font-ui) !important;
+  font-size: 2.5rem !important; /* 40px mobile */
+  font-weight: 600 !important;
+  line-height: 1.08 !important;
+  letter-spacing: -0.035em !important;
+  text-wrap: balance;
+  color: var(--text-primary) !important;
+}
+
+@media (min-width: 640px) {
+  h1.hero-display,
+  .hero-display {
+    font-size: 3.5rem !important; /* 56px */
+    line-height: 1.05 !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  h1.hero-display,
+  .hero-display {
+    font-size: 4.25rem !important; /* 68px — premium SaaS hero */
+    line-height: 1.04 !important;
+    letter-spacing: -0.04em !important;
+  }
+}
+
+@media (min-width: 1440px) {
+  h1.hero-display,
+  .hero-display {
+    font-size: 4.5rem !important; /* 72px */
+  }
+}
+
+/* Accent word inside hero (e.g. Smartest) */
+.hero-display .hero-accent,
+h1.hero-display em,
+h1.hero-display .hero-accent {
+  font-style: italic !important;
+  font-weight: 500 !important;
+  color: #2DD4A7 !important;
+  letter-spacing: -0.03em;
+}
+
+/* Section title helper */
+h2.section-title,
+.section-title {
+  font-family: var(--font-ui) !important;
+  font-size: 1.875rem !important; /* 30px */
+  font-weight: 600 !important;
+  line-height: 1.2 !important;
+  letter-spacing: -0.025em !important;
+  text-wrap: balance;
+  color: var(--text-primary) !important;
+}
+
+@media (min-width: 640px) {
+  h2.section-title,
+  .section-title {
+    font-size: 2.25rem !important; /* 36px */
+  }
+}
+
+.section-sub {
+  font-family: var(--font-body) !important;
+  font-size: 1.0625rem !important; /* 17px */
+  font-weight: 400 !important;
+  line-height: 1.65 !important;
+  letter-spacing: -0.011em !important;
+  color: var(--text-secondary) !important;
+  max-width: var(--prose-width);
+}
+
+@media (min-width: 640px) {
+  .section-sub {
+    font-size: 1.125rem !important; /* 18px */
+  }
+}
+
+/* Dashboard metric cards */
+.metric-value {
+  font-family: var(--font-ui);
+  font-size: var(--type-metric);
+  font-weight: var(--weight-semibold);
+  line-height: 1.1;
+  letter-spacing: var(--tracking-metric);
+  font-variant-numeric: tabular-nums lining-nums;
+  color: var(--text-primary);
+}
+
+.metric-label {
+  font-family: var(--font-data);
+  font-size: var(--type-overline);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-overline);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* Soften pure white text utilities sitewide (premium, not harsh) */
+.text-white {
+  color: var(--text-primary) !important;
+}
+
+/* font-serif → display UI font (was Instrument Serif) */
+.font-serif {
+  font-family: var(--font-ui) !important;
+  font-style: normal;
+  letter-spacing: var(--tracking-heading);
+}
+
+.font-serif.italic {
+  font-style: italic;
+  font-weight: var(--weight-medium);
+}
+
+.font-sans {
+  font-family: var(--font-ui) !important;
+}
+
+.font-mono {
+  font-family: var(--font-data) !important;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ─── Responsive type floor ─── */
+@media (max-width: 374px) {
+  html { font-size: 15px; }
+  h1.hero-display,
+  .hero-display {
+    font-size: 2rem !important; /* 32px small phones */
+  }
+}
+
+/* Prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .hero-display,
+  .section-title {
+    text-wrap: pretty;
+  }
+}
+
+/* Dashboard page titles */
+.dash-title {
+  font-family: var(--font-ui) !important;
+  font-size: 1.5rem !important;
+  font-weight: 600 !important;
+  line-height: 1.25 !important;
+  letter-spacing: -0.025em !important;
+  color: var(--text-primary) !important;
+}
+
+@media (min-width: 768px) {
+  .dash-title {
+    font-size: 1.75rem !important;
+  }
+}

@@ -14,7 +14,7 @@ interface UnlockModalProps {
 }
 
 export default function UnlockModal({ isOpen, onClose, type, onUpgradeSuccess }: UnlockModalProps) {
-  const { updateSubscriptionTier } = useAuth();
+  const { updateSubscriptionTier, user } = useAuth();
   const [isUpgrading, setIsUpgrading] = useState(false);
 
   const getModalConfig = () => {
@@ -90,9 +90,26 @@ export default function UnlockModal({ isOpen, onClose, type, onUpgradeSuccess }:
     trackEvent('upgrade_checkout_started', { target_tier: config.targetTier, gate_type: type });
     setIsUpgrading(true);
     try {
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      try {
+        const { supabase } = await import('@/lib/supabase');
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.access_token) {
+          headers['Authorization'] = `Bearer ${session.access_token}`;
+        }
+      } catch {
+        // ignore
+      }
+      if (user?.is_mock) {
+        headers['x-is-sandbox'] = 'true';
+        headers['x-user-id'] = user.id;
+        headers['x-org-id'] = 'mock-org-123';
+        headers['x-user-tier'] = user.subscription_tier;
+      }
+
       const res = await fetch('/api/billing/upgrade', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({ tier: config.targetTier })
       });
       const data = await res.json();
@@ -121,95 +138,100 @@ export default function UnlockModal({ isOpen, onClose, type, onUpgradeSuccess }:
           {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
-            animate={{ opacity: 0.8 }}
+            animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="absolute inset-0 bg-[#090A0C] backdrop-blur-sm"
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            aria-hidden
           />
 
-          {/* Modal Container */}
+          {/* Modal — theme-aware surfaces (readable in light + dark) */}
           <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="unlock-modal-title"
             initial={{ opacity: 0, scale: 0.95, y: 15 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 15 }}
             transition={{ type: 'spring', duration: 0.4 }}
-            className="w-full max-w-md bg-[#101113] border border-[#232529] rounded-2xl p-6 shadow-2xl relative overflow-hidden z-10"
+            className="relative z-10 w-full max-w-md overflow-hidden rounded-2xl border border-border bg-secondary-bg p-6 shadow-2xl"
           >
-            {/* Glowing Accent Ring */}
-            <div className="absolute -top-20 -right-20 w-44 h-44 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
-            <div className="absolute -bottom-20 -left-20 w-44 h-44 bg-[#10B981]/5 rounded-full blur-3xl pointer-events-none" />
+            <div className="pointer-events-none absolute -right-20 -top-20 h-44 w-44 rounded-full bg-[#2DD4A7]/10 blur-3xl" />
 
             {/* Header */}
-            <div className="flex items-start justify-between mb-4">
+            <div className="mb-4 flex items-start justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 bg-[#1C1E22] border border-[#2A2D34] rounded-lg">
+                <div className="rounded-lg border border-border bg-background p-2">
                   {type === 'developer_keys' ? (
-                    <Code className="w-5 h-5 text-primary" />
+                    <Code className="h-5 w-5 text-primary" aria-hidden />
                   ) : (
-                    <Sparkles className="w-5 h-5 text-primary" />
+                    <Sparkles className="h-5 w-5 text-primary" aria-hidden />
                   )}
                 </div>
-                <h3 className="text-lg font-bold font-sans text-foreground tracking-tight">
+                <h3 id="unlock-modal-title" className="text-lg font-bold tracking-tight text-foreground">
                   {config.title}
                 </h3>
               </div>
-              <button 
+              <button
+                type="button"
                 onClick={onClose}
-                className="text-muted-text hover:text-foreground p-1 hover:bg-[#1C1E22] rounded-md transition-colors"
+                className="cursor-pointer rounded-md p-1 text-secondary-text transition-colors hover:bg-background hover:text-foreground"
+                aria-label="Close"
               >
-                <X className="w-4 h-4" />
+                <X className="h-4 w-4" />
               </button>
             </div>
 
-            {/* Body */}
             <div className="space-y-4">
-              <p className="text-sm text-secondary-text leading-relaxed">
+              <p className="text-sm leading-relaxed text-secondary-text">
                 {config.description}
               </p>
 
-              {/* Feature Checklist */}
-              <div className="bg-secondary-bg border border-[#212328] rounded-xl p-4 space-y-2.5">
-                {config.features.map((feature, i) => (
-                  <div key={i} className="flex items-start gap-2.5 text-xs text-[#E4E4E7]">
-                    <Check className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-                    <span>{feature}</span>
+              {/* Features — inset panel with guaranteed contrast */}
+              <div className="space-y-2.5 rounded-xl border border-border bg-background p-4">
+                {config.features.map((feature) => (
+                  <div key={feature} className="flex items-start gap-2.5 text-xs text-foreground">
+                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
+                    <span className="font-medium leading-snug text-foreground">{feature}</span>
                   </div>
                 ))}
               </div>
 
-              {/* Price Details */}
-              <div className="flex items-baseline justify-between py-1.5 px-0.5">
+              <div className="flex items-baseline justify-between px-0.5 py-1.5">
                 <div>
-                  <span className="text-xs text-muted-text uppercase tracking-wider font-mono">Subscription Cost</span>
-                  <span className="text-foreground block font-bold text-lg">{config.price}</span>
+                  <span className="font-mono text-xs uppercase tracking-wider text-secondary-text">
+                    Subscription Cost
+                  </span>
+                  <span className="block text-lg font-bold text-foreground">{config.price}</span>
                 </div>
-                <span className="text-[10px] text-secondary-text bg-[#1C1E22] border border-[#2A2D34] py-1 px-2.5 rounded-full font-mono">
+                <span className="rounded-full border border-border bg-background px-2.5 py-1 font-mono text-[10px] text-secondary-text">
                   Cancel Anytime
                 </span>
               </div>
 
-              {/* Action Button */}
               <button
+                type="button"
                 disabled={isUpgrading}
                 onClick={handleUpgrade}
-                className="w-full flex items-center justify-center gap-2 bg-primary hover:opacity-90 text-on-primary font-semibold py-3 px-4 rounded-xl transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed text-sm hover:shadow-[0_0_15px_rgba(45,212,167,0.3)]"
+                className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#2DD4A7] px-4 py-3 text-sm font-semibold text-[#042F2E] transition-all hover:bg-[#3ee2b6] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {isUpgrading ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
                     Upgrading Plan...
                   </>
                 ) : (
                   <>
                     {config.cta}
-                    <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                    <ArrowRight className="h-4 w-4" aria-hidden />
                   </>
                 )}
               </button>
 
               <button
+                type="button"
                 onClick={onClose}
-                className="w-full text-center text-xs text-muted-text hover:text-foreground transition-colors pt-1"
+                className="w-full cursor-pointer pt-1 text-center text-xs text-secondary-text transition-colors hover:text-foreground"
               >
                 Keep Free Plan
               </button>

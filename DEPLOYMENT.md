@@ -1,91 +1,128 @@
-# Production Deployment Guide: LocalRadar
+# LocalRadar production deployment
 
-Follow these steps to transition LocalRadar from Sandbox Mode to live production.
-
----
-
-## 1. Supabase Database & Auth Setup
-
-LocalRadar utilizes Supabase for authentication and database management.
-
-1. **Create a Supabase Project**: Go to [Supabase Console](https://database.new) and start a new project.
-2. **Execute Database Schema**:
-   - Open the **SQL Editor** in your Supabase dashboard.
-   - Click "New Query" and paste the DDL commands from the schema file:
-     [`supabase/schema.sql`](file:///c:/Users/user/Documents/antigravity/LocalRdar/supabase/schema.sql)
-   - Click **Run** to generate the tables, Row Level Security (RLS) policies, indexes, and profiles.
-3. **Configure Authentication**:
-   - Go to **Authentication > Providers** in Supabase.
-   - Enable **Google** login if desired (requires credentials from Google Cloud Console).
-   - Set up your redirect URLs to point to your production domains: `https://yourdomain.com/auth/callback`.
+This guide matches the **current codebase** (DodoPayments + Supabase). Ignore older Stripe-only notes if you find them in git history.
 
 ---
 
-## 2. Stripe Subscriptions Configuration
+## 1. Supabase
 
-Stripe handles checkout billing and subscription tier status.
+1. Create a project at [supabase.com](https://supabase.com).
+2. Run SQL in order:
+   - `supabase/schema.sql`
+   - `supabase/migrations/20260618000000_billing_and_entitlements.sql`
+   - `supabase/migrations/20260618000100_contact_discovery.sql`
+   - `supabase/migrations/20260618000200_auth_user_trigger.sql`
+   - `supabase/migrations/20260724000000_subscriptions_unique_org.sql` (if present)
+3. Auth → Providers: enable Email; optionally Google.
+4. Auth → URL configuration:
+   - Site URL: `https://your-domain.com`
+   - Redirect: `https://your-domain.com/auth/callback`
 
-1. **Create Products in Stripe**:
-   - Open the **Stripe Dashboard** (developers mode enabled).
-   - Go to **Product Catalog > Add Product**.
-   - Create two products with recurring monthly prices:
-     - **Pro Finder**: `$29.00 / month`
-     - **Agency Growth**: `$79.00 / month`
-2. **Retrieve API Credentials**:
-   - Copy your **Publishable Key** and **Secret Key** from the Developers section.
-3. **Stripe Webhook Configuration**:
-   - Go to **Developers > Webhooks**.
-   - Click "Add Endpoint" and point it to your Vercel API endpoint: `https://your-domain.vercel.app/api/webhooks/stripe`.
-   - Select the following events:
-     - `checkout.session.completed`
-     - `customer.subscription.updated`
-     - `customer.subscription.deleted`
-   - Copy the **Signing Secret** (`whsec_...`).
+### Keys
+
+| Variable | Where |
+|----------|--------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | anon public |
+| `SUPABASE_SERVICE_ROLE_KEY` | **service_role** (server only, never expose) |
 
 ---
 
-## 3. Vercel Deployment & Environment Settings
+## 2. Billing (DodoPayments)
 
-Deploy the Next.js frontend to Vercel.
+1. Create products for **Pro**, **Agency**, **Agency Plus** in DodoPayments.
+2. Set env:
+   - `DODO_PAYMENTS_API_KEY`
+   - `DODO_PAYMENTS_PRO_PRODUCT_ID`
+   - `DODO_PAYMENTS_AGENCY_PRODUCT_ID`
+   - `DODO_PAYMENTS_AGENCY_PLUS_PRODUCT_ID`
+   - `DODO_PAYMENTS_WEBHOOK_KEY` (signing secret)
+   - `DODO_PAYMENTS_MODE=test` or `live`
+3. Webhook endpoint (production):
 
-1. **Initialize Vercel project**:
-   - Install the Vercel CLI or import your git repository directly on the Vercel Dashboard.
-2. **Add Environment Variables**: Set the following variables in Vercel project settings:
-
-```env
-# Next.js Public Keys (available client-side)
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key-here
-
-# Private Secret Keys (server-side only)
-SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key-here
-OPENAI_API_KEY=sk-proj-...
-STRIPE_SECRET_KEY=sk_live_...
-STRIPE_WEBHOOK_SECRET=whsec_...
+```
+https://your-domain.com/api/billing/webhook
 ```
 
-3. **Deploy**:
-   - Trigger build: `vercel deploy --prod`
+Subscribe to subscription active/updated/cancelled/failed events as provided by Dodo.
+
+**Security:** The webhook refuses to run without a real signing secret in production. Product IDs map to tiers server-side.
 
 ---
 
-## 4. Local Development
+## 3. Required production secrets
 
-To run LocalRadar locally and verify builds:
+```env
+NEXT_PUBLIC_SITE_URL=https://your-domain.com
+NEXT_PUBLIC_SUPABASE_URL=...
+NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+SUPABASE_SERVICE_ROLE_KEY=...
+ENCRYPTION_SECRET=<32+ random characters>
+DODO_PAYMENTS_API_KEY=...
+DODO_PAYMENTS_WEBHOOK_KEY=...
+DODO_PAYMENTS_PRO_PRODUCT_ID=...
+DODO_PAYMENTS_AGENCY_PRODUCT_ID=...
+DODO_PAYMENTS_AGENCY_PLUS_PRODUCT_ID=...
+```
 
-1. Clone repo, install packages:
-   ```bash
-   npm install
-   ```
-2. Start the hot-reloading dev environment:
-   ```bash
-   npm run dev
-   ```
-3. Run TypeScript checks:
-   ```bash
-   npx tsc --noEmit
-   ```
-4. Perform production test compilation:
-   ```bash
-   npm run build
-   ```
+Recommended:
+
+```env
+GOOGLE_PLACES_API_KEY=...
+OPENROUTER_API_KEY=...   # or OPENAI_API_KEY
+CONTACT_WEBHOOK_URL=...  # form delivery
+```
+
+**Do not set in production:**
+
+```env
+ALLOW_SANDBOX_IN_PRODUCTION=true
+NEXT_PUBLIC_ALLOW_SANDBOX=true
+```
+
+unless you are running an intentional internal demo.
+
+---
+
+## 4. Vercel (or similar)
+
+1. Import the Git repository.
+2. Framework: Next.js.
+3. Paste env vars from the checklist above.
+4. Deploy. Confirm:
+   - `npm run build` succeeds
+   - `/api/billing/webhook` returns 401/503 without valid signature (not 200 open)
+   - Login with a real Supabase user works
+   - Dashboard APIs return 401 without `Authorization`
+
+---
+
+## 5. Post-deploy verification
+
+| Check | Expected |
+|-------|----------|
+| `GET /` | Marketing loads |
+| `GET /robots.txt` | Allows marketing, disallows `/dashboard/` |
+| `GET /sitemap.xml` | Lists public routes |
+| `POST /api/search` no auth | **401** |
+| `POST /api/search` with `x-is-sandbox: true` in prod | **401** |
+| Checkout | Redirects to Dodo; return to `/dashboard/settings?status=success` |
+| Webhook | Updates `organizations.subscription_tier` via service role |
+
+---
+
+## 6. Local development
+
+```bash
+npm install
+cp .env.example .env.local
+npm run dev
+```
+
+Without Supabase keys, **Sandbox Mode** is available for UI demos only. Sandbox is not a production auth system.
+
+```bash
+npm run typecheck
+npm run lint
+npm run build
+```
