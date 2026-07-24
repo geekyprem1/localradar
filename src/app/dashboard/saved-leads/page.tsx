@@ -87,7 +87,7 @@ export default function SavedLeadsPage() {
   };
 
   const getScoreColor = (score: number) => {
-    if (score >= 60) return 'text-[#2DD4A7] border-[#2DD4A7]/25 bg-[#2DD4A7]/10';
+    if (score >= 60) return 'text-primary border-primary/25 bg-primary/10';
     if (score >= 35) return 'text-[#F5A623] border-[#F5A623]/20 bg-[#F5A623]/10';
     return 'text-[#FF5C5C] border-[#FF5C5C]/20 bg-[#FF5C5C]/10';
   };
@@ -99,10 +99,10 @@ export default function SavedLeadsPage() {
   };
 
   const getFitColor = (level: string) => {
-    if (level === 'Perfect Fit') return 'text-[#FFFFFF] bg-[#26282D] border-[#26282D]';
-    if (level === 'Strong Fit') return 'text-[#A1A1AA] bg-[#141517] border-[#26282D]';
-    if (level === 'Moderate Fit') return 'text-[#71717A] bg-transparent border-[#26282D]/60';
-    return 'text-[#71717A] bg-transparent border-[#26282D]/40';
+    if (level === 'Perfect Fit') return 'text-foreground bg-border border-border';
+    if (level === 'Strong Fit') return 'text-secondary-text bg-secondary-bg border-border';
+    if (level === 'Moderate Fit') return 'text-muted-text bg-transparent border-border/60';
+    return 'text-muted-text bg-transparent border-border/40';
   };
 
   const getCleanTopReason = (scored: any) => {
@@ -143,24 +143,24 @@ export default function SavedLeadsPage() {
   const selectedScored = selectedLead ? scoredMap[selectedLead.id] : null;
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto font-sans text-white pb-16">
+    <div className="space-y-8 max-w-7xl mx-auto font-sans text-foreground pb-16">
       {/* Header */}
-      <div className="border-b border-[#26282D] pb-6">
-        <h1 className="text-2xl font-serif font-bold text-white flex items-center gap-2">
+      <div className="border-b border-border pb-6">
+        <h1 className="text-2xl font-serif font-bold text-foreground flex items-center gap-2">
           Saved Opportunities
-          <Bookmark className="w-5 h-5 text-white" />
+          <Bookmark className="w-5 h-5 text-foreground" />
         </h1>
-        <p className="text-[#A1A1AA] text-xs mt-1 font-mono">
+        <p className="text-secondary-text text-xs mt-1 font-mono">
           Review and access your persistently bookmarked prospects across searches.
         </p>
       </div>
 
       {savedLeads.length > 0 ? (
-        <div className="bg-[#141517] border border-[#26282D] rounded-xl overflow-hidden shadow-2xl">
+        <div className="bg-secondary-bg border border-border rounded-xl overflow-hidden shadow-2xl">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-[#26282D] bg-[#0B0B0C]/90 text-[#A1A1AA] text-[11px] font-mono uppercase tracking-widest">
+                <tr className="border-b border-border bg-background/90 text-secondary-text text-[11px] font-mono uppercase tracking-widest">
                   <th className="py-5 px-6">Business Name</th>
                   <th className="py-5 px-6">Website</th>
                   <th className="py-5 px-6">Rating / Reviews</th>
@@ -172,7 +172,7 @@ export default function SavedLeadsPage() {
                   <th className="py-5 px-6 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#26282D]">
+              <tbody className="divide-y divide-border">
                 {savedLeads.map((biz) => {
                   const scored = scoredMap[biz.id];
                   const score = scored?.opportunityScore ?? 0;
@@ -181,14 +181,14 @@ export default function SavedLeadsPage() {
                     <tr 
                       key={biz.id} 
                       onClick={() => setSelectedLeadId(biz.id)}
-                      className="hover:bg-[#0B0B0C] transition-colors text-white cursor-pointer select-none"
+                      className="hover:bg-background transition-colors text-foreground cursor-pointer select-none"
                     >
                       <td className="py-5 px-6">
-                        <div className="font-sans font-semibold text-base text-[#FFFFFF] flex items-center gap-1.5 truncate max-w-[200px]">
+                        <div className="font-sans font-semibold text-base text-foreground flex items-center gap-1.5 truncate max-w-[200px]">
                           {biz.name}
                           {hotLeadsMap[biz.id] && <Flame className="w-3.5 h-3.5 text-[#F5A623] fill-[#F5A623] shrink-0" />}
                         </div>
-                        <div className="text-xs text-[#71717A] truncate max-w-[200px] mt-1 font-mono">{biz.address}</div>
+                        <div className="text-xs text-muted-text truncate max-w-[200px] mt-1 font-mono">{biz.address}</div>
                       </td>
                       <td className="py-5 px-6" onClick={(e) => e.stopPropagation()}>
                         {biz.website ? (
@@ -196,9 +196,9 @@ export default function SavedLeadsPage() {
                             href={biz.website}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-xs text-zinc-300 hover:text-white hover:underline flex items-center gap-1 max-w-[150px] truncate font-mono"
+                            className="text-xs text-zinc-300 hover:text-foreground hover:underline flex items-center gap-1 max-w-[150px] truncate font-mono"
                           >
-                            <Globe className="w-3.5 h-3.5 text-[#A1A1AA]" />
+                            <Globe className="w-3.5 h-3.5 text-secondary-text" />
                             {biz.website.replace('https://www.', '')}
                           </a>
                         ) : (
@@ -208,10 +208,10 @@ export default function SavedLeadsPage() {
                         )}
                       </td>
                       <td className="py-5 px-6">
-                        <div className="flex items-center gap-1 text-xs text-white">
+                        <div className="flex items-center gap-1 text-xs text-foreground">
                           <Star className="w-3.5 h-3.5 text-[#F5A623] fill-[#F5A623]" />
                           <span>{biz.rating}</span>
-                          <span className="text-[#A1A1AA] font-mono">({biz.reviews_count} reviews)</span>
+                          <span className="text-secondary-text font-mono">({biz.reviews_count} reviews)</span>
                         </div>
                       </td>
                       <td className="py-5 px-6 text-center">
@@ -234,13 +234,13 @@ export default function SavedLeadsPage() {
                             </span>
                           </div>
                         ) : (
-                          <span className="text-xs text-[#71717A] font-mono">—</span>
+                          <span className="text-xs text-muted-text font-mono">—</span>
                         )}
                       </td>
                       <td className="py-5 px-6 text-center">
                         <span className={`text-sm font-semibold font-mono ${
                           (scored?.closingProbability ?? 0) >= 70 
-                            ? 'text-[#2DD4A7]' 
+                            ? 'text-primary' 
                             : (scored?.closingProbability ?? 0) >= 40 
                               ? 'text-[#F5A623]' 
                               : 'text-[#FF5C5C]'
@@ -249,7 +249,7 @@ export default function SavedLeadsPage() {
                         </span>
                       </td>
                       <td className="py-5 px-6 text-center">
-                        <span className="text-sm font-semibold text-[#2DD4A7] font-mono">
+                        <span className="text-sm font-semibold text-primary font-mono">
                           {scored?.dealValue.formatted ?? '—'}
                         </span>
                       </td>
@@ -257,23 +257,23 @@ export default function SavedLeadsPage() {
                         <div className="flex items-center justify-end gap-2">
                           <button
                             onClick={() => handleRemoveLead(biz.id)}
-                            className="p-2 rounded-lg border border-[#26282D] bg-[#0B0B0C] text-[#A1A1AA] hover:text-[#FF5C5C] hover:bg-[#FF5C5C]/10 hover:border-[#FF5C5C]/20 transition-all cursor-pointer"
+                            className="p-2 rounded-lg border border-border bg-background text-secondary-text hover:text-[#FF5C5C] hover:bg-[#FF5C5C]/10 hover:border-[#FF5C5C]/20 transition-all cursor-pointer"
                             title="Remove Lead"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
                           <button
                             onClick={() => router.push(`/dashboard/audit/${biz.id}`)}
-                            className="bg-[#0B0B0C] hover:bg-[#141517] border border-[#26282D] text-[#A1A1AA] hover:text-[#FFFFFF] text-xs font-semibold px-4 py-2 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer font-mono"
+                            className="bg-background hover:bg-secondary-bg border border-border text-secondary-text hover:text-foreground text-xs font-semibold px-4 py-2 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer font-mono"
                           >
                             <FileText className="w-3.5 h-3.5 text-zinc-500" />
                             Audit
                           </button>
                           <button
                             onClick={() => router.push(`/dashboard/pitch?bizId=${biz.id}`)}
-                            className="bg-gradient-to-r from-[#2DD4A7] to-[#14B88C] hover:opacity-95 text-[#0B0B0C] text-xs font-bold px-4 py-2 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer shadow-sm font-mono"
+                            className="bg-gradient-to-r from-primary to-[#14B88C] hover:opacity-95 text-on-primary text-xs font-bold px-4 py-2 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer shadow-sm font-mono"
                           >
-                            <Send className="w-3.5 h-3.5 text-[#0B0B0C]" />
+                            <Send className="w-3.5 h-3.5 text-on-primary" />
                             Pitch
                           </button>
                         </div>
@@ -286,12 +286,12 @@ export default function SavedLeadsPage() {
           </div>
         </div>
       ) : (
-        <div className="bg-[#141517] border border-[#26282D] p-12 text-center max-w-lg mx-auto rounded-3xl shadow-xl">
-          <div className="w-12 h-12 rounded-xl bg-[#0B0B0C] border border-[#26282D] flex items-center justify-center mx-auto mb-4 text-[#A1A1AA]">
+        <div className="bg-secondary-bg border border-border p-12 text-center max-w-lg mx-auto rounded-3xl shadow-xl">
+          <div className="w-12 h-12 rounded-xl bg-background border border-border flex items-center justify-center mx-auto mb-4 text-secondary-text">
             <Bookmark className="w-5 h-5" />
           </div>
-          <h3 className="text-white text-sm font-semibold font-serif">No Saved Opportunities Yet</h3>
-          <p className="text-[#A1A1AA] text-xs mt-1 max-w-sm mx-auto font-mono">
+          <h3 className="text-foreground text-sm font-semibold font-serif">No Saved Opportunities Yet</h3>
+          <p className="text-secondary-text text-xs mt-1 max-w-sm mx-auto font-mono">
             Bookmarked prospects from your searches will appear here. Go to the Opportunity Finder and bookmark any record to save.
           </p>
         </div>

@@ -78,19 +78,19 @@ export default function CompetitorGap({
   ];
 
   return (
-    <div className="bg-[#141517] border border-[#26282D] p-5 rounded-xl space-y-4">
+    <div className="bg-secondary-bg border border-border p-5 rounded-xl space-y-4">
       {/* Title */}
-      <div className="flex justify-between items-center border-b border-[#26282D] pb-3">
-        <h3 className="text-xs font-semibold text-[#A1A1AA] flex items-center gap-1.5 uppercase tracking-wider font-mono">
+      <div className="flex justify-between items-center border-b border-border pb-3">
+        <h3 className="text-xs font-semibold text-secondary-text flex items-center gap-1.5 uppercase tracking-wider font-mono">
           <Users className="w-4 h-4 text-[#10B981]" />
           Competitor Gap Analysis
         </h3>
         <div className="flex gap-4 text-[9px] font-mono">
-          <span className="flex items-center gap-1 font-normal text-[#71717A]">
+          <span className="flex items-center gap-1 font-normal text-muted-text">
             <span className="w-2 h-2 rounded bg-white inline-block" /> Target
           </span>
-          <span className="flex items-center gap-1 font-normal text-[#71717A]">
-            <span className="w-2 h-2 rounded bg-[#71717A] inline-block" /> Comp Avg
+          <span className="flex items-center gap-1 font-normal text-muted-text">
+            <span className="w-2 h-2 rounded bg-muted-text inline-block" /> Comp Avg
           </span>
         </div>
       </div>
@@ -103,19 +103,19 @@ export default function CompetitorGap({
           
           return (
             <div key={param.label} className="space-y-1 text-xs">
-              <div className="flex justify-between text-white text-[10px]">
-                <span className="text-[#A1A1AA] font-sans font-normal">{param.label}</span>
+              <div className="flex justify-between text-foreground text-[10px]">
+                <span className="text-secondary-text font-sans font-normal">{param.label}</span>
                 <div className="flex gap-2">
-                  <span className="text-white font-semibold">{param.bizText}</span>
-                  <span className="text-[#71717A] font-normal">vs</span>
-                  <span className="text-[#A1A1AA] font-normal">{param.compText}</span>
+                  <span className="text-foreground font-semibold">{param.bizText}</span>
+                  <span className="text-muted-text font-normal">vs</span>
+                  <span className="text-secondary-text font-normal">{param.compText}</span>
                 </div>
               </div>
 
               {/* Stacked comparison bar */}
               <div className="space-y-1 pt-0.5">
                 {/* Business Bar */}
-                <div className="h-1.5 bg-[#141517] rounded-full overflow-hidden border border-[#26282D] relative">
+                <div className="h-1.5 bg-secondary-bg rounded-full overflow-hidden border border-border relative">
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${bizPercentage}%` }}
@@ -124,12 +124,12 @@ export default function CompetitorGap({
                   />
                 </div>
                 {/* Competitor Average Bar */}
-                <div className="h-1.5 bg-[#141517] rounded-full overflow-hidden border border-[#26282D] relative">
+                <div className="h-1.5 bg-secondary-bg rounded-full overflow-hidden border border-border relative">
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${compPercentage}%` }}
                     transition={{ duration: 0.5, delay: idx * 0.04 }}
-                    className="h-full bg-[#71717A]"
+                    className="h-full bg-muted-text"
                   />
                 </div>
               </div>

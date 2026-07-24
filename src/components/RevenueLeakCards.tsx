@@ -62,7 +62,7 @@ export default function RevenueLeakCards({
 
   return (
     <div className="space-y-3">
-      <h4 className="text-[10px] font-semibold text-[#A1A1AA] uppercase tracking-widest font-mono">
+      <h4 className="text-[10px] font-semibold text-secondary-text uppercase tracking-widest font-mono">
         Active Revenue Leakage Audits
       </h4>
       
@@ -76,14 +76,14 @@ export default function RevenueLeakCards({
               transition={{ duration: 0.25, delay: idx * 0.04 }}
               className={`p-3.5 rounded-xl border flex flex-col justify-between transition-all ${
                 leak.active 
-                  ? 'bg-[#0B0B0C] border-[#FF5C5C]/25 hover:border-[#FF5C5C]/45' 
-                  : 'bg-[#141517] border-[#26282D] opacity-60'
+                  ? 'bg-background border-[#FF5C5C]/25 hover:border-[#FF5C5C]/45' 
+                  : 'bg-secondary-bg border-border opacity-60'
               }`}
             >
               <div>
                 <div className="flex items-center justify-between gap-1.5 mb-2">
                   <span className={`text-[8px] font-normal font-mono px-1.5 py-0.5 rounded ${
-                    leak.active ? 'bg-[#FF5C5C]/10 text-[#FF5C5C]' : 'bg-[#0B0B0C] text-[#71717A] border border-[#26282D]'
+                    leak.active ? 'bg-[#FF5C5C]/10 text-[#FF5C5C]' : 'bg-background text-muted-text border border-border'
                   }`}>
                     {leak.category}
                   </span>
@@ -91,21 +91,21 @@ export default function RevenueLeakCards({
                   {leak.active ? (
                     <AlertTriangle className="w-4 h-4 text-[#FF5C5C]" />
                   ) : (
-                    <ShieldCheck className="w-4 h-4 text-[#2DD4A7]" />
+                    <ShieldCheck className="w-4 h-4 text-primary" />
                   )}
                 </div>
 
-                <h5 className={`text-xs font-semibold ${leak.active ? 'text-white' : 'text-[#71717A]'}`}>
+                <h5 className={`text-xs font-semibold ${leak.active ? 'text-foreground' : 'text-muted-text'}`}>
                   {leak.label}
                 </h5>
-                <p className="text-[10px] text-[#A1A1AA] mt-1 leading-relaxed font-normal">
+                <p className="text-[10px] text-secondary-text mt-1 leading-relaxed font-normal">
                   {leak.impact}
                 </p>
               </div>
 
-              <div className="mt-3 pt-2 border-t border-[#26282D] flex items-center justify-between text-[9px] font-mono">
-                <span className="text-[#71717A] font-normal">Status</span>
-                <span className={leak.active ? 'text-[#FF5C5C] font-semibold' : 'text-[#2DD4A7] font-semibold'}>
+              <div className="mt-3 pt-2 border-t border-border flex items-center justify-between text-[9px] font-mono">
+                <span className="text-muted-text font-normal">Status</span>
+                <span className={leak.active ? 'text-[#FF5C5C] font-semibold' : 'text-primary font-semibold'}>
                   {leak.active ? '✓ CRITICAL LEAK' : '✓ SECURED'}
                 </span>
               </div>

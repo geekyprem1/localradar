@@ -452,15 +452,15 @@ export default function LeadFinderPage() {
   const getServiceFits = (bizId: string) => scoredMap[bizId]?.serviceFitScores ?? [];
 
   const getScoreColor = (score: number) => {
-    if (score >= 60) return 'text-[#2DD4A7] border-[#2DD4A7]/25 bg-[#2DD4A7]/10';
+    if (score >= 60) return 'text-primary border-primary/25 bg-primary/10';
     if (score >= 35) return 'text-[#F5A623] border-[#F5A623]/20 bg-[#F5A623]/10';
     return 'text-[#FF5C5C] border-[#FF5C5C]/20 bg-[#FF5C5C]/10';
   };
 
   const getScoreBadgeColor = (score: number) => {
-    if (score >= 60) return 'bg-[#2DD4A7] text-[#0B0B0C]';
-    if (score >= 35) return 'bg-[#F5A623] text-[#0B0B0C]';
-    return 'bg-[#FF5C5C] text-[#FFFFFF]';
+    if (score >= 60) return 'bg-primary text-on-primary';
+    if (score >= 35) return 'bg-[#F5A623] text-on-primary';
+    return 'bg-[#FF5C5C] text-foreground';
   };
 
   const getScoreLabel = (score: number) => {
@@ -470,10 +470,10 @@ export default function LeadFinderPage() {
   };
 
   const getFitColor = (level: string) => {
-    if (level === 'Perfect Fit') return 'text-[#FFFFFF] bg-[#26282D] border-[#26282D]';
-    if (level === 'Strong Fit') return 'text-[#A1A1AA] bg-[#141517] border-[#26282D]';
-    if (level === 'Moderate Fit') return 'text-[#71717A] bg-transparent border-[#26282D]/60';
-    return 'text-[#71717A] bg-transparent border-[#26282D]/40';
+    if (level === 'Perfect Fit') return 'text-foreground bg-border border-border';
+    if (level === 'Strong Fit') return 'text-secondary-text bg-secondary-bg border-border';
+    if (level === 'Moderate Fit') return 'text-muted-text bg-transparent border-border/60';
+    return 'text-muted-text bg-transparent border-border/40';
   };
 
   const getTags = (bizId: string) => {
@@ -558,7 +558,7 @@ export default function LeadFinderPage() {
   const selectedScored = selectedLead ? scoredMap[selectedLead.id] : null;
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto font-sans text-[#FFFFFF] pb-16 relative">
+    <div className="space-y-8 max-w-7xl mx-auto font-sans text-foreground pb-16 relative">
       
       {/* Soft usage warning alert */}
       {usageStats?.soft_alert && (
@@ -569,16 +569,16 @@ export default function LeadFinderPage() {
       )}
       
       {/* Top Header / Premium Context Line */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[rgba(255,255,255,0.08)] pb-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border pb-6">
         <div>
-          <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-[#A1A1AA] font-semibold">
-            <Zap className="w-3.5 h-3.5 text-[#A1A1AA] animate-pulse" />
+          <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-secondary-text font-semibold">
+            <Zap className="w-3.5 h-3.5 text-secondary-text animate-pulse" />
             Opportunity Engine™
           </div>
-          <h1 className="text-3xl font-serif font-semibold tracking-tight mt-1 text-[#FFFFFF]">Opportunity Finder™</h1>
-          <p className="text-[#9CA3AF] text-xs mt-1 flex items-center gap-1.5 font-normal">
-            <span className="text-[#A1A1AA] font-normal uppercase tracking-wider text-[10px] font-mono">Powered by LocalRadar Intelligence Engine™</span>
-            <span className="text-[#71717A]">•</span>
+          <h1 className="text-3xl font-serif font-semibold tracking-tight mt-1 text-foreground">Opportunity Finder™</h1>
+          <p className="text-secondary-text text-xs mt-1 flex items-center gap-1.5 font-normal">
+            <span className="text-secondary-text font-normal uppercase tracking-wider text-[10px] font-mono">Powered by LocalRadar Intelligence Engine™</span>
+            <span className="text-muted-text">•</span>
             <span>Real-time local lead auditing and transaction valuation terminal.</span>
           </p>
         </div>
@@ -589,28 +589,28 @@ export default function LeadFinderPage() {
             <div className={`px-3 py-1.5 rounded-lg flex items-center gap-1.5 ${
               user?.subscription_tier === 'free' && usageStats.searches_remaining <= 3
                 ? 'bg-[#FF5C5C]/10 border-[#FF5C5C]/25 text-[#FF5C5C]'
-                : 'bg-[#141517] border-[#26282D]'
+                : 'bg-secondary-bg border-border'
             }`}>
               <Zap className={`w-3.5 h-3.5 ${
                 user?.subscription_tier === 'free' && usageStats.searches_remaining <= 3
                   ? 'text-[#FF5C5C]'
-                  : 'text-[#2DD4A7]'
+                  : 'text-primary'
               }`} />
-              <span className={user?.subscription_tier === 'free' && usageStats.searches_remaining <= 3 ? 'text-[#FF5C5C]' : 'text-white font-semibold'}>
+              <span className={user?.subscription_tier === 'free' && usageStats.searches_remaining <= 3 ? 'text-[#FF5C5C]' : 'text-foreground font-semibold'}>
                 {user?.subscription_tier === 'free'
                   ? `${usageStats.searches_remaining <= 3 ? '⚠ ' : ''}${usageStats.searches_remaining} free searches remaining this month`
                   : `Usage: ${usageStats.searches_used}/${usageStats.searches_limit}`}
               </span>
             </div>
           )}
-          <div className="bg-[#141517] border border-[#26282D] px-3 py-1.5 rounded-lg">
-            <span className="text-[#A1A1AA]">Saved Opportunities:</span>{' '}
-            <span className="text-white font-semibold">{savedLeadsList.length}</span>
+          <div className="bg-secondary-bg border border-border px-3 py-1.5 rounded-lg">
+            <span className="text-secondary-text">Saved Opportunities:</span>{' '}
+            <span className="text-foreground font-semibold">{savedLeadsList.length}</span>
           </div>
-          <div className="bg-[#141517] border border-[#26282D] px-3 py-1.5 rounded-lg flex items-center gap-1.5">
-            <LineChart className="w-3.5 h-3.5 text-[#A1A1AA]" />
-            <span className="text-[#A1A1AA]">Trend:</span>{' '}
-            <span className="text-white font-semibold">Optimal Target</span>
+          <div className="bg-secondary-bg border border-border px-3 py-1.5 rounded-lg flex items-center gap-1.5">
+            <LineChart className="w-3.5 h-3.5 text-secondary-text" />
+            <span className="text-secondary-text">Trend:</span>{' '}
+            <span className="text-foreground font-semibold">Optimal Target</span>
           </div>
         </div>
       </div>
@@ -624,13 +624,13 @@ export default function LeadFinderPage() {
       )}
 
       {/* SECTION 1: Compact Search Experience */}
-      <div className="bg-[#141517] border border-[#26282D] p-6 rounded-2xl relative overflow-hidden shadow-2xl">
-        <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#FAFAF9]/10 to-transparent" />
+      <div className="bg-secondary-bg border border-border p-6 rounded-2xl relative overflow-hidden shadow-2xl">
+        <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-foreground/10 to-transparent" />
         
         <form onSubmit={(e) => handleSearch(e)} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end font-sans">
           <div className="space-y-2">
-            <label className="text-[10px] font-normal text-[#A1A1AA] uppercase tracking-widest flex items-center gap-1.5 font-mono">
-              <Compass className="w-3.5 h-3.5 text-[#A1A1AA]" />
+            <label className="text-[10px] font-normal text-secondary-text uppercase tracking-widest flex items-center gap-1.5 font-mono">
+              <Compass className="w-3.5 h-3.5 text-secondary-text" />
               Niche / Industry
             </label>
             <input
@@ -638,14 +638,14 @@ export default function LeadFinderPage() {
               placeholder="e.g. Dentists, Gyms, Roofers"
               value={niche}
               onChange={(e) => setNiche(e.target.value)}
-              className="w-full bg-[#0B0B0C] border border-[#26282D] rounded-xl py-3 px-4 text-[#FFFFFF] placeholder-[#71717A]/60 text-xs focus:outline-none focus:border-[#FAFAF9] focus:ring-1 focus:ring-[#FAFAF9] transition-all font-mono font-normal"
+              className="w-full bg-background border border-border rounded-xl py-3 px-4 text-foreground placeholder-muted-text/60 text-xs focus:outline-none focus:border-foreground focus:ring-1 focus:ring-foreground transition-all font-mono font-normal"
               required
             />
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-normal text-[#A1A1AA] uppercase tracking-widest flex items-center gap-1.5 font-mono">
-              <MapPin className="w-3.5 h-3.5 text-[#A1A1AA]" />
+            <label className="text-[10px] font-normal text-secondary-text uppercase tracking-widest flex items-center gap-1.5 font-mono">
+              <MapPin className="w-3.5 h-3.5 text-secondary-text" />
               Target City
             </label>
             <input
@@ -653,20 +653,20 @@ export default function LeadFinderPage() {
               placeholder="e.g. Dallas, TX or Austin"
               value={city}
               onChange={(e) => setCity(e.target.value)}
-              className="w-full bg-[#0B0B0C] border border-[#26282D] rounded-xl py-3 px-4 text-[#FFFFFF] placeholder-[#71717A]/60 text-xs focus:outline-none focus:border-[#FAFAF9] focus:ring-1 focus:ring-[#FAFAF9] transition-all font-mono font-normal"
+              className="w-full bg-background border border-border rounded-xl py-3 px-4 text-foreground placeholder-muted-text/60 text-xs focus:outline-none focus:border-foreground focus:ring-1 focus:ring-foreground transition-all font-mono font-normal"
               required
             />
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-normal text-[#A1A1AA] uppercase tracking-widest flex items-center gap-1.5 font-mono">
-              <Globe className="w-3.5 h-3.5 text-[#A1A1AA]" />
+            <label className="text-[10px] font-normal text-secondary-text uppercase tracking-widest flex items-center gap-1.5 font-mono">
+              <Globe className="w-3.5 h-3.5 text-secondary-text" />
               Country
             </label>
             <select
               value={country}
               onChange={(e) => setCountry(e.target.value)}
-              className="w-full bg-[#0B0B0C] border border-[#26282D] rounded-xl py-3 px-4 text-[#FFFFFF] text-xs focus:outline-none focus:border-[#FAFAF9] transition-all font-mono cursor-pointer font-normal"
+              className="w-full bg-background border border-border rounded-xl py-3 px-4 text-foreground text-xs focus:outline-none focus:border-foreground transition-all font-mono cursor-pointer font-normal"
             >
               <option value="United States">United States</option>
               <option value="India">India</option>
@@ -678,16 +678,16 @@ export default function LeadFinderPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-gradient-to-r from-[#2DD4A7] to-[#14B88C] hover:opacity-95 disabled:opacity-50 text-[#0B0B0C] font-semibold text-xs py-3 rounded-xl transition-all shadow-[0_0_15px_rgba(45,212,167,0.15)] flex items-center justify-center gap-2 cursor-pointer h-[44px] uppercase tracking-wider font-mono"
+            className="w-full bg-gradient-to-r from-primary to-[#14B88C] hover:opacity-95 disabled:opacity-50 text-on-primary font-semibold text-xs py-3 rounded-xl transition-all shadow-[0_0_15px_rgba(45,212,167,0.15)] flex items-center justify-center gap-2 cursor-pointer h-[44px] uppercase tracking-wider font-mono"
           >
             {loading ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin text-[#0B0B0C]" />
+                <Loader2 className="w-4 h-4 animate-spin text-on-primary" />
                 Scanning Market...
               </>
             ) : (
               <>
-                <Sparkles className="w-4 h-4 text-[#0B0B0C]" />
+                <Sparkles className="w-4 h-4 text-on-primary" />
                 Find Opportunities
               </>
             )}
@@ -696,7 +696,7 @@ export default function LeadFinderPage() {
 
         {/* Quick Suggestion Tags */}
         <div className="mt-4 flex items-center gap-2 flex-wrap text-xs font-normal">
-          <span className="text-[#71717A] font-mono">Suggestions:</span>
+          <span className="text-muted-text font-mono">Suggestions:</span>
           {[
             { niche: 'Dentists', city: 'Austin', country: 'United States' },
             { niche: 'Roofers', city: 'Dallas', country: 'United States' },
@@ -707,7 +707,7 @@ export default function LeadFinderPage() {
               key={`${tag.niche}-${tag.city}`}
               type="button"
               onClick={() => handleSearch(undefined, tag.niche, tag.city, tag.country)}
-              className="bg-[#0B0B0C] hover:bg-[#141517] border border-[#26282D]/85 hover:border-zinc-500 px-2.5 py-1 rounded-md text-[10px] font-mono text-[#A1A1AA] hover:text-white transition-all cursor-pointer"
+              className="bg-background hover:bg-secondary-bg border border-border/85 hover:border-zinc-500 px-2.5 py-1 rounded-md text-[10px] font-mono text-secondary-text hover:text-foreground transition-all cursor-pointer"
             >
               💡 {tag.niche} in {tag.city}
             </button>
@@ -715,11 +715,11 @@ export default function LeadFinderPage() {
         </div>
 
         {/* Recent Searches, Saved Searches & Popular Niches */}
-        <div className="mt-4 pt-4 border-t border-[#26282D] grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-normal">
+        <div className="mt-4 pt-4 border-t border-border grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-normal">
           {recentSearches.length > 0 ? (
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-[#A1A1AA] font-mono flex items-center gap-1">
-                <History className="w-3 h-3 text-[#A1A1AA]" />
+              <span className="text-secondary-text font-mono flex items-center gap-1">
+                <History className="w-3 h-3 text-secondary-text" />
                 Recent:
               </span>
               <div className="flex flex-wrap gap-1.5">
@@ -728,7 +728,7 @@ export default function LeadFinderPage() {
                     key={idx}
                     type="button"
                     onClick={() => handleSearch(undefined, search.niche, search.city, search.country)}
-                    className="bg-[#0B0B0C] border border-[#26282D] px-2.5 py-1 rounded-md text-[10px] font-mono text-zinc-300 hover:text-white hover:border-white transition-all cursor-pointer"
+                    className="bg-background border border-border px-2.5 py-1 rounded-md text-[10px] font-mono text-zinc-300 hover:text-foreground hover:border-white transition-all cursor-pointer"
                   >
                     🔍 {search.niche} ({search.city})
                   </button>
@@ -737,8 +737,8 @@ export default function LeadFinderPage() {
             </div>
           ) : (
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-[#A1A1AA] font-mono flex items-center gap-1">
-                <Briefcase className="w-3 h-3 text-[#A1A1AA]" />
+              <span className="text-secondary-text font-mono flex items-center gap-1">
+                <Briefcase className="w-3 h-3 text-secondary-text" />
                 Popular:
               </span>
               <div className="flex flex-wrap gap-1.5">
@@ -746,7 +746,7 @@ export default function LeadFinderPage() {
                   <button
                     key={recNiche}
                     onClick={() => executePopularNiche(recNiche)}
-                    className="bg-[#0B0B0C] border border-[#26282D] px-2.5 py-1 rounded-md text-[10px] font-mono text-zinc-300 hover:text-white hover:border-white transition-all cursor-pointer"
+                    className="bg-background border border-border px-2.5 py-1 rounded-md text-[10px] font-mono text-zinc-300 hover:text-foreground hover:border-white transition-all cursor-pointer"
                   >
                     🔍 {recNiche}
                   </button>
@@ -757,8 +757,8 @@ export default function LeadFinderPage() {
 
           {/* Popular Niches Link */}
           <div className="flex items-center gap-2 flex-wrap md:justify-end">
-            <span className="text-[#A1A1AA] font-mono flex items-center gap-1">
-              <Briefcase className="w-3 h-3 text-[#A1A1AA]" />
+            <span className="text-secondary-text font-mono flex items-center gap-1">
+              <Briefcase className="w-3 h-3 text-secondary-text" />
               Popular Niches:
             </span>
             <div className="flex flex-wrap gap-1.5">
@@ -767,7 +767,7 @@ export default function LeadFinderPage() {
                   key={nicheName}
                   type="button"
                   onClick={() => executePopularNiche(nicheName)}
-                  className="bg-[#0B0B0C] border border-[#26282D] px-2.5 py-1 rounded-md text-[10px] font-mono text-zinc-300 hover:text-white hover:border-white transition-all cursor-pointer"
+                  className="bg-background border border-border px-2.5 py-1 rounded-md text-[10px] font-mono text-zinc-300 hover:text-foreground hover:border-white transition-all cursor-pointer"
                 >
                   {nicheName}
                 </button>
@@ -784,19 +784,19 @@ export default function LeadFinderPage() {
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -15 }}
-            className="bg-[#141517] border border-[#26282D] p-8 rounded-2xl relative overflow-hidden shadow-2xl"
+            className="bg-secondary-bg border border-border p-8 rounded-2xl relative overflow-hidden shadow-2xl"
           >
-            <div className="absolute top-0 right-0 w-48 h-48 bg-[#FAFAF9]/5 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute top-0 right-0 w-48 h-48 bg-foreground/5 rounded-full blur-3xl pointer-events-none" />
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
-              <div className="flex flex-col items-center justify-center space-y-4 text-center lg:border-r lg:border-[#26282D] lg:pr-8">
+              <div className="flex flex-col items-center justify-center space-y-4 text-center lg:border-r lg:border-border lg:pr-8">
                 <div className="relative w-20 h-20 flex items-center justify-center">
-                  <div className="absolute inset-0 border-4 border-[#26282D] rounded-full"></div>
-                  <div className="absolute inset-0 border-4 border-[#FAFAF9] border-t-transparent rounded-full animate-spin"></div>
-                  <Search className="w-8 h-8 text-[#FAFAF9] animate-pulse" />
+                  <div className="absolute inset-0 border-4 border-border rounded-full"></div>
+                  <div className="absolute inset-0 border-4 border-foreground border-t-transparent rounded-full animate-spin"></div>
+                  <Search className="w-8 h-8 text-foreground animate-pulse" />
                 </div>
                 <div>
-                  <h3 className="text-white text-base font-bold font-serif">Deep Opportunity Scanning</h3>
-                  <p className="text-[#A1A1AA] text-[11px] mt-1 font-mono">Resolving Places APIs & SEO indices...</p>
+                  <h3 className="text-foreground text-base font-bold font-serif">Deep Opportunity Scanning</h3>
+                  <p className="text-secondary-text text-[11px] mt-1 font-mono">Resolving Places APIs & SEO indices...</p>
                 </div>
               </div>
 
@@ -812,13 +812,13 @@ export default function LeadFinderPage() {
                       className="flex items-center gap-3 text-xs font-mono"
                     >
                       {isPassed ? (
-                        <div className="w-4.5 h-4.5 rounded-full bg-[#2DD4A7]/10 text-[#2DD4A7] border border-[#2DD4A7]/30 flex items-center justify-center text-[9px] font-bold">✓</div>
+                        <div className="w-4.5 h-4.5 rounded-full bg-primary/10 text-primary border border-primary/30 flex items-center justify-center text-[9px] font-bold">✓</div>
                       ) : isActive ? (
-                        <Loader2 className="w-4.5 h-4.5 text-[#2DD4A7] animate-spin" />
+                        <Loader2 className="w-4.5 h-4.5 text-primary animate-spin" />
                       ) : (
-                        <div className="w-4.5 h-4.5 rounded-full border border-[#26282D] bg-[#0B0B0C]"></div>
+                        <div className="w-4.5 h-4.5 rounded-full border border-border bg-background"></div>
                       )}
-                      <span className={`${isPassed ? 'text-[#71717A] line-through' : isActive ? 'text-[#FFFFFF] font-bold' : 'text-[#71717A]'}`}>
+                      <span className={`${isPassed ? 'text-muted-text line-through' : isActive ? 'text-foreground font-bold' : 'text-muted-text'}`}>
                         {stage}
                       </span>
                     </motion.div>
@@ -838,16 +838,16 @@ export default function LeadFinderPage() {
               label: 'Potential Revenue', 
               val: formatLakhs(stats.pipeline), 
               desc: 'Generated by Revenue Potential™', 
-              accent: 'text-[#2DD4A7]',
-              color: '#2DD4A7',
+              accent: 'text-primary',
+              color: 'var(--primary)',
               pill: 'REVENUE'
             },
             { 
               label: 'High Probability Clients', 
               val: `${stats.highProbCount}`, 
               desc: 'Ranked by Closing Probability™', 
-              accent: 'text-[#FAFAF9]',
-              color: '#FAFAF9',
+              accent: 'text-foreground',
+              color: 'var(--foreground)',
               pill: 'PROBABLE'
             },
             { 
@@ -862,16 +862,16 @@ export default function LeadFinderPage() {
               label: 'Weighted Opportunity', 
               val: formatLakhs(stats.weightedPipeline), 
               desc: 'Generated by LocalRadar Intelligence Engine™', 
-              accent: 'text-[#2DD4A7]',
-              color: '#2DD4A7',
+              accent: 'text-primary',
+              color: 'var(--primary)',
               pill: 'WEIGHTED'
             },
             { 
               label: 'Avg Closing Probability™', 
               val: `${stats.avgClosing}%`, 
               desc: 'Ranked by Closing Probability™', 
-              accent: 'text-[#2DD4A7]',
-              color: '#2DD4A7',
+              accent: 'text-primary',
+              color: 'var(--primary)',
               pill: 'ACCURACY'
             }
           ].map((card, idx) => {
@@ -881,17 +881,17 @@ export default function LeadFinderPage() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: idx * 0.04 }}
-                className="bg-[#141517] border-t-2 border-x border-b border-[#26282D] p-4 rounded-xl transition-all relative group cursor-default"
+                className="bg-secondary-bg border-t-2 border-x border-b border-border p-4 rounded-xl transition-all relative group cursor-default"
                 style={{ borderTopColor: card.color }}
               >
                 <div className="flex justify-between items-start">
-                  <span className="text-[9px] font-bold text-[#A1A1AA] uppercase tracking-widest font-mono truncate max-w-[80%]">{card.label}</span>
-                  <span className="text-[8px] font-bold px-1.5 py-0.5 rounded bg-[#0B0B0C] text-[#A1A1AA] border border-[#26282D] font-mono">{card.pill}</span>
+                  <span className="text-[9px] font-bold text-secondary-text uppercase tracking-widest font-mono truncate max-w-[80%]">{card.label}</span>
+                  <span className="text-[8px] font-bold px-1.5 py-0.5 rounded bg-background text-secondary-text border border-border font-mono">{card.pill}</span>
                 </div>
                 <div className={`text-2xl font-mono font-extrabold tracking-tight mt-3 ${card.accent}`}>
                   {card.val}
                 </div>
-                <p className="text-[10px] text-[#71717A] mt-2 font-mono leading-tight border-t border-[#26282D] pt-2 truncate">{card.desc}</p>
+                <p className="text-[10px] text-muted-text mt-2 font-mono leading-tight border-t border-border pt-2 truncate">{card.desc}</p>
               </motion.div>
             );
           })}
@@ -903,13 +903,13 @@ export default function LeadFinderPage() {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-base font-serif font-semibold text-white flex items-center gap-1.5">
-                <Sparkles className="w-4 h-4 text-[#A1A1AA]" />
+              <h2 className="text-base font-serif font-semibold text-foreground flex items-center gap-1.5">
+                <Sparkles className="w-4 h-4 text-secondary-text" />
                 Priority Opportunity Board™
               </h2>
-              <p className="text-[11px] text-[#A1A1AA] font-mono">Top opportunities ranked by Opportunity Engine™</p>
+              <p className="text-[11px] text-secondary-text font-mono">Top opportunities ranked by Opportunity Engine™</p>
             </div>
-            <span className="text-[9px] font-bold text-[#A1A1AA] bg-[#0B0B0C] border border-[#26282D] px-2 py-0.5 rounded font-mono uppercase tracking-wider">
+            <span className="text-[9px] font-bold text-secondary-text bg-background border border-border px-2 py-0.5 rounded font-mono uppercase tracking-wider">
               High-Value Targets
             </span>
           </div>
@@ -924,13 +924,13 @@ export default function LeadFinderPage() {
                   initial={{ opacity: 0, scale: 0.98 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.3, delay: idx * 0.05 }}
-                  whileHover={{ y: -4, borderColor: '#26282D' }}
-                  className="bg-[#141517] border border-[#26282D] p-4 rounded-xl flex flex-col justify-between relative group transition-all duration-300"
+                  whileHover={{ y: -4, borderColor: 'var(--border)' }}
+                  className="bg-secondary-bg border border-border p-4 rounded-xl flex flex-col justify-between relative group transition-all duration-300"
                 >
                   {/* Subtle accent line on top hover */}
                   <div 
                     className="absolute top-0 left-0 w-full h-[1.5px] opacity-0 group-hover:opacity-100 transition-opacity" 
-                    style={{ backgroundColor: score >= 60 ? '#2DD4A7' : score >= 35 ? '#F5A623' : '#FF5C5C' }}
+                    style={{ backgroundColor: score >= 60 ? 'var(--primary)' : score >= 35 ? '#F5A623' : '#FF5C5C' }}
                   />
                   
                   <div>
@@ -942,7 +942,7 @@ export default function LeadFinderPage() {
                       <div className="flex items-center gap-2">
                         <span className={`text-[9px] font-mono font-semibold ${
                           closing >= 70 
-                            ? 'text-[#2DD4A7]' 
+                            ? 'text-primary' 
                             : closing >= 40 
                               ? 'text-[#F5A623]' 
                               : 'text-[#FF5C5C]'
@@ -954,56 +954,56 @@ export default function LeadFinderPage() {
                           }}
                           className={`p-1 rounded-md border transition-all cursor-pointer ${
                             savedLeadsList.includes(lead.id)
-                              ? 'bg-[#2DD4A7]/10 border-[#2DD4A7]/30 text-[#2DD4A7]'
-                              : 'bg-[#0B0B0C] border-[#26282D] text-[#71717A] hover:text-[#FFFFFF] hover:border-[#71717A]'
+                              ? 'bg-primary/10 border-primary/30 text-primary'
+                              : 'bg-background border-border text-muted-text hover:text-foreground hover:border-muted-text'
                           }`}
                           title={savedLeadsList.includes(lead.id) ? 'Remove Lead' : 'Save Lead'}
                         >
-                          <Bookmark className={`w-3 h-3 ${savedLeadsList.includes(lead.id) ? 'fill-[#2DD4A7]' : ''}`} />
+                          <Bookmark className={`w-3 h-3 ${savedLeadsList.includes(lead.id) ? 'fill-primary' : ''}`} />
                         </button>
                       </div>
                     </div>
 
-                    <h3 className="font-serif font-semibold text-[#FFFFFF] text-sm mt-4 leading-snug truncate group-hover:text-white transition-colors flex items-center gap-1.5">
+                    <h3 className="font-serif font-semibold text-foreground text-sm mt-4 leading-snug truncate group-hover:text-foreground transition-colors flex items-center gap-1.5">
                       {lead.name}
                       {hotLeadsMap[lead.id] && <Flame className="w-3.5 h-3.5 text-[#F5A623] fill-[#F5A623] shrink-0" />}
                     </h3>
-                    <p className="text-[10px] text-[#A1A1AA] font-mono mt-1 truncate">{lead.address}</p>
+                    <p className="text-[10px] text-secondary-text font-mono mt-1 truncate">{lead.address}</p>
 
                     {/* Stats */}
-                    <div className="mt-4 space-y-2 border-t border-[#26282D] pt-3 text-[11px] font-mono">
+                    <div className="mt-4 space-y-2 border-t border-border pt-3 text-[11px] font-mono">
                       <div className="flex justify-between items-center">
-                        <span className="text-[#71717A]">Opportunity Score™</span>
-                        <span className="text-white font-semibold text-xs">{score}/100</span>
+                        <span className="text-muted-text">Opportunity Score™</span>
+                        <span className="text-foreground font-semibold text-xs">{score}/100</span>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span className="text-[#71717A]">Closing Probability™</span>
+                        <span className="text-muted-text">Closing Probability™</span>
                         <span className={`font-semibold text-xs ${
                           closing >= 70 
-                            ? 'text-[#2DD4A7]' 
+                            ? 'text-primary' 
                             : closing >= 40 
                               ? 'text-[#F5A623]' 
                               : 'text-[#FF5C5C]'
                         }`}>{closing}%</span>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span className="text-[#71717A]">Revenue Potential™</span>
+                        <span className="text-muted-text">Revenue Potential™</span>
                         {user?.subscription_tier === 'free' ? (
                           <span 
                             onClick={(e) => {
                               e.stopPropagation();
                               triggerLockedModal('audit');
                             }}
-                            className="text-[10px] font-mono text-[#2DD4A7]/60 hover:text-[#2DD4A7] transition-colors cursor-pointer select-none bg-[#2DD4A7]/5 px-2 py-0.5 rounded border border-[#2DD4A7]/10 blur-[0.5px] hover:blur-none"
+                            className="text-[10px] font-mono text-primary/60 hover:text-primary transition-colors cursor-pointer select-none bg-primary/5 px-2 py-0.5 rounded border border-primary/10 blur-[0.5px] hover:blur-none"
                           >
                             🔒 Locked
                           </span>
                         ) : (
-                          <span className="text-[#2DD4A7] font-semibold text-xs">{getDealValue(lead.id)}</span>
+                          <span className="text-primary font-semibold text-xs">{getDealValue(lead.id)}</span>
                         )}
                       </div>
-                      <div className="flex justify-between items-center border-t border-[#26282D]/40 pt-1.5 mt-1.5">
-                        <span className="text-[#71717A]">Top Reason</span>
+                      <div className="flex justify-between items-center border-t border-border/40 pt-1.5 mt-1.5">
+                        <span className="text-muted-text">Top Reason</span>
                         <span className="text-[#FF5C5C] font-semibold text-[10px] tracking-wide truncate max-w-[110px]" title={getCleanTopReason(lead.id)}>
                           {getCleanTopReason(lead.id)}
                         </span>
@@ -1012,7 +1012,7 @@ export default function LeadFinderPage() {
                   </div>
 
                   {/* Actions */}
-                  <div className="mt-5 pt-3 border-t border-[#26282D] space-y-2">
+                  <div className="mt-5 pt-3 border-t border-border space-y-2">
                     <button
                       onClick={() => {
                         if (user?.subscription_tier === 'free') {
@@ -1021,9 +1021,9 @@ export default function LeadFinderPage() {
                           setSelectedLeadId(lead.id);
                         }
                       }}
-                      className="w-full bg-[#0B0B0C] hover:bg-[#141517] border border-[#26282D] text-[#A1A1AA] hover:text-[#FFFFFF] text-[10px] font-bold py-1.5 rounded-lg transition-all flex items-center justify-center gap-1 cursor-pointer font-mono"
+                      className="w-full bg-background hover:bg-secondary-bg border border-border text-secondary-text hover:text-foreground text-[10px] font-bold py-1.5 rounded-lg transition-all flex items-center justify-center gap-1 cursor-pointer font-mono"
                     >
-                      <Info className="w-3.5 h-3.5 text-[#71717A]" />
+                      <Info className="w-3.5 h-3.5 text-muted-text" />
                       View Intelligence
                     </button>
                     <button
@@ -1034,9 +1034,9 @@ export default function LeadFinderPage() {
                           router.push(`/dashboard/pitch?bizId=${lead.id}`);
                         }
                       }}
-                      className="w-full bg-gradient-to-r from-[#2DD4A7] to-[#14B88C] hover:opacity-95 text-[#0B0B0C] text-[10px] font-extrabold py-1.5 rounded-lg transition-all flex items-center justify-center gap-1 cursor-pointer font-mono shadow-sm"
+                      className="w-full bg-gradient-to-r from-primary to-[#14B88C] hover:opacity-95 text-on-primary text-[10px] font-extrabold py-1.5 rounded-lg transition-all flex items-center justify-center gap-1 cursor-pointer font-mono shadow-sm"
                     >
-                      <Send className="w-3.5 h-3.5 text-[#0B0B0C]" />
+                      <Send className="w-3.5 h-3.5 text-on-primary" />
                       Generate Pitch
                     </button>
                   </div>
@@ -1050,8 +1050,8 @@ export default function LeadFinderPage() {
       {/* SECTION 4: Opportunity Intelligence Table */}
       {searched && !loading && (
         <div className="space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#26282D] pb-3">
-            <h2 className="text-xs font-mono font-bold uppercase tracking-widest text-[#A1A1AA]">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border pb-3">
+            <h2 className="text-xs font-mono font-bold uppercase tracking-widest text-secondary-text">
               All Opportunity Diagnostics ({user?.subscription_tier === 'free' && hiddenResults > 0 
                 ? `Showing ${visibleResults} of ${totalResults} Records`
                 : `${leads.length} Records`})
@@ -1062,7 +1062,7 @@ export default function LeadFinderPage() {
                   e.stopPropagation();
                   handleExport('csv');
                 }}
-                className="bg-[#0B0B0C] hover:bg-[#141517] border border-[#26282D] text-white text-[10px] font-bold py-1.5 px-3 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer font-mono shadow-sm"
+                className="bg-background hover:bg-secondary-bg border border-border text-foreground text-[10px] font-bold py-1.5 px-3 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer font-mono shadow-sm"
               >
                 <Download className="w-3.5 h-3.5 text-zinc-400" />
                 Export CSV
@@ -1072,7 +1072,7 @@ export default function LeadFinderPage() {
                   e.stopPropagation();
                   handleExport('pdf');
                 }}
-                className="bg-[#0B0B0C] hover:bg-[#141517] border border-[#26282D] text-white text-[10px] font-bold py-1.5 px-3 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer font-mono shadow-sm"
+                className="bg-background hover:bg-secondary-bg border border-border text-foreground text-[10px] font-bold py-1.5 px-3 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer font-mono shadow-sm"
               >
                 <FileText className="w-3.5 h-3.5 text-zinc-400" />
                 Export PDF
@@ -1080,11 +1080,11 @@ export default function LeadFinderPage() {
             </div>
           </div>
 
-          <div className="bg-[#141517] border border-[#26282D] rounded-xl overflow-hidden shadow-2xl">
+          <div className="bg-secondary-bg border border-border rounded-xl overflow-hidden shadow-2xl">
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-[#26282D] bg-[#0B0B0C]/90 text-[#A1A1AA] text-[11px] font-mono uppercase tracking-widest">
+                  <tr className="border-b border-border bg-background/90 text-secondary-text text-[11px] font-mono uppercase tracking-widest">
                     <th className="py-5 px-6">Business</th>
                     <th className="py-5 px-6 text-center">Opportunity Score™</th>
                     <th className="py-5 px-6 text-center">Why This Lead™</th>
@@ -1095,7 +1095,7 @@ export default function LeadFinderPage() {
                     <th className="py-5 px-6 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#26282D]">
+                <tbody className="divide-y divide-border">
                   {leads.map((biz) => {
                     const score = getScore(biz.id);
                     const tags = getTags(biz.id);
@@ -1107,15 +1107,15 @@ export default function LeadFinderPage() {
                         onClick={() => {
                           setSelectedLeadId(biz.id);
                         }}
-                        whileHover={{ backgroundColor: '#0B0B0C' }}
+                        whileHover={{ backgroundColor: 'var(--background)' }}
                         className="transition-colors cursor-pointer select-none"
                       >
                         <td className="py-5 px-6 max-w-[220px]">
-                          <div className="font-sans font-semibold text-base text-[#FFFFFF] flex items-center gap-1.5">
+                          <div className="font-sans font-semibold text-base text-foreground flex items-center gap-1.5">
                             {biz.name}
                             {hotLeadsMap[biz.id] && <Flame className="w-3.5 h-3.5 text-[#F5A623] fill-[#F5A623] shrink-0" />}
                           </div>
-                          <div className="text-xs text-[#71717A] font-mono mt-1 truncate">{biz.address}</div>
+                          <div className="text-xs text-muted-text font-mono mt-1 truncate">{biz.address}</div>
                         </td>
                         <td className="py-5 px-6 text-center">
                           <div className="inline-flex flex-col items-center">
@@ -1144,7 +1144,7 @@ export default function LeadFinderPage() {
                               </span>
                             </div>
                           ) : (
-                            <span className="text-xs text-[#71717A] font-mono">—</span>
+                            <span className="text-xs text-muted-text font-mono">—</span>
                           )}
                         </td>
                         <td className="py-5 px-6 text-center">
@@ -1154,14 +1154,14 @@ export default function LeadFinderPage() {
                                 e.stopPropagation();
                                 triggerLockedModal('audit');
                               }}
-                              className="inline-block text-[10px] font-mono text-[#FAFAF9]/40 hover:text-white transition-colors cursor-pointer select-none bg-zinc-800/20 px-2 py-0.5 rounded border border-zinc-700/20 blur-[0.5px] hover:blur-none"
+                              className="inline-block text-[10px] font-mono text-foreground/40 hover:text-foreground transition-colors cursor-pointer select-none bg-zinc-800/20 px-2 py-0.5 rounded border border-zinc-700/20 blur-[0.5px] hover:blur-none"
                             >
                               🔒 Locked
                             </span>
                           ) : (
                             <span className={`text-sm font-mono font-semibold ${
                               getClosing(biz.id) >= 70 
-                                ? 'text-[#2DD4A7]' 
+                                ? 'text-primary' 
                                 : getClosing(biz.id) >= 40 
                                   ? 'text-[#F5A623]' 
                                   : 'text-[#FF5C5C]'
@@ -1177,12 +1177,12 @@ export default function LeadFinderPage() {
                                 e.stopPropagation();
                                 triggerLockedModal('audit');
                               }}
-                              className="inline-block text-[10px] font-mono text-[#2DD4A7]/60 hover:text-[#2DD4A7] transition-colors cursor-pointer select-none bg-[#2DD4A7]/5 px-2 py-0.5 rounded border border-[#2DD4A7]/10 blur-[0.5px] hover:blur-none"
+                              className="inline-block text-[10px] font-mono text-primary/60 hover:text-primary transition-colors cursor-pointer select-none bg-primary/5 px-2 py-0.5 rounded border border-primary/10 blur-[0.5px] hover:blur-none"
                             >
                               🔒 Locked
                             </span>
                           ) : (
-                            <span className="text-sm font-semibold text-[#2DD4A7] font-mono">
+                            <span className="text-sm font-semibold text-primary font-mono">
                               {getDealValue(biz.id)}
                             </span>
                           )}
@@ -1211,12 +1211,12 @@ export default function LeadFinderPage() {
                               }}
                               className={`p-2 rounded-lg border transition-all cursor-pointer ${
                                 savedLeadsList.includes(biz.id)
-                                  ? 'bg-[#2DD4A7]/10 border-[#2DD4A7]/30 text-[#2DD4A7] hover:bg-[#2DD4A7]/20'
-                                  : 'bg-[#0B0B0C] border-[#26282D] text-[#A1A1AA] hover:text-[#FFFFFF]'
+                                  ? 'bg-primary/10 border-primary/30 text-primary hover:bg-primary/20'
+                                  : 'bg-background border-border text-secondary-text hover:text-foreground'
                               }`}
                               title={savedLeadsList.includes(biz.id) ? 'Remove Lead' : 'Save Lead'}
                             >
-                              <Bookmark className={`w-3.5 h-3.5 ${savedLeadsList.includes(biz.id) ? 'fill-[#2DD4A7]' : ''}`} />
+                              <Bookmark className={`w-3.5 h-3.5 ${savedLeadsList.includes(biz.id) ? 'fill-primary' : ''}`} />
                             </button>
                             
                             <button
@@ -1227,7 +1227,7 @@ export default function LeadFinderPage() {
                                   router.push(`/dashboard/audit/${biz.id}`);
                                 }
                               }}
-                              className="bg-[#0B0B0C] hover:bg-[#141517] border border-[#26282D] text-[#A1A1AA] hover:text-[#FFFFFF] text-xs font-semibold px-4 py-2 rounded-lg transition-all font-mono cursor-pointer"
+                              className="bg-background hover:bg-secondary-bg border border-border text-secondary-text hover:text-foreground text-xs font-semibold px-4 py-2 rounded-lg transition-all font-mono cursor-pointer"
                             >
                               Audit
                             </button>
@@ -1240,7 +1240,7 @@ export default function LeadFinderPage() {
                                   router.push(`/dashboard/pitch?bizId=${biz.id}`);
                                 }
                               }}
-                              className="bg-gradient-to-r from-[#2DD4A7] to-[#14B88C] hover:opacity-95 text-[#0B0B0C] text-xs font-bold px-4 py-2 rounded-lg transition-all font-mono shadow-sm cursor-pointer"
+                              className="bg-gradient-to-r from-primary to-[#14B88C] hover:opacity-95 text-on-primary text-xs font-bold px-4 py-2 rounded-lg transition-all font-mono shadow-sm cursor-pointer"
                             >
                               Pitch
                             </button>
@@ -1261,50 +1261,50 @@ export default function LeadFinderPage() {
         <motion.div 
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-[#141517] border border-[#26282D] p-12 text-center max-w-xl mx-auto rounded-3xl relative overflow-hidden shadow-2xl mt-12"
+          className="bg-secondary-bg border border-border p-12 text-center max-w-xl mx-auto rounded-3xl relative overflow-hidden shadow-2xl mt-12"
         >
           {/* Subtle glow ring */}
-          <div className="absolute -top-20 -left-20 w-48 h-48 bg-[#FAFAF9]/2 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-20 -right-20 w-48 h-48 bg-[#FAFAF9]/2 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -top-20 -left-20 w-48 h-48 bg-foreground/2 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-20 -right-20 w-48 h-48 bg-foreground/2 rounded-full blur-3xl pointer-events-none" />
           
-          <div className="w-16 h-16 rounded-2xl bg-[#0B0B0C] border border-[#26282D] flex items-center justify-center mx-auto mb-6 text-white">
+          <div className="w-16 h-16 rounded-2xl bg-background border border-border flex items-center justify-center mx-auto mb-6 text-foreground">
             <Target className="w-6 h-6 animate-pulse" />
           </div>
           
-          <h2 className="text-[#FFFFFF] text-2xl font-serif font-extrabold tracking-tight">
+          <h2 className="text-foreground text-2xl font-serif font-extrabold tracking-tight">
             Welcome to LocalRadar! 🚀
           </h2>
-          <p className="text-[#A1A1AA] text-xs mt-2 max-w-md mx-auto font-mono">
+          <p className="text-secondary-text text-xs mt-2 max-w-md mx-auto font-mono">
             Follow this 3-step quick start checklist to land your first paying client:
           </p>
           
-          <div className="text-left max-w-md mx-auto mt-6 space-y-3 font-mono text-xs text-[#A1A1AA]">
-            <div className="p-3 bg-[#0B0B0C] border border-[#26282D] rounded-xl flex items-start gap-3">
-              <span className="bg-[#2DD4A7]/10 text-[#2DD4A7] w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[10px] font-bold">1</span>
+          <div className="text-left max-w-md mx-auto mt-6 space-y-3 font-mono text-xs text-secondary-text">
+            <div className="p-3 bg-background border border-border rounded-xl flex items-start gap-3">
+              <span className="bg-primary/10 text-primary w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[10px] font-bold">1</span>
               <div>
-                <p className="text-white font-semibold">Search a Local Market</p>
-                <p className="text-[10px] mt-0.5 text-[#71717A]">Enter any service (e.g., Dentists) and a city (e.g., Austin) in the search console above.</p>
+                <p className="text-foreground font-semibold">Search a Local Market</p>
+                <p className="text-[10px] mt-0.5 text-muted-text">Enter any service (e.g., Dentists) and a city (e.g., Austin) in the search console above.</p>
               </div>
             </div>
-            <div className="p-3 bg-[#0B0B0C] border border-[#26282D] rounded-xl flex items-start gap-3">
-              <span className="bg-[#2DD4A7]/10 text-[#2DD4A7] w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[10px] font-bold">2</span>
+            <div className="p-3 bg-background border border-border rounded-xl flex items-start gap-3">
+              <span className="bg-primary/10 text-primary w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[10px] font-bold">2</span>
               <div>
-                <p className="text-white font-semibold">Examine Intelligence Dossier</p>
-                <p className="text-[10px] mt-0.5 text-[#71717A]">Review their Opportunity Score, competitor gaps, booking leaks, and estimated deal value.</p>
+                <p className="text-foreground font-semibold">Examine Intelligence Dossier</p>
+                <p className="text-[10px] mt-0.5 text-muted-text">Review their Opportunity Score, competitor gaps, booking leaks, and estimated deal value.</p>
               </div>
             </div>
-            <div className="p-3 bg-[#0B0B0C] border border-[#26282D] rounded-xl flex items-start gap-3">
-              <span className="bg-[#2DD4A7]/10 text-[#2DD4A7] w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[10px] font-bold">3</span>
+            <div className="p-3 bg-background border border-border rounded-xl flex items-start gap-3">
+              <span className="bg-primary/10 text-primary w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[10px] font-bold">3</span>
               <div>
-                <p className="text-white font-semibold">Generate & Send Pitch Sequence</p>
-                <p className="text-[10px] mt-0.5 text-[#71717A]">Instantly create highly personalized Cold Email, LinkedIn DM, WhatsApp pitch sequences, or export branded PDF audits.</p>
+                <p className="text-foreground font-semibold">Generate & Send Pitch Sequence</p>
+                <p className="text-[10px] mt-0.5 text-muted-text">Instantly create highly personalized Cold Email, LinkedIn DM, WhatsApp pitch sequences, or export branded PDF audits.</p>
               </div>
             </div>
           </div>
 
           {/* Quick-action helper niches */}
-          <div className="mt-8 pt-6 border-t border-[#26282D] space-y-4">
-            <h4 className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#71717A]">
+          <div className="mt-8 pt-6 border-t border-border space-y-4">
+            <h4 className="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-text">
               Or Try A Popular Target Profile:
             </h4>
             <div className="flex flex-wrap justify-center gap-2">
@@ -1312,7 +1312,7 @@ export default function LeadFinderPage() {
                 <button
                   key={nicheName}
                   onClick={() => executePopularNiche(nicheName)}
-                  className="bg-[#0B0B0C] border border-[#26282D] text-xs text-[#A1A1AA] px-4 py-2 rounded-xl hover:text-white hover:border-white transition-all cursor-pointer font-mono"
+                  className="bg-background border border-border text-xs text-secondary-text px-4 py-2 rounded-xl hover:text-foreground hover:border-white transition-all cursor-pointer font-mono"
                 >
                   🚀 {nicheName}
                 </button>
@@ -1391,17 +1391,17 @@ function UpgradeBanner({ hiddenResults, totalResults, triggerLockedModal }: Upgr
     <motion.div
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-gradient-to-r from-[#141517] to-[#1C1E22] border border-[#26282D] rounded-2xl p-8 text-center max-w-2xl mx-auto shadow-2xl relative overflow-hidden mt-8"
+      className="bg-gradient-to-r from-secondary-bg to-card-hover border border-border rounded-2xl p-8 text-center max-w-2xl mx-auto shadow-2xl relative overflow-hidden mt-8"
     >
       {/* Decorative Blur Backgrounds */}
-      <div className="absolute -top-20 -right-20 w-44 h-44 bg-[#2DD4A7]/5 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-20 -left-20 w-44 h-44 bg-[#FAFAF9]/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute -top-20 -right-20 w-44 h-44 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-20 -left-20 w-44 h-44 bg-foreground/5 rounded-full blur-3xl pointer-events-none" />
 
-      <h3 className="text-xl font-serif font-semibold text-white flex items-center justify-center gap-2">
+      <h3 className="text-xl font-serif font-semibold text-foreground flex items-center justify-center gap-2">
         <span>🔒</span> {hiddenResults} Additional Opportunities Hidden
       </h3>
       
-      <p className="text-[#A1A1AA] text-xs mt-2 font-mono max-w-md mx-auto">
+      <p className="text-secondary-text text-xs mt-2 font-mono max-w-md mx-auto">
         Upgrade to Pro to unlock all businesses, contact details, AI audits, AI pitch generation, PDF exports, and lead saving.
       </p>
 
@@ -1410,7 +1410,7 @@ function UpgradeBanner({ hiddenResults, totalResults, triggerLockedModal }: Upgr
           trackEvent('upgrade_banner_clicked', { hidden_results: hiddenResults, total_results: totalResults });
           triggerLockedModal('audit');
         }}
-        className="mt-6 bg-gradient-to-r from-[#2DD4A7] to-[#14B88C] hover:opacity-95 text-[#0B0B0C] font-mono text-xs font-extrabold px-8 py-3 rounded-xl transition-all shadow-[0_0_15px_rgba(45,212,167,0.2)] hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+        className="mt-6 bg-gradient-to-r from-primary to-[#14B88C] hover:opacity-95 text-on-primary font-mono text-xs font-extrabold px-8 py-3 rounded-xl transition-all shadow-[0_0_15px_rgba(45,212,167,0.2)] hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
       >
         Unlock all {totalResults} businesses instantly
       </button>

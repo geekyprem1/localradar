@@ -36,15 +36,15 @@ export default function OpportunityBreakdown({
   ];
 
   return (
-    <div className="bg-[#141517] border border-[#26282D] p-5 rounded-xl space-y-4">
+    <div className="bg-secondary-bg border border-border p-5 rounded-xl space-y-4">
       {/* Top Header */}
-      <div className="flex justify-between items-center border-b border-[#26282D] pb-3">
-        <h3 className="text-xs font-semibold text-[#A1A1AA] flex items-center gap-1.5 uppercase tracking-wider font-mono">
-          <Target className="w-4 h-4 text-[#A1A1AA]" />
+      <div className="flex justify-between items-center border-b border-border pb-3">
+        <h3 className="text-xs font-semibold text-secondary-text flex items-center gap-1.5 uppercase tracking-wider font-mono">
+          <Target className="w-4 h-4 text-secondary-text" />
           Opportunity Score™ Breakdown
         </h3>
         <span className={`text-sm font-mono font-semibold ${
-          score >= 60 ? 'text-[#2DD4A7]' : score >= 35 ? 'text-[#F5A623]' : 'text-[#FF5C5C]'
+          score >= 60 ? 'text-primary' : score >= 35 ? 'text-[#F5A623]' : 'text-[#FF5C5C]'
         }`}>
           {score} / 100
         </span>
@@ -56,14 +56,14 @@ export default function OpportunityBreakdown({
           const percentage = c.max > 0 ? (c.score / c.max) * 100 : 0;
           return (
             <div key={c.label} className="space-y-1.5 text-xs">
-              <div className="flex justify-between text-[#FFFFFF]">
-                <span className="text-[#A1A1AA] font-sans font-normal">{c.label}</span>
-                <span className="font-semibold text-white">
-                  +{c.score} <span className="text-[#71717A] font-normal">/ {c.max}</span>
+              <div className="flex justify-between text-foreground">
+                <span className="text-secondary-text font-sans font-normal">{c.label}</span>
+                <span className="font-semibold text-foreground">
+                  +{c.score} <span className="text-muted-text font-normal">/ {c.max}</span>
                 </span>
               </div>
               
-              <div className="h-2 bg-[#141517] rounded-full overflow-hidden border border-[#26282D]">
+              <div className="h-2 bg-secondary-bg rounded-full overflow-hidden border border-border">
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{ width: `${percentage}%` }}
@@ -73,7 +73,7 @@ export default function OpportunityBreakdown({
                       ? 'bg-[#FF5C5C]' 
                       : percentage >= 35 
                         ? 'bg-[#F5A623]' 
-                        : 'bg-[#A1A1AA]'
+                        : 'bg-secondary-text'
                   }`}
                 />
               </div>

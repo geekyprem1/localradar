@@ -136,7 +136,7 @@ export default function UnlockModal({ isOpen, onClose, type, onUpgradeSuccess }:
             className="w-full max-w-md bg-[#101113] border border-[#232529] rounded-2xl p-6 shadow-2xl relative overflow-hidden z-10"
           >
             {/* Glowing Accent Ring */}
-            <div className="absolute -top-20 -right-20 w-44 h-44 bg-[#2DD4A7]/5 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute -top-20 -right-20 w-44 h-44 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
             <div className="absolute -bottom-20 -left-20 w-44 h-44 bg-[#10B981]/5 rounded-full blur-3xl pointer-events-none" />
 
             {/* Header */}
@@ -144,18 +144,18 @@ export default function UnlockModal({ isOpen, onClose, type, onUpgradeSuccess }:
               <div className="flex items-center gap-2.5">
                 <div className="p-2 bg-[#1C1E22] border border-[#2A2D34] rounded-lg">
                   {type === 'developer_keys' ? (
-                    <Code className="w-5 h-5 text-[#2DD4A7]" />
+                    <Code className="w-5 h-5 text-primary" />
                   ) : (
-                    <Sparkles className="w-5 h-5 text-[#2DD4A7]" />
+                    <Sparkles className="w-5 h-5 text-primary" />
                   )}
                 </div>
-                <h3 className="text-lg font-bold font-sans text-white tracking-tight">
+                <h3 className="text-lg font-bold font-sans text-foreground tracking-tight">
                   {config.title}
                 </h3>
               </div>
               <button 
                 onClick={onClose}
-                className="text-[#71717A] hover:text-white p-1 hover:bg-[#1C1E22] rounded-md transition-colors"
+                className="text-muted-text hover:text-foreground p-1 hover:bg-[#1C1E22] rounded-md transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -163,15 +163,15 @@ export default function UnlockModal({ isOpen, onClose, type, onUpgradeSuccess }:
 
             {/* Body */}
             <div className="space-y-4">
-              <p className="text-sm text-[#A1A1AA] leading-relaxed">
+              <p className="text-sm text-secondary-text leading-relaxed">
                 {config.description}
               </p>
 
               {/* Feature Checklist */}
-              <div className="bg-[#141517] border border-[#212328] rounded-xl p-4 space-y-2.5">
+              <div className="bg-secondary-bg border border-[#212328] rounded-xl p-4 space-y-2.5">
                 {config.features.map((feature, i) => (
                   <div key={i} className="flex items-start gap-2.5 text-xs text-[#E4E4E7]">
-                    <Check className="w-4 h-4 text-[#2DD4A7] shrink-0 mt-0.5" />
+                    <Check className="w-4 h-4 text-primary shrink-0 mt-0.5" />
                     <span>{feature}</span>
                   </div>
                 ))}
@@ -180,10 +180,10 @@ export default function UnlockModal({ isOpen, onClose, type, onUpgradeSuccess }:
               {/* Price Details */}
               <div className="flex items-baseline justify-between py-1.5 px-0.5">
                 <div>
-                  <span className="text-xs text-[#71717A] uppercase tracking-wider font-mono">Subscription Cost</span>
-                  <span className="text-white block font-bold text-lg">{config.price}</span>
+                  <span className="text-xs text-muted-text uppercase tracking-wider font-mono">Subscription Cost</span>
+                  <span className="text-foreground block font-bold text-lg">{config.price}</span>
                 </div>
-                <span className="text-[10px] text-[#A1A1AA] bg-[#1C1E22] border border-[#2A2D34] py-1 px-2.5 rounded-full font-mono">
+                <span className="text-[10px] text-secondary-text bg-[#1C1E22] border border-[#2A2D34] py-1 px-2.5 rounded-full font-mono">
                   Cancel Anytime
                 </span>
               </div>
@@ -192,7 +192,7 @@ export default function UnlockModal({ isOpen, onClose, type, onUpgradeSuccess }:
               <button
                 disabled={isUpgrading}
                 onClick={handleUpgrade}
-                className="w-full flex items-center justify-center gap-2 bg-[#2DD4A7] hover:bg-[#20BE94] text-[#090A0C] font-semibold py-3 px-4 rounded-xl transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed text-sm hover:shadow-[0_0_15px_rgba(45,212,167,0.3)]"
+                className="w-full flex items-center justify-center gap-2 bg-primary hover:opacity-90 text-on-primary font-semibold py-3 px-4 rounded-xl transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed text-sm hover:shadow-[0_0_15px_rgba(45,212,167,0.3)]"
               >
                 {isUpgrading ? (
                   <>
@@ -209,7 +209,7 @@ export default function UnlockModal({ isOpen, onClose, type, onUpgradeSuccess }:
 
               <button
                 onClick={onClose}
-                className="w-full text-center text-xs text-[#71717A] hover:text-white transition-colors pt-1"
+                className="w-full text-center text-xs text-muted-text hover:text-foreground transition-colors pt-1"
               >
                 Keep Free Plan
               </button>

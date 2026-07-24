@@ -155,14 +155,14 @@ export default function DashboardOverviewPage() {
       value: liveStats?.potentialRevenue || '₹22.4L', 
       change: '+15%', 
       icon: DollarSign, 
-      color: '#2DD4A7' 
+      color: 'var(--primary)' 
     },
     { 
       name: 'High Probability Clients', 
       value: liveStats?.highProbClients.toString() || '17', 
       change: '+24%', 
       icon: Target, 
-      color: '#FAFAF9' 
+      color: 'var(--foreground)' 
     },
     { 
       name: 'High Opportunity Clients', 
@@ -176,14 +176,14 @@ export default function DashboardOverviewPage() {
       value: liveStats?.weightedOpportunity || '₹19.3L', 
       change: '+8%', 
       icon: TrendingUp, 
-      color: '#2DD4A7' 
+      color: 'var(--primary)' 
     },
     { 
       name: 'Avg Closing Probability', 
       value: liveStats ? `${liveStats.avgClosingProb}%` : '81%', 
       change: '+5%', 
       icon: Activity, 
-      color: '#2DD4A7' 
+      color: 'var(--primary)' 
     },
   ];
 
@@ -195,21 +195,21 @@ export default function DashboardOverviewPage() {
   ];
 
   return (
-    <div className="space-y-8 font-sans text-white">
+    <div className="space-y-8 font-sans text-foreground">
       {/* Header and Welcome */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-serif font-semibold text-white flex items-center gap-2">
+          <h1 className="text-2xl font-serif font-semibold text-foreground flex items-center gap-2">
             Welcome back, {user?.full_name?.split(' ')[0] || 'Agency Partner'} 
-            <Sparkles className="w-5 h-5 text-white animate-pulse" />
+            <Sparkles className="w-5 h-5 text-foreground animate-pulse" />
           </h1>
-          <p className="text-[#A1A1AA] text-xs mt-1 font-mono">LocalRadar Intelligence Engine™ dashboard overview.</p>
+          <p className="text-secondary-text text-xs mt-1 font-mono">LocalRadar Intelligence Engine™ dashboard overview.</p>
         </div>
         <Link 
           href="/dashboard/lead-finder" 
-          className="bg-gradient-to-r from-[#2DD4A7] to-[#14B88C] hover:opacity-95 text-[#0B0B0C] text-xs font-bold px-5 py-3 rounded-xl transition-all shadow-[0_0_15px_rgba(45,212,167,0.15)] flex items-center gap-2 cursor-pointer w-fit uppercase tracking-wider font-mono"
+          className="bg-gradient-to-r from-primary to-[#14B88C] hover:opacity-95 text-on-primary text-xs font-bold px-5 py-3 rounded-xl transition-all shadow-[0_0_15px_rgba(45,212,167,0.15)] flex items-center gap-2 cursor-pointer w-fit uppercase tracking-wider font-mono"
         >
-          <Search className="w-4 h-4 text-[#0B0B0C]" />
+          <Search className="w-4 h-4 text-on-primary" />
           Find Opportunities
         </Link>
       </div>
@@ -220,10 +220,10 @@ export default function DashboardOverviewPage() {
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className="bg-[#141517] border border-[#26282D] p-5 rounded-2xl relative overflow-hidden shadow-xl"
+          className="bg-secondary-bg border border-border p-5 rounded-2xl relative overflow-hidden shadow-xl"
         >
           {/* Glassmorphic border glow */}
-          <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#2DD4A7]/30 to-transparent" />
+          <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
           
           {usageStats.soft_alert && (
             <div className="mb-4 bg-[#FF5C5C]/10 border border-[#FF5C5C]/25 text-[#FF5C5C] text-xs px-4 py-2.5 rounded-xl flex items-center gap-2 font-mono">
@@ -236,20 +236,20 @@ export default function DashboardOverviewPage() {
             {/* Plan tier and billing cycle */}
             <div className="space-y-1.5">
               <div className="flex items-center gap-2.5">
-                <span className="text-[10px] text-[#A1A1AA] uppercase tracking-wider font-mono">Current Plan</span>
+                <span className="text-[10px] text-secondary-text uppercase tracking-wider font-mono">Current Plan</span>
                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border font-mono uppercase ${
                   usageStats.subscription_tier === 'agency_plus'
                     ? 'bg-[#A855F7]/10 text-[#C084FC] border-[#C084FC]/25'
                     : usageStats.subscription_tier === 'agency'
                       ? 'bg-blue-500/10 text-blue-400 border-blue-400/20'
                       : usageStats.subscription_tier === 'pro'
-                        ? 'bg-[#2DD4A7]/10 text-[#2DD4A7] border-[#2DD4A7]/20'
+                        ? 'bg-primary/10 text-primary border-primary/20'
                         : 'bg-zinc-800 text-zinc-400 border-zinc-700'
                 }`}>
                   {usageStats.subscription_tier === 'agency_plus' ? 'agency plus' : usageStats.subscription_tier}
                 </span>
               </div>
-              <h2 className="text-lg font-bold text-white tracking-tight capitalize font-sans">
+              <h2 className="text-lg font-bold text-foreground tracking-tight capitalize font-sans">
                 {usageStats.subscription_tier === 'free' 
                   ? 'Free Plan Access' 
                   : usageStats.subscription_tier === 'pro' 
@@ -258,7 +258,7 @@ export default function DashboardOverviewPage() {
                       ? 'Agency Partner' 
                       : 'Enterprise Agency Plus'}
               </h2>
-              <p className="text-[10px] text-[#71717A] font-mono">
+              <p className="text-[10px] text-muted-text font-mono">
                 Next Billing Cycle: {new Date(usageStats.next_billing_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
               </p>
             </div>
@@ -266,10 +266,10 @@ export default function DashboardOverviewPage() {
             {/* Searches progress bar */}
             <div className="flex-1 max-w-md space-y-2">
               <div className="flex justify-between text-xs font-mono">
-                <span className="text-[#A1A1AA]">Searches Usage ({Math.round((usageStats.searches_used / usageStats.searches_limit) * 100)}%)</span>
-                <span className="text-white font-semibold">{usageStats.searches_used} / {usageStats.searches_limit} Used</span>
+                <span className="text-secondary-text">Searches Usage ({Math.round((usageStats.searches_used / usageStats.searches_limit) * 100)}%)</span>
+                <span className="text-foreground font-semibold">{usageStats.searches_used} / {usageStats.searches_limit} Used</span>
               </div>
-              <div className="w-full bg-[#0B0B0C] border border-[#26282D] h-2 rounded-full overflow-hidden">
+              <div className="w-full bg-background border border-border h-2 rounded-full overflow-hidden">
                 <div 
                   className={`h-full transition-all duration-500 rounded-full ${
                     (usageStats.searches_used / usageStats.searches_limit) > 0.8
@@ -278,7 +278,7 @@ export default function DashboardOverviewPage() {
                         ? 'bg-[#A855F7]'
                         : usageStats.subscription_tier === 'agency'
                           ? 'bg-blue-500'
-                          : 'bg-[#2DD4A7]'
+                          : 'bg-primary'
                   }`}
                   style={{ width: `${Math.min(100, (usageStats.searches_used / usageStats.searches_limit) * 100)}%` }}
                 />
@@ -290,7 +290,7 @@ export default function DashboardOverviewPage() {
               {usageStats.subscription_tier === 'free' && (
                 <Link 
                   href="/dashboard/settings"
-                  className="w-full md:w-auto bg-[#2DD4A7] hover:bg-[#20BE94] text-[#090A0C] text-xs font-bold px-5 py-3 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer uppercase tracking-wider font-mono"
+                  className="w-full md:w-auto bg-primary hover:opacity-90 text-on-primary text-xs font-bold px-5 py-3 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer uppercase tracking-wider font-mono"
                 >
                   Upgrade to Pro
                   <Zap className="w-3.5 h-3.5 fill-[#090A0C]" />
@@ -299,7 +299,7 @@ export default function DashboardOverviewPage() {
               {usageStats.subscription_tier === 'pro' && (
                 <Link 
                   href="/dashboard/settings"
-                  className="w-full md:w-auto bg-blue-500 hover:bg-blue-600 text-white text-xs font-bold px-5 py-3 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer uppercase tracking-wider font-mono"
+                  className="w-full md:w-auto bg-blue-500 hover:bg-blue-600 text-foreground text-xs font-bold px-5 py-3 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer uppercase tracking-wider font-mono"
                 >
                   Upgrade to Agency
                   <Sparkles className="w-3.5 h-3.5 fill-white" />
@@ -308,7 +308,7 @@ export default function DashboardOverviewPage() {
               {usageStats.subscription_tier === 'agency' && (
                 <Link 
                   href="/dashboard/settings"
-                  className="w-full md:w-auto bg-gradient-to-r from-[#C084FC] to-[#A855F7] hover:opacity-95 text-white text-xs font-bold px-5 py-3 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer uppercase tracking-wider font-mono"
+                  className="w-full md:w-auto bg-gradient-to-r from-[#C084FC] to-[#A855F7] hover:opacity-95 text-foreground text-xs font-bold px-5 py-3 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer uppercase tracking-wider font-mono"
                 >
                   Upgrade to Plus
                   <Zap className="w-3.5 h-3.5 fill-white" />
@@ -317,10 +317,10 @@ export default function DashboardOverviewPage() {
               {usageStats.subscription_tier === 'agency_plus' && (
                 <Link 
                   href="/dashboard/settings"
-                  className="w-full md:w-auto bg-[#1C1E22] hover:bg-[#26282E] text-white border border-[#2B2D33] text-xs font-bold px-5 py-3 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer uppercase tracking-wider font-mono"
+                  className="w-full md:w-auto bg-[#1C1E22] hover:bg-[#26282E] text-foreground border border-[#2B2D33] text-xs font-bold px-5 py-3 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer uppercase tracking-wider font-mono"
                 >
                   Configure BYOK Keys
-                  <ArrowRight className="w-3.5 h-3.5 text-white" />
+                  <ArrowRight className="w-3.5 h-3.5 text-foreground" />
                 </Link>
               )}
             </div>
@@ -338,20 +338,20 @@ export default function DashboardOverviewPage() {
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: idx * 0.1 }}
-              className="bg-[#141517] border-t-2 border-x border-b border-[#26282D] p-5 rounded-2xl relative overflow-hidden shadow-lg group transition-all duration-300"
+              className="bg-secondary-bg border-t-2 border-x border-b border-border p-5 rounded-2xl relative overflow-hidden shadow-lg group transition-all duration-300"
               style={{ borderTopColor: stat.color }}
             >
               <div className="flex items-center justify-between">
-                <span className="text-[#A1A1AA] text-[9px] font-semibold uppercase tracking-wider font-mono truncate max-w-[80%]">{stat.name}</span>
+                <span className="text-secondary-text text-[9px] font-semibold uppercase tracking-wider font-mono truncate max-w-[80%]">{stat.name}</span>
                 <div 
-                  className="p-2 rounded-lg bg-[#0B0B0C] border border-[#26282D] transition-colors"
+                  className="p-2 rounded-lg bg-background border border-border transition-colors"
                   style={{ color: stat.color }}
                 >
                   <Icon className="w-4 h-4" />
                 </div>
               </div>
               <div className="mt-4 flex items-baseline gap-2">
-                <span className="text-2xl font-serif font-semibold text-white tracking-tight">{stat.value}</span>
+                <span className="text-2xl font-serif font-semibold text-foreground tracking-tight">{stat.value}</span>
               </div>
             </motion.div>
           );
@@ -361,13 +361,13 @@ export default function DashboardOverviewPage() {
       {/* Chart & Recent Activity Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Custom SVG Performance Chart */}
-        <div className="bg-[#141517] border border-[#26282D] p-6 lg:col-span-2 rounded-2xl space-y-6 shadow-xl relative overflow-hidden">
+        <div className="bg-secondary-bg border border-border p-6 lg:col-span-2 rounded-2xl space-y-6 shadow-xl relative overflow-hidden">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-sm font-bold text-white">Lead Discovery Trends</h3>
-              <p className="text-[#A1A1AA] text-xs mt-0.5 font-mono">Discovered leads by week over the last month</p>
+              <h3 className="text-sm font-bold text-foreground">Lead Discovery Trends</h3>
+              <p className="text-secondary-text text-xs mt-0.5 font-mono">Discovered leads by week over the last month</p>
             </div>
-            <span className="text-[10px] font-bold text-[#A1A1AA] bg-[#0B0B0C] border border-[#26282D] px-2.5 py-1 rounded-full font-mono uppercase">
+            <span className="text-[10px] font-bold text-secondary-text bg-background border border-border px-2.5 py-1 rounded-full font-mono uppercase">
               Last 30 Days
             </span>
           </div>
@@ -378,8 +378,8 @@ export default function DashboardOverviewPage() {
               {/* Gradients */}
               <defs>
                 <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#2DD4A7" stopOpacity="0.1" />
-                  <stop offset="100%" stopColor="#2DD4A7" stopOpacity="0" />
+                  <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.1" />
+                  <stop offset="100%" stopColor="var(--primary)" stopOpacity="0" />
                 </linearGradient>
               </defs>
 
@@ -404,11 +404,11 @@ export default function DashboardOverviewPage() {
               />
 
               {/* Data Dots */}
-              <circle cx="10" cy="180" r="4" fill="#5C636E" stroke="#141517" strokeWidth="2" />
-              <circle cx="150" cy="130" r="4" fill="#5C636E" stroke="#141517" strokeWidth="2" />
-              <circle cx="280" cy="110" r="4" fill="#5C636E" stroke="#141517" strokeWidth="2" />
-              <circle cx="400" cy="60" r="4" fill="#5C636E" stroke="#141517" strokeWidth="2" />
-              <circle cx="490" cy="30" r="5" fill="#FFFFFF" stroke="#2DD4A7" strokeWidth="2.5" />
+              <circle cx="10" cy="180" r="4" fill="#5C636E" stroke="var(--secondary-bg)" strokeWidth="2" />
+              <circle cx="150" cy="130" r="4" fill="#5C636E" stroke="var(--secondary-bg)" strokeWidth="2" />
+              <circle cx="280" cy="110" r="4" fill="#5C636E" stroke="var(--secondary-bg)" strokeWidth="2" />
+              <circle cx="400" cy="60" r="4" fill="#5C636E" stroke="var(--secondary-bg)" strokeWidth="2" />
+              <circle cx="490" cy="30" r="5" fill="var(--foreground)" stroke="var(--primary)" strokeWidth="2.5" />
             </svg>
             
             {/* Chart X Labels */}
@@ -427,32 +427,32 @@ export default function DashboardOverviewPage() {
               <span>Scanned Lead Velocity</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#A1A1AA]" />
+              <span className="w-2.5 h-2.5 rounded-full bg-secondary-text" />
               <span>Closing Conversion Rate</span>
             </div>
           </div>
         </div>
 
         {/* Recent Activity List */}
-        <div className="bg-[#141517] border border-[#26282D] p-6 rounded-2xl flex flex-col justify-between shadow-xl">
+        <div className="bg-secondary-bg border border-border p-6 rounded-2xl flex flex-col justify-between shadow-xl">
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold text-white">Recent Opportunities</h3>
-              <Activity className="w-4 h-4 text-[#A1A1AA]" />
+              <h3 className="text-sm font-bold text-foreground">Recent Opportunities</h3>
+              <Activity className="w-4 h-4 text-secondary-text" />
             </div>
             
             <div className="space-y-4 font-normal">
               {recentLeads.map((lead) => (
-                <div key={lead.name} className="flex items-center justify-between border-b border-[#26282D] pb-3 last:border-0 last:pb-0">
+                <div key={lead.name} className="flex items-center justify-between border-b border-border pb-3 last:border-0 last:pb-0">
                   <div className="max-w-[55%]">
-                    <p className="text-xs font-bold text-white truncate">{lead.name}</p>
-                    <p className="text-[10px] text-[#A1A1AA] mt-0.5 font-mono">{lead.city} • {lead.date}</p>
+                    <p className="text-xs font-bold text-foreground truncate">{lead.name}</p>
+                    <p className="text-[10px] text-secondary-text mt-0.5 font-mono">{lead.city} • {lead.date}</p>
                   </div>
                   <div className="text-right space-y-1">
                     <div className="flex items-center gap-1.5 justify-end">
                       <span className={`inline-block text-[9px] font-bold px-2 py-0.5 rounded border font-mono ${
                         lead.opportunity === 'High' 
-                          ? 'bg-[#2DD4A7]/10 text-[#2DD4A7] border-[#2DD4A7]/25' 
+                          ? 'bg-primary/10 text-primary border-primary/25' 
                           : lead.opportunity === 'Medium'
                             ? 'bg-[#F5A623]/10 text-[#F5A623] border-[#F5A623]/25'
                             : 'bg-[#FF5C5C]/10 text-[#FF5C5C] border-[#FF5C5C]/25'
@@ -460,7 +460,7 @@ export default function DashboardOverviewPage() {
                         {lead.score}pts
                       </span>
                     </div>
-                    <p className="text-[9px] text-[#2DD4A7] font-mono font-bold">{lead.dealValue}</p>
+                    <p className="text-[9px] text-primary font-mono font-bold">{lead.dealValue}</p>
                   </div>
                 </div>
               ))}
@@ -469,7 +469,7 @@ export default function DashboardOverviewPage() {
 
           <Link 
             href="/dashboard/lead-finder" 
-            className="w-full mt-6 bg-[#0B0B0C] hover:bg-[#141517] border border-[#26282D] text-white font-bold text-xs py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer group font-mono"
+            className="w-full mt-6 bg-background hover:bg-secondary-bg border border-border text-foreground font-bold text-xs py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer group font-mono"
           >
             Scan More Businesses
             <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />

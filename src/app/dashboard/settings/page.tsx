@@ -17,13 +17,18 @@ import {
   ArrowRight,
   ShieldCheck,
   Eye,
-  EyeOff
+  EyeOff,
+  Sun,
+  Moon,
+  Palette
 } from 'lucide-react';
 import UnlockModal from '@/components/UnlockModal';
 import { trackEvent } from '@/lib/analytics';
+import { useTheme, type Theme } from '@/lib/theme';
 
 export default function SettingsPage() {
   const { user, updateSubscriptionTier } = useAuth();
+  const { theme, setTheme } = useTheme();
 
   // Track billing checkout completion on mount
   useEffect(() => {
@@ -365,11 +370,11 @@ export default function SettingsPage() {
   const currentTier = user?.subscription_tier || 'free';
 
   return (
-    <div className="space-y-8 max-w-6xl mx-auto pb-16 font-sans text-white">
+    <div className="space-y-8 max-w-6xl mx-auto pb-16 font-sans text-foreground">
       {/* Header */}
-      <div className="border-b border-[rgba(255,255,255,0.08)] pb-6">
-        <h1 className="text-2xl font-serif font-bold text-white">Settings & Billing</h1>
-        <p className="text-[#9CA3AF] text-xs mt-1">
+      <div className="border-b border-border pb-6">
+        <h1 className="text-2xl font-serif font-bold text-foreground">Settings & Billing</h1>
+        <p className="text-secondary-text text-xs mt-1">
           Manage your account profile, upgrade subscription plans, or configure live API credentials.
         </p>
       </div>
@@ -378,48 +383,91 @@ export default function SettingsPage() {
         
         {/* Left Column: Profile & Subscription cards */}
         <div className="lg:col-span-2 space-y-6">
+          {/* Appearance */}
+          <div className="bg-secondary-bg border border-border p-6 rounded-2xl space-y-4 shadow-xl">
+            <h3 className="text-sm font-bold text-foreground flex items-center gap-2 uppercase tracking-wider font-mono">
+              <Palette className="w-4 h-4 text-secondary-text" />
+              Appearance
+            </h3>
+            <p className="text-[11px] text-secondary-text font-mono">
+              Choose how LocalRadar looks on this device. Preference is saved locally.
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              {([
+                { id: 'light' as Theme, label: 'Light', icon: Sun, desc: 'Bright surfaces' },
+                { id: 'dark' as Theme, label: 'Dark', icon: Moon, desc: 'Terminal default' },
+              ]).map((opt) => {
+                const Icon = opt.icon;
+                const active = theme === opt.id;
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => setTheme(opt.id)}
+                    className={`flex items-center gap-3 p-4 rounded-xl border text-left transition-all cursor-pointer ${
+                      active
+                        ? 'border-primary bg-primary/10 shadow-sm'
+                        : 'border-border bg-background hover:border-muted-text'
+                    }`}
+                  >
+                    <div className={`w-9 h-9 rounded-lg flex items-center justify-center border ${
+                      active ? 'border-primary/40 bg-primary/15 text-primary' : 'border-border bg-secondary-bg text-secondary-text'
+                    }`}>
+                      <Icon className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <p className={`text-xs font-bold ${active ? 'text-foreground' : 'text-secondary-text'}`}>{opt.label}</p>
+                      <p className="text-[10px] text-muted-text font-mono">{opt.desc}</p>
+                    </div>
+                    {active && <Check className="w-4 h-4 text-primary ml-auto shrink-0" />}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           {/* Profile form */}
-          <div className="bg-[#141517] border border-[#26282D] p-6 rounded-2xl space-y-4 shadow-xl">
-            <h3 className="text-sm font-bold text-white flex items-center gap-2 uppercase tracking-wider font-mono">
-              <User className="w-4 h-4 text-[#A1A1AA]" />
+          <div className="bg-secondary-bg border border-border p-6 rounded-2xl space-y-4 shadow-xl">
+            <h3 className="text-sm font-bold text-foreground flex items-center gap-2 uppercase tracking-wider font-mono">
+              <User className="w-4 h-4 text-secondary-text" />
               Agency Profile Details
             </h3>
 
             <form onSubmit={handleSaveProfile} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-[9px] font-bold text-[#A1A1AA] uppercase tracking-widest font-mono">Full Name</label>
+                  <label className="text-[9px] font-bold text-secondary-text uppercase tracking-widest font-mono">Full Name</label>
                   <input
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full bg-[#0B0B0C] border border-[#26282D] rounded-xl py-2.5 px-4 text-white text-xs focus:outline-none focus:border-zinc-500 transition-all font-mono"
+                    className="w-full bg-background border border-border rounded-xl py-2.5 px-4 text-foreground text-xs focus:outline-none focus:border-zinc-500 transition-all font-mono"
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[9px] font-bold text-[#A1A1AA] uppercase tracking-widest font-mono">Email Address</label>
+                  <label className="text-[9px] font-bold text-secondary-text uppercase tracking-widest font-mono">Email Address</label>
                   <input
                     type="email"
                     value={email}
                     disabled
-                    className="w-full bg-[#0B0B0C]/50 border border-[#26282D]/40 text-zinc-500 rounded-xl py-2.5 px-4 text-xs cursor-not-allowed font-mono"
+                    className="w-full bg-background/50 border border-border/40 text-zinc-500 rounded-xl py-2.5 px-4 text-xs cursor-not-allowed font-mono"
                   />
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[9px] font-bold text-[#A1A1AA] uppercase tracking-widest font-mono">Agency Organization Name</label>
+                <label className="text-[9px] font-bold text-secondary-text uppercase tracking-widest font-mono">Agency Organization Name</label>
                 <input
                   type="text"
                   value={orgName}
                   onChange={(e) => setOrgName(e.target.value)}
-                  className="w-full bg-[#0B0B0C] border border-[#26282D] rounded-xl py-2.5 px-4 text-white text-xs focus:outline-none focus:border-zinc-500 transition-all font-mono"
+                  className="w-full bg-background border border-border rounded-xl py-2.5 px-4 text-foreground text-xs focus:outline-none focus:border-zinc-500 transition-all font-mono"
                 />
               </div>
 
               <button
                 type="submit"
-                className="bg-[#0B0B0C] hover:bg-[#141517] border border-[#26282D] text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ml-auto shadow-sm font-mono"
+                className="bg-background hover:bg-secondary-bg border border-border text-foreground text-xs font-bold px-4 py-2.5 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ml-auto shadow-sm font-mono"
               >
                 <Save className="w-3.5 h-3.5" />
                 Save Changes
@@ -428,15 +476,15 @@ export default function SettingsPage() {
           </div>
 
           {/* Pricing Billing Section */}
-          <div className="bg-[#141517] border border-[#26282D] p-6 rounded-2xl space-y-6 shadow-xl">
+          <div className="bg-secondary-bg border border-border p-6 rounded-2xl space-y-6 shadow-xl">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-              <h3 className="text-sm font-bold text-white flex items-center gap-2 uppercase tracking-wider font-mono">
-                <CreditCard className="w-4 h-4 text-[#A1A1AA]" />
+              <h3 className="text-sm font-bold text-foreground flex items-center gap-2 uppercase tracking-wider font-mono">
+                <CreditCard className="w-4 h-4 text-secondary-text" />
                 Subscription Plans
               </h3>
-              <span className="text-[9px] text-zinc-400 font-bold bg-[#0B0B0C] border border-[#26282D] px-2.5 py-1 rounded-full uppercase tracking-wider font-mono flex items-center gap-1.5">
+              <span className="text-[9px] text-zinc-400 font-bold bg-background border border-border px-2.5 py-1 rounded-full uppercase tracking-wider font-mono flex items-center gap-1.5">
                 Active Tier: 
-                <span className="text-[#2DD4A7] uppercase">{currentTier}</span>
+                <span className="text-primary uppercase">{currentTier}</span>
               </span>
             </div>
 
@@ -448,28 +496,28 @@ export default function SettingsPage() {
                     key={tier.id} 
                     className={`p-4 rounded-xl border flex flex-col justify-between ${
                       isActive 
-                        ? 'bg-zinc-800/10 border-[#FAFAF9] shadow-lg relative' 
-                        : 'bg-[#0B0B0C] border-[#26282D]'
+                        ? 'bg-card-hover border-foreground shadow-lg relative' 
+                        : 'bg-background border-border'
                     }`}
                   >
                     {isActive && (
                       <span className="absolute top-2 right-2 flex h-2 w-2">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#2DD4A7] opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-[#2DD4A7]"></span>
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
                       </span>
                     )}
 
                     <div>
-                      <h4 className="text-xs font-bold text-white">{tier.name}</h4>
+                      <h4 className="text-xs font-bold text-foreground">{tier.name}</h4>
                       <div className="mt-2 flex items-baseline">
-                        <span className="text-xl font-serif font-extrabold text-white">{tier.price}</span>
-                        <span className="text-[10px] text-[#A1A1AA] font-semibold ml-1">/{tier.period}</span>
+                        <span className="text-xl font-serif font-extrabold text-foreground">{tier.price}</span>
+                        <span className="text-[10px] text-secondary-text font-semibold ml-1">/{tier.period}</span>
                       </div>
 
-                      <ul className="mt-4 space-y-2 text-[10px] text-[#A1A1AA] font-mono">
+                      <ul className="mt-4 space-y-2 text-[10px] text-secondary-text font-mono">
                         {tier.features.map((feat, i) => (
                           <li key={i} className="flex items-center gap-1.5">
-                            <Check className="w-3.5 h-3.5 text-[#2DD4A7] shrink-0" />
+                            <Check className="w-3.5 h-3.5 text-primary shrink-0" />
                             <span>{feat}</span>
                           </li>
                         ))}
@@ -481,8 +529,8 @@ export default function SettingsPage() {
                       disabled={isActive}
                       className={`w-full text-center text-xs font-bold py-2.5 rounded-xl mt-6 transition-all cursor-pointer font-mono ${
                         isActive 
-                          ? 'bg-[#26282D] border border-[#26282D] text-[#FAFAF9] cursor-default' 
-                          : 'bg-gradient-to-r from-[#2DD4A7] to-[#14B88C] hover:opacity-95 text-[#0B0B0C] font-extrabold shadow-md'
+                          ? 'bg-border border border-border text-foreground cursor-default' 
+                          : 'bg-gradient-to-r from-primary to-[#14B88C] hover:opacity-95 text-on-primary font-extrabold shadow-md'
                       }`}
                     >
                       {isActive ? 'Active Plan' : tier.buttonText}
@@ -499,7 +547,7 @@ export default function SettingsPage() {
           
           {/* FREE USER: Hide developer keys and show lock feature */}
           {currentTier === 'free' && (
-            <div className="bg-[#141517] border border-[#26282D] p-6 rounded-2xl space-y-5 shadow-xl relative overflow-hidden">
+            <div className="bg-secondary-bg border border-border p-6 rounded-2xl space-y-5 shadow-xl relative overflow-hidden">
               <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#F5A623]/25 to-transparent" />
               
               <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-[#F5A623] font-bold">
@@ -508,13 +556,13 @@ export default function SettingsPage() {
               </div>
 
               <div>
-                <h3 className="text-sm font-bold text-white">Developer Keys</h3>
-                <p className="text-[10px] text-[#A1A1AA] leading-relaxed mt-2">
+                <h3 className="text-sm font-bold text-foreground">Developer Keys</h3>
+                <p className="text-[10px] text-secondary-text leading-relaxed mt-2">
                   Bring Your Own Keys (BYOK) mode allows you to bypass monthly scan limits and connect to your own database schemas.
                 </p>
               </div>
 
-              <div className="space-y-3 bg-[#0B0B0C] border border-[#202226] p-4 rounded-xl text-xs font-mono text-[#71717A]">
+              <div className="space-y-3 bg-background border border-[#202226] p-4 rounded-xl text-xs font-mono text-muted-text">
                 <div className="flex justify-between border-b border-[#202226] pb-2">
                   <span>Google Places API</span>
                   <span className="text-red-400/80">Locked</span>
@@ -531,7 +579,7 @@ export default function SettingsPage() {
 
               <button
                 onClick={() => triggerLockedModal('developer_keys')}
-                className="w-full bg-[#1C1E22] hover:bg-[#26282F] border border-[#2B2D33] text-white font-bold text-xs py-3 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer font-mono"
+                className="w-full bg-[#1C1E22] hover:bg-[#26282F] border border-[#2B2D33] text-foreground font-bold text-xs py-3 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer font-mono"
               >
                 Upgrade to Agency Plus
                 <ArrowRight className="w-4 h-4" />
@@ -541,43 +589,43 @@ export default function SettingsPage() {
 
           {/* PRO & AGENCY USER: Hide developer keys and show infrastructure note */}
           {(currentTier === 'pro' || currentTier === 'agency') && (
-            <div className="bg-[#141517] border border-[#26282D] p-6 rounded-2xl space-y-5 shadow-xl relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#2DD4A7]/20 to-transparent" />
+            <div className="bg-secondary-bg border border-border p-6 rounded-2xl space-y-5 shadow-xl relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
 
-              <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-[#2DD4A7] font-bold">
-                <ShieldCheck className="w-4 h-4 text-[#2DD4A7]" />
+              <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-primary font-bold">
+                <ShieldCheck className="w-4 h-4 text-primary" />
                 SaaS Infrastructure
               </div>
 
               <div>
-                <h3 className="text-sm font-bold text-white">Developer Keys</h3>
-                <p className="text-[10px] text-[#A1A1AA] leading-relaxed mt-2">
+                <h3 className="text-sm font-bold text-foreground">Developer Keys</h3>
+                <p className="text-[10px] text-secondary-text leading-relaxed mt-2">
                   Your requests are fully powered by LocalRadar's internal servers and APIs. You do not need to provide any API credentials.
                 </p>
               </div>
 
-              <div className="space-y-3 bg-[#0B0B0C] border border-[#202226] p-4 rounded-xl text-xs font-mono text-[#A1A1AA]">
+              <div className="space-y-3 bg-background border border-[#202226] p-4 rounded-xl text-xs font-mono text-secondary-text">
                 <div className="flex justify-between items-center border-b border-[#202226] pb-2.5">
-                  <span className="text-white">Google Places API</span>
-                  <span className="text-[9px] bg-[#2DD4A7]/15 text-[#2DD4A7] border border-[#2DD4A7]/25 px-2 py-0.5 rounded-full font-bold uppercase">Included</span>
+                  <span className="text-foreground">Google Places API</span>
+                  <span className="text-[9px] bg-primary/15 text-primary border border-primary/25 px-2 py-0.5 rounded-full font-bold uppercase">Included</span>
                 </div>
                 <div className="flex justify-between items-center border-b border-[#202226] pb-2.5">
-                  <span className="text-white">AI Search Credits</span>
-                  <span className="text-[9px] bg-[#2DD4A7]/15 text-[#2DD4A7] border border-[#2DD4A7]/25 px-2 py-0.5 rounded-full font-bold uppercase">Included</span>
+                  <span className="text-foreground">AI Search Credits</span>
+                  <span className="text-[9px] bg-primary/15 text-primary border border-primary/25 px-2 py-0.5 rounded-full font-bold uppercase">Included</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-white">Vulnerability Audit</span>
-                  <span className="text-[9px] bg-[#2DD4A7]/15 text-[#2DD4A7] border border-[#2DD4A7]/25 px-2 py-0.5 rounded-full font-bold uppercase">Included</span>
+                  <span className="text-foreground">Vulnerability Audit</span>
+                  <span className="text-[9px] bg-primary/15 text-primary border border-primary/25 px-2 py-0.5 rounded-full font-bold uppercase">Included</span>
                 </div>
               </div>
 
               <div className="pt-2 border-t border-[#202226] space-y-3">
-                <p className="text-[9px] text-[#71717A] leading-relaxed">
+                <p className="text-[9px] text-muted-text leading-relaxed">
                   Need to bring your own keys or hook up a custom database? Advanced Integrations are available on the Agency Plus Plan.
                 </p>
                 <button
                   onClick={() => triggerLockedModal('developer_keys')}
-                  className="w-full bg-[#1C1E22] hover:bg-[#26282F] border border-[#2B2D33] text-white font-bold text-xs py-3 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer font-mono"
+                  className="w-full bg-[#1C1E22] hover:bg-[#26282F] border border-[#2B2D33] text-foreground font-bold text-xs py-3 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer font-mono"
                 >
                   Upgrade to Agency Plus
                   <ArrowRight className="w-4 h-4" />
@@ -588,33 +636,33 @@ export default function SettingsPage() {
 
           {/* AGENCY PLUS USER: Show full advanced integrations & BYOK controls */}
           {currentTier === 'agency_plus' && (
-            <div className="bg-[#141517] border border-[#26282D] p-6 rounded-2xl space-y-4 shadow-xl">
+            <div className="bg-secondary-bg border border-border p-6 rounded-2xl space-y-4 shadow-xl">
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-bold text-white flex items-center gap-2 uppercase tracking-wider font-mono">
-                  <Key className="w-4 h-4 text-[#A1A1AA]" />
+                <h3 className="text-sm font-bold text-foreground flex items-center gap-2 uppercase tracking-wider font-mono">
+                  <Key className="w-4 h-4 text-secondary-text" />
                   Advanced Integrations
                 </h3>
-                <span className="p-1.5 rounded-lg bg-[#0B0B0C] border border-[#26282D]" title="Server-side Encrypted Credentials">
-                  <Lock className="w-3.5 h-3.5 text-[#2DD4A7]" />
+                <span className="p-1.5 rounded-lg bg-background border border-border" title="Server-side Encrypted Credentials">
+                  <Lock className="w-3.5 h-3.5 text-primary" />
                 </span>
               </div>
 
-              <p className="text-[10px] text-[#A1A1AA] leading-relaxed">
+              <p className="text-[10px] text-secondary-text leading-relaxed">
                 Configure custom infrastructure credentials. Enabling BYOK bypasses LocalRadar server limits and routes requests using your keys.
               </p>
 
               {/* BYOK Toggle */}
-              <div className="flex items-center justify-between bg-[#0B0B0C] border border-[#26282D] p-3 rounded-xl">
+              <div className="flex items-center justify-between bg-background border border-border p-3 rounded-xl">
                 <div className="space-y-0.5">
-                  <span className="text-xs font-bold text-white block">BYOK Mode</span>
-                  <span className="text-[9px] text-[#71717A] block font-mono">Bring Your Own Keys</span>
+                  <span className="text-xs font-bold text-foreground block">BYOK Mode</span>
+                  <span className="text-[9px] text-muted-text block font-mono">Bring Your Own Keys</span>
                 </div>
                 <button
                   type="button"
                   onClick={() => setByokEnabled(!byokEnabled)}
                   className={`w-11 h-6 rounded-full transition-colors relative focus:outline-none cursor-pointer border ${
                     byokEnabled 
-                      ? 'bg-[#2DD4A7] border-[#2DD4A7]' 
+                      ? 'bg-primary border-primary' 
                       : 'bg-zinc-800 border-zinc-700'
                   }`}
                 >
@@ -626,7 +674,7 @@ export default function SettingsPage() {
                 </button>
               </div>
 
-              <form onSubmit={handleSaveKeys} className="space-y-4 border-t border-[#26282D] pt-4">
+              <form onSubmit={handleSaveKeys} className="space-y-4 border-t border-border pt-4">
                 <div className="space-y-1.5">
                   <label className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest block font-mono">Google Places API Key</label>
                   <input
@@ -644,7 +692,7 @@ export default function SettingsPage() {
                         setGooglePlacesKey('••••••••');
                       }
                     }}
-                    className="w-full bg-[#0B0B0C] border border-[#26282D] rounded-xl py-2 px-3 text-white text-xs focus:outline-none focus:border-zinc-500 transition-all font-mono"
+                    className="w-full bg-background border border-border rounded-xl py-2 px-3 text-foreground text-xs focus:outline-none focus:border-zinc-500 transition-all font-mono"
                   />
                 </div>
 
@@ -665,7 +713,7 @@ export default function SettingsPage() {
                         setOpenrouterKey('••••••••');
                       }
                     }}
-                    className="w-full bg-[#0B0B0C] border border-[#26282D] rounded-xl py-2 px-3 text-white text-xs focus:outline-none focus:border-zinc-500 transition-all font-mono"
+                    className="w-full bg-background border border-border rounded-xl py-2 px-3 text-foreground text-xs focus:outline-none focus:border-zinc-500 transition-all font-mono"
                   />
                 </div>
 
@@ -686,7 +734,7 @@ export default function SettingsPage() {
                         setSupabaseUrl('••••••••');
                       }
                     }}
-                    className="w-full bg-[#0B0B0C] border border-[#26282D] rounded-xl py-2 px-3 text-white text-xs focus:outline-none focus:border-zinc-500 transition-all font-mono"
+                    className="w-full bg-background border border-border rounded-xl py-2 px-3 text-foreground text-xs focus:outline-none focus:border-zinc-500 transition-all font-mono"
                   />
                 </div>
 
@@ -707,14 +755,14 @@ export default function SettingsPage() {
                         setSupabaseAnon('••••••••');
                       }
                     }}
-                    className="w-full bg-[#0B0B0C] border border-[#26282D] rounded-xl py-2 px-3 text-white text-xs focus:outline-none focus:border-zinc-500 transition-all font-mono"
+                    className="w-full bg-background border border-border rounded-xl py-2 px-3 text-foreground text-xs focus:outline-none focus:border-zinc-500 transition-all font-mono"
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={isSaving}
-                  className="w-full bg-gradient-to-r from-[#2DD4A7] to-[#14B88C] hover:opacity-95 text-[#0B0B0C] font-extrabold text-xs py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-md font-mono disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full bg-gradient-to-r from-primary to-[#14B88C] hover:opacity-95 text-on-primary font-extrabold text-xs py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-md font-mono disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isSaving ? (
                     <>
@@ -743,7 +791,7 @@ export default function SettingsPage() {
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 15 }}
-            className="fixed bottom-6 right-6 bg-[#2DD4A7]/10 border border-[#2DD4A7]/20 text-[#2DD4A7] text-xs px-4 py-3 rounded-xl flex items-center gap-2 shadow-lg z-50 font-mono"
+            className="fixed bottom-6 right-6 bg-primary/10 border border-primary/20 text-primary text-xs px-4 py-3 rounded-xl flex items-center gap-2 shadow-lg z-50 font-mono"
           >
             <Check className="w-4 h-4" />
             <span>{saveMessage}</span>
