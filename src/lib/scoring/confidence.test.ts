@@ -2,7 +2,8 @@
 import { describe, it, expect } from 'vitest';
 import fc from 'fast-check';
 import { SignalKey, SignalProvenance, ProvenanceLabel } from '@/types/scoring';
-import { computeConfidence } from './index';
+import { computeConfidence, computeDataCompleteness } from './index';
+import type { BusinessSignals } from '@/types/scoring';
 
 // ---------------------------------------------------------------------------
 // Property 18: Confidence is a bounded integer with honest contributions
@@ -136,6 +137,138 @@ describe('computeConfidence — Property 18: bounded integer with honest contrib
         },
       ),
       { numRuns: 300 },
+    );
+  });
+
+  // (d) Per-business data-completeness factor. Confidence must stay bounded for
+  // any completeness in [0, 1], and lowering completeness can only lower (never
+  // raise) confidence for the same provenance + sample. The strong/weak
+  // benchmark gap (>= 20) must still hold at a fixed completeness.
+  const completenessArb = fc.double({ min: 0, max: 1, noNaN: true });
+
+  it('stays a bounded integer in [0, 100] for any data-completeness factor', () => {
+    fc.assert(
+      fc.property(provenanceArb, sampleSizeArb, completenessArb, (provenance, sampleSize, completeness) => {
+        const c = computeConfidence(provenance, sampleSize, completeness);
+        expect(Number.isInteger(c)).toBe(true);
+        expect(c).toBeGreaterThanOrEqual(0);
+        expect(c).toBeLessThanOrEqual(100);
+      }),
+      { numRuns: 300 },
+    );
+  });
+
+  it('is monotonic in completeness: less real data never yields higher confidence', () => {
+    fc.assert(
+      fc.property(
+        provenanceArb,
+        sampleSizeArb,
+        completenessArb,
+        completenessArb,
+        (provenance, sampleSize, a, b) => {
+          const lo = Math.min(a, b);
+          const hi = Math.max(a, b);
+          const loConf = computeConfidence(provenance, sampleSize, lo);
+          const hiConf = computeConfidence(provenance, sampleSize, hi);
+          expect(loConf).toBeLessThanOrEqual(hiConf);
+        },
+      ),
+      { numRuns: 300 },
+    );
+  });
+
+  it('defaults to full completeness (omitted arg equals dataCompleteness = 1)', () => {
+    fc.assert(
+      fc.property(provenanceArb, sampleSizeArb, (provenance, sampleSize) => {
+        expect(computeConfidence(provenance, sampleSize)).toBe(
+          computeConfidence(provenance, sampleSize, 1),
+        );
+      }),
+      { numRuns: 200 },
+    );
+  });
+
+  it('preserves the >= 20 strong-vs-weak benchmark gap at a fixed completeness', () => {
+    fc.assert(
+      fc.property(
+        provenanceArb,
+        weakSampleArb,
+        strongSampleArb,
+        completenessArb,
+        (provenance, weak, strong, completeness) => {
+          const weakConf = computeConfidence(provenance, weak, completeness);
+          const strongConf = computeConfidence(provenance, strong, completeness);
+          expect(strongConf - weakConf).toBeGreaterThanOrEqual(20);
+        },
+      ),
+      { numRuns: 300 },
+    );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// computeDataCompleteness: per-business real-data factor in [0, 1].
+// ---------------------------------------------------------------------------
+const baseSignals: BusinessSignals = {
+  hasWebsite: false,
+  isInstagramOnly: false,
+  isFacebookOnly: false,
+  isOldWebsite: false,
+  reviewCount: 0,
+  rating: 0,
+  competitorAvgReviews: 0,
+  hasPhone: false,
+  hasAddress: false,
+  lowRating: false,
+  fewReviews: true,
+  noBookingSystem: true,
+  noLeadForm: true,
+  noWhatsApp: true,
+  noAppointment: true,
+  hasRecentReviews: false,
+  hasRecentActivity: false,
+};
+
+describe('computeDataCompleteness — per-business real-data factor', () => {
+  it('is always within [0, 1]', () => {
+    const signalsArb: fc.Arbitrary<BusinessSignals> = fc.record({
+      ...Object.fromEntries(
+        Object.entries(baseSignals).map(([k, v]) => [
+          k,
+          typeof v === 'boolean' ? fc.boolean() : fc.nat({ max: 5000 }),
+        ]),
+      ),
+    }) as unknown as fc.Arbitrary<BusinessSignals>;
+
+    fc.assert(
+      fc.property(signalsArb, (signals) => {
+        const c = computeDataCompleteness(signals);
+        expect(c).toBeGreaterThanOrEqual(0);
+        expect(c).toBeLessThanOrEqual(1);
+      }),
+      { numRuns: 300 },
+    );
+  });
+
+  it('scores a fully-populated business at 1.0 and a bare listing near 0', () => {
+    const full: BusinessSignals = {
+      ...baseSignals,
+      hasWebsite: true,
+      reviewCount: 42,
+      hasPhone: true,
+      hasAddress: true,
+    };
+    expect(computeDataCompleteness(full)).toBeCloseTo(1, 5);
+
+    const bare: BusinessSignals = { ...baseSignals };
+    expect(computeDataCompleteness(bare)).toBeCloseTo(0, 5);
+  });
+
+  it('gives a real website more credit than a social-only presence', () => {
+    const realSite: BusinessSignals = { ...baseSignals, hasWebsite: true };
+    const socialOnly: BusinessSignals = { ...baseSignals, isInstagramOnly: true };
+    expect(computeDataCompleteness(realSite)).toBeGreaterThan(
+      computeDataCompleteness(socialOnly),
     );
   });
 });

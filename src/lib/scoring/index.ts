@@ -68,37 +68,83 @@ const STRONG_BENCHMARK_CONFIDENCE_BONUS = 20;
 const STRONG_BENCHMARK_MIN_COMPETITORS = 5;
 
 /**
+ * Per-field weights for the business data-completeness factor. These sum to 1.0
+ * so a business carrying all four core real data points scores a completeness of
+ * 1.0, and each missing point reduces it proportionally. A real website is
+ * weighted highest; a social-only presence earns partial web credit.
+ */
+const DATA_COMPLETENESS_WEIGHTS = {
+  realWebsite: 0.35,
+  socialOnly: 0.15,
+  reviews: 0.25,
+  phone: 0.2,
+  address: 0.2,
+} as const;
+
+/**
+ * Compute a per-business data-completeness factor in `[0, 1]` from the real
+ * fields actually present on the business (website / reviews / phone / address).
+ *
+ * This is what lets confidence vary between businesses: two leads run through the
+ * identical (heuristic) signal pipeline still differ in how much real underlying
+ * data backs them. A lead with a real website, reviews, phone and address scores
+ * 1.0; a bare listing with only a phone scores much lower. Signal provenance
+ * labels are left untouched (they stay spec-compliant per Req 3.2); this factor
+ * is an additional honest reduction, never an inflation.
+ */
+export function computeDataCompleteness(signals: BusinessSignals): number {
+  let score = 0;
+  if (signals.hasWebsite) score += DATA_COMPLETENESS_WEIGHTS.realWebsite;
+  else if (signals.isInstagramOnly || signals.isFacebookOnly)
+    score += DATA_COMPLETENESS_WEIGHTS.socialOnly;
+  if (signals.reviewCount > 0) score += DATA_COMPLETENESS_WEIGHTS.reviews;
+  if (signals.hasPhone) score += DATA_COMPLETENESS_WEIGHTS.phone;
+  if (signals.hasAddress) score += DATA_COMPLETENESS_WEIGHTS.address;
+  return Math.max(0, Math.min(1, score));
+}
+
+/**
  * Compute a bounded, honest {@link ConfidenceValue} in `[0, 100]` from the
- * per-signal provenance map and the competitor sample size (Req 11.2, 11.5, 11.6,
- * 12.4).
+ * per-signal provenance map, the competitor sample size, and a per-business
+ * data-completeness factor (Req 11.2, 11.5, 11.6, 12.4).
  *
  * The value has two independent parts:
  *  1. **Data availability** (`[0, {@link AVAILABILITY_CONFIDENCE_MAX}]`): the
- *     mean provenance weight across every emitted signal, scaled. Signals
- *     labeled `unavailable` contribute exactly 0, so missing/failed data can
- *     never inflate confidence (Req 11.5).
+ *     mean provenance weight across every emitted signal, scaled — then further
+ *     scaled by `dataCompleteness` so a business missing real fields (website,
+ *     reviews, phone, address) is honestly less confident than one with them.
+ *     Signals labeled `unavailable` contribute exactly 0, so missing/failed data
+ *     can never inflate confidence (Req 11.5). `dataCompleteness` defaults to 1
+ *     (backward compatible) and is clamped to `[0, 1]`.
  *  2. **Benchmark bonus** (`+{@link STRONG_BENCHMARK_CONFIDENCE_BONUS}` only when
  *     `sampleSize >= {@link STRONG_BENCHMARK_MIN_COMPETITORS}`): because this is
  *     additive and the availability part is non-negative, an otherwise-identical
  *     opportunity backed by `< 5` real competitors always lands at least 20
- *     points below the `>= 5` case, and never below 0 (Req 11.6, 12.4).
+ *     points below the `>= 5` case, and never below 0 (Req 11.6, 12.4). The bonus
+ *     reflects market-data quality and is intentionally not scaled by the
+ *     per-business completeness factor, preserving that guarantee.
  *
  * The result is rounded to an integer and clamped to `[0, 100]`.
  */
 export function computeConfidence(
   signalProvenance: SignalProvenance,
-  sampleSize: number
+  sampleSize: number,
+  dataCompleteness: number = 1
 ): ConfidenceValue {
   const labels = Object.values(signalProvenance) as ProvenanceLabel[];
 
-  // Data-availability portion: mean provenance weight scaled to [0, MAX].
-  // `unavailable` signals carry weight 0 and therefore contribute nothing.
-  const availability =
+  const meanWeight =
     labels.length === 0
       ? 0
-      : (labels.reduce((sum, label) => sum + PROVENANCE_CONFIDENCE_WEIGHT[label], 0) /
-          labels.length) *
-        AVAILABILITY_CONFIDENCE_MAX;
+      : labels.reduce((sum, label) => sum + PROVENANCE_CONFIDENCE_WEIGHT[label], 0) /
+        labels.length;
+
+  // Per-business completeness factor, clamped to [0, 1] (defaults to 1).
+  const completeness = Math.max(0, Math.min(1, dataCompleteness));
+
+  // Data-availability portion: mean provenance weight scaled to [0, MAX], then
+  // reduced by how much real underlying data the business actually has.
+  const availability = meanWeight * completeness * AVAILABILITY_CONFIDENCE_MAX;
 
   // Benchmark bonus only for a strong (>= 5) real-competitor sample.
   const benchmarkBonus =
@@ -408,12 +454,16 @@ export function scoreBusinessOpportunity(
 
   // 6. Confidence Score™ — honest, per-contribution confidence model (Req 11.2,
   // 11.5, 11.6, 12.4). Data availability is derived from the per-signal
-  // provenance map (values labeled `unavailable` contribute 0), and a benchmark
-  // backed by fewer than 5 real competitors yields a confidence at least 20
-  // points lower than the >= 5 case, floored at 0. See computeConfidence.
+  // provenance map (values labeled `unavailable` contribute 0) and further scaled
+  // by how much real underlying data this specific business carries (website /
+  // reviews / phone / address), so confidence varies per business instead of
+  // being uniform. A benchmark backed by fewer than 5 real competitors yields a
+  // confidence at least 20 points lower than the >= 5 case, floored at 0.
+  const dataCompleteness = computeDataCompleteness(signals);
   const confidenceScore: ConfidenceValue = computeConfidence(
     signalProvenance,
-    benchmark.sampleSize
+    benchmark.sampleSize,
+    dataCompleteness
   );
 
   // 7. Service Fit Score™
