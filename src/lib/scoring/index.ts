@@ -88,7 +88,8 @@ export function extractSignals(
 export function scoreBusinessOpportunity(
   business: Business,
   competitors: Competitor[] = [],
-  categoryInput?: string
+  categoryInput?: string,
+  country?: string
 ): ScoredOpportunity {
   const category = inferCategory(business.name, categoryInput);
   const signals = extractSignals(business, competitors);
@@ -100,7 +101,14 @@ export function scoreBusinessOpportunity(
   const closingProbability = calculateClosingProbability(opportunityScore, signals, business.id);
   
   // 3. Deal Value Engine™
-  const dealValue = calculateDealValue(signals, opportunityScore, category, business.address, business.name);
+  const dealValue = calculateDealValue(
+    signals,
+    opportunityScore,
+    category,
+    business.address,
+    business.name,
+    country
+  );
   
   // 4. Business Size Detection
   const businessSize = detectBusinessSize(business.reviews_count, business.rating, business.name);

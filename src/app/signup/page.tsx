@@ -61,13 +61,13 @@ export default function SignupPage() {
       });
       if (signError) throw signError;
       if (data.session) {
-        router.push('/dashboard');
-      } else {
-        router.push(`/verify-email?email=${encodeURIComponent(email)}`);
+        // AuthProvider will set user; useEffect redirects to dashboard
+        return;
       }
+      router.push(`/verify-email?email=${encodeURIComponent(email)}`);
+      setLoading(false);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Could not create account.');
-    } finally {
       setLoading(false);
     }
   };

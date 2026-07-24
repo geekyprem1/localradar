@@ -25,6 +25,7 @@ import { generateMockCompetitors } from '@/lib/mockData';
 import { ScoredOpportunity } from '@/types/scoring';
 import EmptyState from '@/components/ui/EmptyState';
 import OnboardingBanner from '@/components/dashboard/OnboardingBanner';
+import { formatCompactCurrency } from '@/lib/currency';
 
 export default function DashboardOverviewPage() {
   const { user } = useAuth();
@@ -65,10 +66,11 @@ export default function DashboardOverviewPage() {
       const opps = JSON.parse(cachedOpps) as Record<string, Opportunity>;
 
       if (leads.length > 0) {
+        const country = localStorage.getItem('localradar_latest_country') || 'United States';
         const scoredResults: Record<string, ScoredOpportunity> = {};
         leads.forEach(biz => {
           const competitors = generateMockCompetitors(biz);
-          scoredResults[biz.id] = scoreBusinessOpportunity(biz, competitors);
+          scoredResults[biz.id] = scoreBusinessOpportunity(biz, competitors, undefined, country);
         });
 
         const totalPipeline = leads.reduce((sum, l) => sum + (scoredResults[l.id]?.dealValue.max ?? 0), 0);
@@ -84,10 +86,10 @@ export default function DashboardOverviewPage() {
         const avgClosingProb = Math.round(leads.reduce((sum, l) => sum + (scoredResults[l.id]?.closingProbability ?? 0), 0) / leads.length);
 
         setLiveStats({
-          potentialRevenue: formatLakhs(totalPipeline),
+          potentialRevenue: formatCompactCurrency(totalPipeline, country),
           highProbClients,
           highOppClients,
-          weightedOpportunity: formatLakhs(weightedOpportunity),
+          weightedOpportunity: formatCompactCurrency(weightedOpportunity, country),
           avgClosingProb,
         });
 
@@ -143,13 +145,6 @@ export default function DashboardOverviewPage() {
     };
     fetchUsage();
   }, [user]);
-
-  const formatLakhs = (num: number): string => {
-    if (num >= 100000) {
-      return `₹${(num / 100000).toFixed(1)}L`;
-    }
-    return `₹${num.toLocaleString('en-IN')}`;
-  };
 
   const hasLiveData = Boolean(liveStats);
 

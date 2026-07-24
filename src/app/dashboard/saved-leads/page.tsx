@@ -31,6 +31,7 @@ export default function SavedLeadsPage() {
   const [savedLeads, setSavedLeads] = useState<Business[]>([]);
   const [opportunities, setOpportunities] = useState<Record<string, Opportunity>>({});
   const [scoredMap, setScoredMap] = useState<Record<string, ScoredOpportunity>>({});
+  const [country, setCountry] = useState('United States');
   
   // Drawer state
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
@@ -47,6 +48,8 @@ export default function SavedLeadsPage() {
   useEffect(() => {
     const cachedLeads = localStorage.getItem('localradar_saved_leads');
     const cachedOpps = localStorage.getItem('localradar_saved_opps');
+    const cachedCountry = localStorage.getItem('localradar_latest_country');
+    if (cachedCountry) setCountry(cachedCountry);
     
     let parsedLeads: Business[] = [];
     if (cachedLeads) {
@@ -66,10 +69,10 @@ export default function SavedLeadsPage() {
     const map: Record<string, ScoredOpportunity> = {};
     savedLeads.forEach(biz => {
       const competitors = generateMockCompetitors(biz);
-      map[biz.id] = scoreBusinessOpportunity(biz, competitors);
+      map[biz.id] = scoreBusinessOpportunity(biz, competitors, undefined, country);
     });
     setScoredMap(map);
-  }, [savedLeads]);
+  }, [savedLeads, country]);
 
   const handleRemoveLead = (bizId: string) => {
     const updatedLeads = savedLeads.filter(b => b.id !== bizId);
@@ -318,6 +321,7 @@ export default function SavedLeadsPage() {
             router.push(`/dashboard/audit/${bizId}`);
           }}
           categoryName="Saved Opportunity"
+          country={country}
         />
       )}
     </div>

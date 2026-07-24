@@ -3,6 +3,7 @@
 import React from 'react';
 import { Sparkles, DollarSign, Award } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { formatCurrency } from '@/lib/currency';
 
 interface WhyThisLeadProps {
   businessName: string;
@@ -12,6 +13,7 @@ interface WhyThisLeadProps {
   recommendedService: string;
   dealValueMin: number;
   dealValueMax: number;
+  country?: string;
 }
 
 export default function WhyThisLead({
@@ -21,13 +23,11 @@ export default function WhyThisLead({
   noBookingSystem,
   recommendedService,
   dealValueMin,
-  dealValueMax
+  dealValueMax,
+  country
 }: WhyThisLeadProps) {
   
-  // Format values
-  const formatIndianCurrency = (num: number) => {
-    return `₹${num.toLocaleString('en-IN')}`;
-  };
+  const formatMoney = (num: number) => formatCurrency(num, country);
 
   return (
     <motion.div
@@ -63,7 +63,7 @@ export default function WhyThisLead({
             <span className="text-secondary-text block mb-1 uppercase tracking-widest text-2xs font-normal">Est. Opportunity Value</span>
             <span className="text-primary font-semibold text-sm flex items-center gap-0.5">
               <DollarSign className="w-3.5 h-3.5 text-primary" />
-              {formatIndianCurrency(dealValueMin)} - {formatIndianCurrency(dealValueMax)}
+              {formatMoney(dealValueMin)} - {formatMoney(dealValueMax)}
             </span>
           </div>
           <div>

@@ -30,6 +30,7 @@ import { Business } from '@/types';
 import { ScoredOpportunity } from '@/types/scoring';
 import { useAuth } from '@/lib/auth';
 import { trackEvent } from '@/lib/analytics';
+import { formatCurrency } from '@/lib/currency';
 
 interface OpportunityIntelligenceDrawerProps {
   isOpen: boolean;
@@ -41,6 +42,7 @@ interface OpportunityIntelligenceDrawerProps {
   onOpenPitch: (bizId: string) => void;
   onOpenAudit: (bizId: string) => void;
   categoryName?: string; // Optional niche category name e.g. Dentists
+  country?: string;
   onLockedAction?: (type: 'audit' | 'pitch' | 'export' | 'developer_keys') => void;
 }
 
@@ -54,6 +56,7 @@ export default function OpportunityIntelligenceDrawer({
   onOpenPitch,
   onOpenAudit,
   categoryName = 'Agency Lead',
+  country,
   onLockedAction
 }: OpportunityIntelligenceDrawerProps) {
   const { user } = useAuth();
@@ -89,9 +92,7 @@ export default function OpportunityIntelligenceDrawer({
     return 'text-[#FF5C5C] bg-[#FF5C5C]/10 border-[#FF5C5C]/20';
   };
 
-  const formatCurrency = (val: number) => {
-    return `₹${val.toLocaleString('en-IN')}`;
-  };
+  const formatMoney = (val: number) => formatCurrency(val, country);
 
   // Extract variables for sub-components
   const signals = {
@@ -186,7 +187,7 @@ export default function OpportunityIntelligenceDrawer({
                   <span className="text-2xs font-normal text-muted-text uppercase tracking-widest block">Revenue Potential™</span>
                   <div className="flex items-baseline gap-1 mt-2">
                     <span className="text-sm font-semibold text-foreground truncate max-w-full">
-                      {formatCurrency(scored.dealValue.max)}
+                      {formatMoney(scored.dealValue.max)}
                     </span>
                   </div>
                   <span className="text-2xs text-primary block mt-0.5 font-normal">Est. Margin Cap</span>
@@ -205,6 +206,7 @@ export default function OpportunityIntelligenceDrawer({
                   recommendedService={scored.bestFit.agencyType}
                   dealValueMin={scored.dealValue.min}
                   dealValueMax={scored.dealValue.max}
+                  country={country}
                 />
 
                 {/* SECTION 1.5: Discovered Contacts */}
@@ -294,6 +296,7 @@ export default function OpportunityIntelligenceDrawer({
                   noLeadForm={signals.noLeadForm}
                   reviewsCount={business.reviews_count}
                   rating={business.rating}
+                  country={country}
                 />
 
                 {/* SECTION 6: Closing Probability Detail */}
@@ -342,18 +345,18 @@ export default function OpportunityIntelligenceDrawer({
                   <div className="grid grid-cols-3 gap-3 font-mono text-center">
                     <div className="p-2.5 bg-secondary-bg border border-border rounded-lg">
                       <span className="text-muted-text block text-2xs uppercase tracking-widest mb-1 font-normal">Minimum Contract</span>
-                      <span className="text-foreground font-semibold text-xs">{formatCurrency(scored.dealValue.min)}</span>
+                      <span className="text-foreground font-semibold text-xs">{formatMoney(scored.dealValue.min)}</span>
                     </div>
 
                     <div className="p-2.5 bg-secondary-bg border border-border rounded-lg">
                       <span className="text-muted-text block text-2xs uppercase tracking-widest mb-1 font-normal">Maximum Contract</span>
-                      <span className="text-foreground font-semibold text-xs">{formatCurrency(scored.dealValue.max)}</span>
+                      <span className="text-foreground font-semibold text-xs">{formatMoney(scored.dealValue.max)}</span>
                     </div>
 
                     <div className="p-2.5 bg-primary/5 border border-primary/30 rounded-lg">
                       <span className="text-primary block text-2xs uppercase tracking-widest mb-1 font-normal">Recommended Proposal</span>
                       <span className="text-primary font-semibold text-xs">
-                        {formatCurrency(Math.round((scored.dealValue.min + scored.dealValue.max) / 2))}
+                        {formatMoney(Math.round((scored.dealValue.min + scored.dealValue.max) / 2))}
                       </span>
                     </div>
                   </div>

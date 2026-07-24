@@ -1,4 +1,5 @@
 import { BusinessSignals, DealValueResult } from '@/types/scoring';
+import { formatCurrencyRange } from '@/lib/currency';
 
 type BusinessSize = 'Solo Practice' | 'Small Clinic' | 'Growing Business' | 'Multi-location Business' | 'Enterprise Local Brand';
 
@@ -48,7 +49,8 @@ export function calculateDealValue(
   opportunityScore: number,
   category?: string,
   address: string = '',
-  businessName: string = ''
+  businessName: string = '',
+  country?: string
 ): DealValueResult {
   const size = detectBusinessSize(signals.reviewCount, signals.rating, businessName);
   const cat = getNormalizedCategory(category);
@@ -138,21 +140,7 @@ export function calculateDealValue(
     services.push('Digital Audit & Consultation');
   }
 
-  // Formatted string representation
-  const formatted = `₹${formatIndian(min)} – ₹${formatIndian(max)}`;
+  const formatted = formatCurrencyRange(min, max, country);
 
   return { min, max, formatted, services };
-}
-
-function formatIndian(num: number): string {
-  const str = num.toString();
-  if (str.length <= 3) return str;
-  
-  let lastThree = str.substring(str.length - 3);
-  const remaining = str.substring(0, str.length - 3);
-  if (remaining !== '') {
-    lastThree = ',' + lastThree;
-  }
-  const formatted = remaining.replace(/\B(?=(\d{2})+(?!\d))/g, ',') + lastThree;
-  return formatted;
 }

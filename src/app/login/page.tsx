@@ -53,11 +53,11 @@ function LoginForm() {
     try {
       const { error: signError } = await supabase.auth.signInWithPassword({ email, password });
       if (signError) throw signError;
-      router.push('/dashboard');
+      // Wait for AuthProvider to pick up the session (useEffect redirects when user is set).
+      // Pushing immediately races dashboard auth and bounces back to /login.
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Sign-in failed. Check your credentials.';
       setError(message);
-    } finally {
       setLoading(false);
     }
   };

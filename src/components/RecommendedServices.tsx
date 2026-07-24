@@ -3,6 +3,7 @@
 import React from 'react';
 import { Sparkles, ArrowUpRight, Check } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { formatCurrency } from '@/lib/currency';
 
 interface RecommendedServicesProps {
   hasWebsite: boolean;
@@ -11,6 +12,7 @@ interface RecommendedServicesProps {
   noLeadForm: boolean;
   reviewsCount: number;
   rating: number;
+  country?: string;
 }
 
 export default function RecommendedServices({
@@ -19,7 +21,8 @@ export default function RecommendedServices({
   noWhatsApp,
   noLeadForm,
   reviewsCount,
-  rating
+  rating,
+  country
 }: RecommendedServicesProps) {
   
   // Build services lists based on active vulnerabilities
@@ -64,9 +67,7 @@ export default function RecommendedServices({
     });
   }
 
-  const formatIndianCurrency = (num: number) => {
-    return `₹${num.toLocaleString('en-IN')}`;
-  };
+  const formatMoney = (num: number) => formatCurrency(num, country);
 
   return (
     <div className="space-y-3">
@@ -101,7 +102,7 @@ export default function RecommendedServices({
             <div className="text-right shrink-0">
               <span className="text-2xs font-normal text-muted-text uppercase tracking-wider block font-mono">Value</span>
               <span className="text-primary font-mono font-semibold text-sm block mt-0.5">
-                {formatIndianCurrency(service.value)}
+                {formatMoney(service.value)}
               </span>
             </div>
           </motion.div>
