@@ -14,11 +14,11 @@ export default function DemoPage() {
   return (
     <MarketingShell>
       <div className="relative z-10 mx-auto max-w-4xl px-5 py-16 sm:px-8 sm:py-24">
-        <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-[#2DD4A7]">Demo</p>
-        <h1 className="mt-3 text-4xl font-semibold tracking-[-0.02em] text-white sm:text-5xl">
+        <p className="type-overline text-primary">Demo</p>
+        <h1 className="type-display-sm mt-3 sm:text-5xl">
           See LocalRadar in action
         </h1>
-        <p className="mt-5 max-w-2xl text-lg leading-relaxed text-white/55">
+        <p className="type-body-lg mt-5 max-w-2xl">
           Watch a product walkthrough or jump straight into a free account. No credit card. No invented customer stories—just the product.
         </p>
 

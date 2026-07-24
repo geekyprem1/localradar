@@ -146,7 +146,7 @@ export default function SavedLeadsPage() {
     <div className="space-y-8 max-w-7xl mx-auto font-sans text-foreground pb-16">
       {/* Header */}
       <div className="border-b border-border pb-6">
-        <h1 className="text-2xl font-serif font-bold text-foreground flex items-center gap-2">
+        <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
           Saved Opportunities
           <Bookmark className="w-5 h-5 text-foreground" />
         </h1>
@@ -160,7 +160,7 @@ export default function SavedLeadsPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-border bg-background/90 text-secondary-text text-[11px] font-mono uppercase tracking-widest">
+                <tr className="border-b border-border bg-background/90 text-secondary-text text-2xs font-mono uppercase tracking-widest">
                   <th className="py-5 px-6">Business Name</th>
                   <th className="py-5 px-6">Website</th>
                   <th className="py-5 px-6">Rating / Reviews</th>
@@ -202,7 +202,7 @@ export default function SavedLeadsPage() {
                             {biz.website.replace('https://www.', '')}
                           </a>
                         ) : (
-                          <span className="text-[10px] text-[#FF5C5C] bg-[#FF5C5C]/10 border border-[#FF5C5C]/20 px-2.5 py-0.5 rounded-full font-normal font-mono">
+                          <span className="text-2xs text-[#FF5C5C] bg-[#FF5C5C]/10 border border-[#FF5C5C]/20 px-2.5 py-0.5 rounded-full font-normal font-mono">
                             No Website
                           </span>
                         )}
@@ -290,7 +290,7 @@ export default function SavedLeadsPage() {
           <div className="w-12 h-12 rounded-xl bg-background border border-border flex items-center justify-center mx-auto mb-4 text-secondary-text">
             <Bookmark className="w-5 h-5" />
           </div>
-          <h3 className="text-foreground text-sm font-semibold font-serif">No Saved Opportunities Yet</h3>
+          <h3 className="text-foreground text-sm font-semibold">No Saved Opportunities Yet</h3>
           <p className="text-secondary-text text-xs mt-1 max-w-sm mx-auto font-mono">
             Bookmarked prospects from your searches will appear here. Go to the Opportunity Finder and bookmark any record to save.
           </p>

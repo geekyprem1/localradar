@@ -93,13 +93,13 @@ export default function ContactForm() {
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
-          <label htmlFor="contact-name" className="mb-1.5 block font-mono text-[10px] uppercase tracking-wider text-white/40">
+          <label htmlFor="contact-name" className="mb-1.5 block font-mono text-2xs uppercase tracking-wider text-white/40">
             Full name
           </label>
           <input id="contact-name" value={name} onChange={(e) => setName(e.target.value)} className={field} placeholder="Alex Rivera" autoComplete="name" required />
         </div>
         <div>
-          <label htmlFor="contact-email" className="mb-1.5 block font-mono text-[10px] uppercase tracking-wider text-white/40">
+          <label htmlFor="contact-email" className="mb-1.5 block font-mono text-2xs uppercase tracking-wider text-white/40">
             Business email
           </label>
           <input id="contact-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className={field} placeholder="you@company.com" autoComplete="email" required />
@@ -107,14 +107,14 @@ export default function ContactForm() {
       </div>
 
       <div>
-        <label htmlFor="contact-company" className="mb-1.5 block font-mono text-[10px] uppercase tracking-wider text-white/40">
+        <label htmlFor="contact-company" className="mb-1.5 block font-mono text-2xs uppercase tracking-wider text-white/40">
           Company (optional)
         </label>
         <input id="contact-company" value={company} onChange={(e) => setCompany(e.target.value)} className={field} placeholder="Your agency or company" autoComplete="organization" />
       </div>
 
       <div>
-        <label htmlFor="contact-topic" className="mb-1.5 block font-mono text-[10px] uppercase tracking-wider text-white/40">
+        <label htmlFor="contact-topic" className="mb-1.5 block font-mono text-2xs uppercase tracking-wider text-white/40">
           Topic
         </label>
         <select id="contact-topic" value={topic} onChange={(e) => setTopic(e.target.value)} className={field}>
@@ -127,7 +127,7 @@ export default function ContactForm() {
       </div>
 
       <div>
-        <label htmlFor="contact-message" className="mb-1.5 block font-mono text-[10px] uppercase tracking-wider text-white/40">
+        <label htmlFor="contact-message" className="mb-1.5 block font-mono text-2xs uppercase tracking-wider text-white/40">
           Message
         </label>
         <textarea

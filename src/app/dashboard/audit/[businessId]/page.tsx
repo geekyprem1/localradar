@@ -193,14 +193,14 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
           <div className="space-y-4">
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-[9px] font-normal text-foreground bg-border border border-border px-2.5 py-0.5 rounded-full uppercase tracking-wider font-mono">
+                <span className="text-2xs font-normal text-foreground bg-border border border-border px-2.5 py-0.5 rounded-full uppercase tracking-wider font-mono">
                   Intelligence Engine™ Scanned
                 </span>
-                <span className="text-[9px] font-normal text-secondary-text bg-background border border-border px-2.5 py-0.5 rounded-full font-mono">
+                <span className="text-2xs font-normal text-secondary-text bg-background border border-border px-2.5 py-0.5 rounded-full font-mono">
                   ID: {business.id.slice(0, 8)}
                 </span>
               </div>
-              <h1 className="text-2xl font-serif font-semibold text-foreground mt-3">{business.name}</h1>
+              <h1 className="text-2xl font-semibold text-foreground mt-3">{business.name}</h1>
               <p className="text-secondary-text text-xs mt-1 flex items-center gap-1.5 font-mono font-normal">
                 <MapPin className="w-3.5 h-3.5 text-muted-text" />
                 {business.address}
@@ -209,7 +209,7 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
 
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4 border-t border-border pt-4">
               <div>
-                <span className="text-secondary-text text-[9px] font-normal uppercase tracking-wider block font-mono">Google Rating</span>
+                <span className="text-secondary-text text-2xs font-normal uppercase tracking-wider block font-mono">Google Rating</span>
                 <div className="flex items-center gap-1 text-xs text-foreground mt-1 font-mono">
                   <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
                   <span className="font-semibold">{business.rating}</span>
@@ -217,7 +217,7 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
                 </div>
               </div>
               <div>
-                <span className="text-secondary-text text-[9px] font-normal uppercase tracking-wider block font-mono">Website Domain</span>
+                <span className="text-secondary-text text-2xs font-normal uppercase tracking-wider block font-mono">Website Domain</span>
                 <span className="text-xs text-foreground font-semibold truncate block mt-1">
                   {business.website ? (
                     <a href={business.website} target="_blank" rel="noopener noreferrer" className="hover:underline flex items-center gap-1">
@@ -230,7 +230,7 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
                 </span>
               </div>
               <div>
-                <span className="text-secondary-text text-[9px] font-normal uppercase tracking-wider block font-mono">Phone Line</span>
+                <span className="text-secondary-text text-2xs font-normal uppercase tracking-wider block font-mono">Phone Line</span>
                 <span className="text-xs text-foreground font-semibold block mt-1 font-mono">{business.phone || 'N/A'}</span>
               </div>
             </div>
@@ -282,11 +282,11 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
                 <span className="text-2xl font-mono font-semibold text-foreground tracking-tight">{scored.opportunityScore}</span>
-                <span className="text-[7px] text-muted-text uppercase tracking-widest font-normal mt-0.5 font-mono">OPPORTUNITY</span>
+                <span className="text-2xs text-muted-text uppercase tracking-widest font-normal mt-0.5 font-mono">OPPORTUNITY</span>
               </div>
             </div>
             <div className="space-y-1.5">
-              <div className={`text-[9px] font-normal px-2.5 py-0.5 rounded-full border uppercase tracking-wider font-mono inline-block ${
+              <div className={`text-2xs font-normal px-2.5 py-0.5 rounded-full border uppercase tracking-wider font-mono inline-block ${
                 scored.opportunityScore >= 60 ? 'text-primary bg-primary/10 border-primary/20' : scored.opportunityScore >= 35 ? 'text-[#F5A623] bg-[#F5A623]/10 border-[#F5A623]/20' : 'text-[#FF5C5C] bg-[#FF5C5C]/10 border-[#FF5C5C]/20'
               }`}>
                 {scored.opportunityLevel} Opportunity
@@ -314,7 +314,7 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
                 <Layers className="w-4 h-4 text-secondary-text" />
                 <span>Service Fit Engine™</span>
               </div>
-              <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${getFitColor(scored.bestFit.level)}`}>
+              <span className={`text-2xs font-semibold px-2 py-0.5 rounded-full border ${getFitColor(scored.bestFit.level)}`}>
                 {scored.bestFit.agencyType}
               </span>
             </div>
@@ -417,7 +417,7 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
                 <div key={fit.agencyType} className="bg-background border border-border p-4 rounded-xl">
                   <div className="flex items-center justify-between mb-3">
                     <span className="text-xs font-semibold text-foreground">{fit.agencyType}</span>
-                    <span className={`text-[9px] font-semibold px-2 py-0.5 rounded border font-mono ${getFitColor(fit.level)}`}>
+                    <span className={`text-2xs font-semibold px-2 py-0.5 rounded border font-mono ${getFitColor(fit.level)}`}>
                       {fit.level}
                     </span>
                   </div>
@@ -430,7 +430,7 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
                     />
                   </div>
                   
-                  <div className="flex items-center justify-between text-[10px] font-mono font-normal">
+                  <div className="flex items-center justify-between text-2xs font-mono font-normal">
                     <span className="text-secondary-text">Compatibility</span>
                     <span className="font-semibold text-foreground">{fit.score}/100</span>
                   </div>
@@ -438,7 +438,7 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
                   {fit.reasons.length > 0 && (
                     <div className="mt-2 space-y-1 font-normal">
                       {fit.reasons.slice(0, 2).map((r, i) => (
-                        <div key={i} className="text-[9px] text-secondary-text font-mono">• {r}</div>
+                        <div key={i} className="text-2xs text-secondary-text font-mono">• {r}</div>
                       ))}
                     </div>
                   )}
@@ -462,7 +462,7 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
               {/* Subject Business card */}
               <div className="bg-border border border-border p-3 rounded-xl shadow-md">
                 <p className="text-xs font-semibold text-foreground truncate">{business.name}</p>
-                <div className="grid grid-cols-3 gap-2 mt-2 text-[10px] text-secondary-text font-mono font-normal">
+                <div className="grid grid-cols-3 gap-2 mt-2 text-2xs text-secondary-text font-mono font-normal">
                   <div>
                     <span>Rating:</span>
                     <span className="text-foreground font-semibold block mt-0.5">⭐ {business.rating}</span>
@@ -482,7 +482,7 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
               {competitors.map((comp) => (
                 <div key={comp.id} className="bg-background border border-border p-3 rounded-xl">
                   <p className="text-xs font-semibold text-foreground truncate">{comp.name}</p>
-                  <div className="grid grid-cols-3 gap-2 mt-2 text-[10px] text-secondary-text font-mono font-normal">
+                  <div className="grid grid-cols-3 gap-2 mt-2 text-2xs text-secondary-text font-mono font-normal">
                     <div>
                       <span>Rating:</span>
                       <span className="text-foreground font-semibold block mt-0.5">⭐ {comp.rating}</span>
@@ -511,12 +511,12 @@ ${audit?.recommended_services.map(s => `- ${s}`).join('\n')}`;
             <div className="space-y-2.5">
               {audit.recommended_services.map((service, idx) => (
                 <div key={idx} className="bg-background border border-border p-3.5 rounded-xl flex gap-2.5 items-start">
-                  <span className="w-5 h-5 rounded-full bg-border border border-border flex items-center justify-center font-normal text-[9px] text-foreground mt-0.5 shrink-0 font-mono">
+                  <span className="w-5 h-5 rounded-full bg-border border border-border flex items-center justify-center font-normal text-2xs text-foreground mt-0.5 shrink-0 font-mono">
                     {idx + 1}
                   </span>
                   <div>
                     <p className="text-xs text-foreground font-semibold leading-relaxed">{service.split(' (')[0]}</p>
-                    <p className="text-[10px] text-primary font-semibold mt-1 font-mono">
+                    <p className="text-2xs text-primary font-semibold mt-1 font-mono">
                       Est. Service Fee: {service.includes('₹') ? '₹' + service.split('₹')[1] : 'Included'}
                     </p>
                   </div>

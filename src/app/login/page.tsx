@@ -134,7 +134,7 @@ function LoginForm() {
         <div>
           <div className="mb-2 flex items-center justify-between">
             <label className={`${authLabelClass} !mb-0`} htmlFor="password">Password</label>
-            <Link href="/forgot-password" className="font-mono text-[10px] font-bold text-[#2DD4A7] hover:underline">
+            <Link href="/forgot-password" className="font-mono text-2xs font-bold text-[#2DD4A7] hover:underline">
               Forgot password?
             </Link>
           </div>
@@ -164,7 +164,7 @@ function LoginForm() {
         <div className="absolute inset-0 flex items-center" aria-hidden>
           <div className="w-full border-t border-[#26282D]" />
         </div>
-        <span className="relative bg-[#141517] px-3 text-[10px] uppercase tracking-widest text-zinc-500">or</span>
+        <span className="relative bg-[#141517] px-3 text-2xs uppercase tracking-widest text-zinc-500">or</span>
       </div>
 
       <button

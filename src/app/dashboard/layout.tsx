@@ -83,13 +83,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <div className="w-6 h-6 rounded-lg bg-border border border-border flex items-center justify-center">
               <Zap className="w-3.5 h-3.5 text-foreground fill-foreground/10" />
             </div>
-            <span className="text-[1.0625rem] font-semibold tracking-[-0.02em] text-foreground">LocalRadar</span>
+            <span className="type-h5 text-foreground">LocalRadar</span>
           </div>
-          <div className="metric-label mt-2 leading-tight">
-            Revenue Intelligence Platform
+          <div className="type-overline metric-label mt-2 leading-tight">
+            Revenue Intelligence
           </div>
-          <div className="text-caption mt-0.5 text-muted-text">
-            LocalRadar Intelligence
+          <div className="type-caption mt-0.5">
+            LocalRadar
           </div>
         </div>
 
@@ -121,7 +121,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     <Icon className="w-4 h-4 text-muted-text" />
                     {item.name}
                   </div>
-                  <span className="text-[8px] uppercase tracking-wider font-mono text-muted-text border border-border px-1.5 py-0.5 rounded-full">
+                  <span className="text-2xs uppercase tracking-wider font-mono text-muted-text border border-border px-1.5 py-0.5 rounded-full">
                     Soon
                   </span>
                 </div>
@@ -153,12 +153,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <Link
                 key={item.name}
                 href={item.href}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold tracking-wide transition-all duration-200 cursor-pointer border ${
+                className={`type-button flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 transition-all duration-200 ${
                   isActive ? navActive : navInactive
                 }`}
                 aria-current={isActive ? 'page' : undefined}
               >
-                <Icon className={`w-4 h-4 ${isActive ? 'text-foreground' : 'text-secondary-text'}`} />
+                <Icon className={`h-4 w-4 ${isActive ? 'text-foreground' : 'text-secondary-text'}`} />
                 {item.name}
               </Link>
             );
@@ -170,7 +170,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           {user.subscription_tier !== 'free' && (
             <div className="bg-background border border-border p-3 rounded-xl flex items-center gap-2">
               <Zap className="w-4 h-4 text-foreground fill-foreground/15" />
-              <div className="text-[10px] font-mono">
+              <div className="text-2xs font-mono">
                 <p className="font-bold text-foreground uppercase tracking-wider">{user.subscription_tier} Account</p>
                 <p className="text-secondary-text">Intelligence Active</p>
               </div>
@@ -184,7 +184,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </div>
               <div className="text-left leading-tight min-w-0">
                 <p className="text-xs font-bold text-foreground truncate max-w-[100px]">{user.full_name || 'Agency Partner'}</p>
-                <p className="text-[10px] text-secondary-text truncate max-w-[100px] font-mono">{user.email}</p>
+                <p className="text-2xs text-secondary-text truncate max-w-[100px] font-mono">{user.email}</p>
               </div>
             </div>
             <div className="flex items-center gap-0.5 shrink-0">
@@ -276,7 +276,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                           <Icon className="w-4 h-4" />
                           {item.name}
                         </div>
-                        <span className="text-[8px] uppercase font-mono border border-border px-1.5 py-0.5 rounded-full">Soon</span>
+                        <span className="text-2xs uppercase font-mono border border-border px-1.5 py-0.5 rounded-full">Soon</span>
                       </div>
                     );
                   }
@@ -326,7 +326,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   </div>
                   <div className="text-left leading-none">
                     <p className="text-xs font-bold text-foreground">{user.full_name}</p>
-                    <p className="text-[9px] text-secondary-text font-mono">{user.email}</p>
+                    <p className="text-2xs text-secondary-text font-mono">{user.email}</p>
                   </div>
                 </div>
                 <button 

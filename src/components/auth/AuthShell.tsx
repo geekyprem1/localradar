@@ -58,7 +58,7 @@ export default function AuthShell({
           {children}
         </div>
 
-        <p className="mt-6 text-center text-[11px] text-zinc-600">
+        <p className="mt-6 text-center text-2xs text-zinc-600">
           <Link href="/privacy" className="hover:text-zinc-400 focus:outline-none focus-visible:underline">Privacy</Link>
           {' · '}
           <Link href="/terms" className="hover:text-zinc-400 focus:outline-none focus-visible:underline">Terms</Link>
@@ -94,10 +94,10 @@ export function AuthSuccess({ message }: { message: string }) {
 }
 
 export const authInputClass =
-  'text-input w-full rounded-xl border border-[#26282D] bg-[#0B0B0C] py-3 pl-10 pr-4 text-[var(--text-primary,#F4F4F5)] transition-all focus:border-[#2DD4A7] focus:outline-none focus:ring-1 focus:ring-[#2DD4A7]';
+  'type-input w-full rounded-xl border border-[#26282D] bg-[#0B0B0C] py-3 pl-10 pr-4 text-[#F4F4F5] transition-all focus:border-[#2DD4A7] focus:outline-none focus:ring-1 focus:ring-[#2DD4A7]';
 
 export const authLabelClass =
-  'text-label mb-2 block uppercase tracking-[0.06em] text-[#A1A1AA]';
+  'type-overline mb-2 block text-[#A1A1AA]';
 
 export const authPrimaryBtn =
-  'text-button flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-full bg-[#2DD4A7] px-5 text-[#042F2E] transition-all hover:bg-[#3ee2b6] disabled:cursor-not-allowed disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2DD4A7] focus-visible:ring-offset-2 focus-visible:ring-offset-[#141517]';
+  'type-button flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-full bg-[#2DD4A7] px-5 text-[#042F2E] transition-all hover:bg-[#3ee2b6] disabled:cursor-not-allowed disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2DD4A7] focus-visible:ring-offset-2 focus-visible:ring-offset-[#141517]';

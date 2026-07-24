@@ -14,20 +14,20 @@ export default function AboutPage() {
   return (
     <MarketingShell>
       <div className="relative z-10 mx-auto max-w-3xl px-5 py-16 sm:px-8 sm:py-24">
-        <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-[#2DD4A7]">About LocalRadar</p>
-        <h1 className="mt-3 text-4xl font-semibold tracking-[-0.02em] text-white sm:text-5xl">
+        <p className="type-overline text-primary">About LocalRadar</p>
+        <h1 className="type-display-sm mt-3 sm:text-5xl">
           Local growth intelligence for operators who ship work
         </h1>
-        <p className="mt-6 text-lg leading-relaxed text-white/55">
+        <p className="type-body-lg mt-6">
           LocalRadar helps agencies, freelancers, and consultants turn public Google Maps and local business signals into scored opportunities and personalized outreach—without spreadsheets and without invented credibility theater.
         </p>
 
         <section className="mt-16 space-y-4">
           <div className="flex items-center gap-2 text-[#2DD4A7]">
             <Target className="h-5 w-5" />
-            <h2 className="text-xl font-semibold text-white">Mission</h2>
+            <h2 className="type-h3">Mission</h2>
           </div>
-          <p className="text-[15px] leading-relaxed text-white/55">
+          <p className="type-body">
             Make high-quality local prospecting accessible to small teams. We believe the best pipeline starts with truth: real listings, transparent scores, and outreach you can defend in a sales call.
           </p>
         </section>
@@ -35,9 +35,9 @@ export default function AboutPage() {
         <section className="mt-12 space-y-4">
           <div className="flex items-center gap-2 text-[#2DD4A7]">
             <Eye className="h-5 w-5" />
-            <h2 className="text-xl font-semibold text-white">Vision</h2>
+            <h2 className="type-h3">Vision</h2>
           </div>
-          <p className="text-[15px] leading-relaxed text-white/55">
+          <p className="type-body">
             A world where every agency and SMB operator can identify local demand gaps in minutes, prioritize who to contact, and show up with research that earns trust—at a global scale, with privacy-first product standards.
           </p>
         </section>
@@ -45,9 +45,9 @@ export default function AboutPage() {
         <section className="mt-12 space-y-4">
           <div className="flex items-center gap-2 text-[#2DD4A7]">
             <Compass className="h-5 w-5" />
-            <h2 className="text-xl font-semibold text-white">Why we built LocalRadar</h2>
+            <h2 className="type-h3">Why we built LocalRadar</h2>
           </div>
-          <div className="space-y-4 text-[15px] leading-relaxed text-white/55">
+          <div className="space-y-4 type-body">
             <p>
               Selling to local businesses usually looks the same: open Maps, open a spreadsheet, open ten tabs, guess who might need a website or SEO, then write a cold email from scratch. The work is valuable—the process is broken.
             </p>

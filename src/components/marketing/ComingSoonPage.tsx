@@ -14,11 +14,11 @@ export default function ComingSoonPage({
   return (
     <MarketingShell>
       <div className="relative z-10 mx-auto flex max-w-2xl flex-col items-center px-5 py-24 text-center sm:px-8 sm:py-32">
-        <span className="rounded-full border border-[#2DD4A7]/25 bg-[#2DD4A7]/10 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-[#2DD4A7]">
+        <span className="rounded-full border border-[#2DD4A7]/25 bg-[#2DD4A7]/10 px-3 py-1 font-mono text-2xs uppercase tracking-[0.18em] text-[#2DD4A7]">
           {eyebrow}
         </span>
         <h1 className="mt-6 text-3xl font-semibold tracking-[-0.02em] text-white sm:text-4xl">{title}</h1>
-        <p className="mt-4 text-[15px] leading-relaxed text-white/50">{description}</p>
+        <p className="mt-4 text-base leading-relaxed text-white/50">{description}</p>
         <div className="mt-10 flex flex-col gap-3 sm:flex-row">
           <Link
             href="/signup"

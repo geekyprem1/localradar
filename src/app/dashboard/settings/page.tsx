@@ -373,7 +373,7 @@ export default function SettingsPage() {
     <div className="space-y-8 max-w-6xl mx-auto pb-16 font-sans text-foreground">
       {/* Header */}
       <div className="border-b border-border pb-6">
-        <h1 className="text-2xl font-serif font-bold text-foreground">Settings & Billing</h1>
+        <h1 className="text-2xl font-bold text-foreground">Settings & Billing</h1>
         <p className="text-secondary-text text-xs mt-1">
           Manage your account profile, upgrade subscription plans, or configure live API credentials.
         </p>
@@ -389,7 +389,7 @@ export default function SettingsPage() {
               <Palette className="w-4 h-4 text-secondary-text" />
               Appearance
             </h3>
-            <p className="text-[11px] text-secondary-text font-mono">
+            <p className="text-2xs text-secondary-text font-mono">
               Choose how LocalRadar looks on this device. Preference is saved locally.
             </p>
             <div className="grid grid-cols-2 gap-3">
@@ -417,7 +417,7 @@ export default function SettingsPage() {
                     </div>
                     <div>
                       <p className={`text-xs font-bold ${active ? 'text-foreground' : 'text-secondary-text'}`}>{opt.label}</p>
-                      <p className="text-[10px] text-muted-text font-mono">{opt.desc}</p>
+                      <p className="text-2xs text-muted-text font-mono">{opt.desc}</p>
                     </div>
                     {active && <Check className="w-4 h-4 text-primary ml-auto shrink-0" />}
                   </button>
@@ -436,7 +436,7 @@ export default function SettingsPage() {
             <form onSubmit={handleSaveProfile} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-[9px] font-bold text-secondary-text uppercase tracking-widest font-mono">Full Name</label>
+                  <label className="text-2xs font-bold text-secondary-text uppercase tracking-widest font-mono">Full Name</label>
                   <input
                     type="text"
                     value={name}
@@ -445,7 +445,7 @@ export default function SettingsPage() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[9px] font-bold text-secondary-text uppercase tracking-widest font-mono">Email Address</label>
+                  <label className="text-2xs font-bold text-secondary-text uppercase tracking-widest font-mono">Email Address</label>
                   <input
                     type="email"
                     value={email}
@@ -456,7 +456,7 @@ export default function SettingsPage() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[9px] font-bold text-secondary-text uppercase tracking-widest font-mono">Agency Organization Name</label>
+                <label className="text-2xs font-bold text-secondary-text uppercase tracking-widest font-mono">Agency Organization Name</label>
                 <input
                   type="text"
                   value={orgName}
@@ -482,7 +482,7 @@ export default function SettingsPage() {
                 <CreditCard className="w-4 h-4 text-secondary-text" />
                 Subscription Plans
               </h3>
-              <span className="text-[9px] text-zinc-400 font-bold bg-background border border-border px-2.5 py-1 rounded-full uppercase tracking-wider font-mono flex items-center gap-1.5">
+              <span className="text-2xs text-zinc-400 font-bold bg-background border border-border px-2.5 py-1 rounded-full uppercase tracking-wider font-mono flex items-center gap-1.5">
                 Active Tier: 
                 <span className="text-primary uppercase">{currentTier}</span>
               </span>
@@ -510,11 +510,11 @@ export default function SettingsPage() {
                     <div>
                       <h4 className="text-xs font-bold text-foreground">{tier.name}</h4>
                       <div className="mt-2 flex items-baseline">
-                        <span className="text-xl font-serif font-extrabold text-foreground">{tier.price}</span>
-                        <span className="text-[10px] text-secondary-text font-semibold ml-1">/{tier.period}</span>
+                        <span className="text-xl font-bold text-foreground">{tier.price}</span>
+                        <span className="text-2xs text-secondary-text font-semibold ml-1">/{tier.period}</span>
                       </div>
 
-                      <ul className="mt-4 space-y-2 text-[10px] text-secondary-text font-mono">
+                      <ul className="mt-4 space-y-2 text-2xs text-secondary-text font-mono">
                         {tier.features.map((feat, i) => (
                           <li key={i} className="flex items-center gap-1.5">
                             <Check className="w-3.5 h-3.5 text-primary shrink-0" />
@@ -530,7 +530,7 @@ export default function SettingsPage() {
                       className={`w-full text-center text-xs font-bold py-2.5 rounded-xl mt-6 transition-all cursor-pointer font-mono ${
                         isActive 
                           ? 'bg-border border border-border text-foreground cursor-default' 
-                          : 'bg-gradient-to-r from-primary to-[#14B88C] hover:opacity-95 text-on-primary font-extrabold shadow-md'
+                          : 'bg-gradient-to-r from-primary to-[#14B88C] hover:opacity-95 text-on-primary font-bold shadow-md'
                       }`}
                     >
                       {isActive ? 'Active Plan' : tier.buttonText}
@@ -557,7 +557,7 @@ export default function SettingsPage() {
 
               <div>
                 <h3 className="text-sm font-bold text-foreground">Developer Keys</h3>
-                <p className="text-[10px] text-secondary-text leading-relaxed mt-2">
+                <p className="text-2xs text-secondary-text leading-relaxed mt-2">
                   Bring Your Own Keys (BYOK) mode allows you to bypass monthly scan limits and connect to your own database schemas.
                 </p>
               </div>
@@ -599,7 +599,7 @@ export default function SettingsPage() {
 
               <div>
                 <h3 className="text-sm font-bold text-foreground">Developer Keys</h3>
-                <p className="text-[10px] text-secondary-text leading-relaxed mt-2">
+                <p className="text-2xs text-secondary-text leading-relaxed mt-2">
                   Your requests are fully powered by LocalRadar's internal servers and APIs. You do not need to provide any API credentials.
                 </p>
               </div>
@@ -607,20 +607,20 @@ export default function SettingsPage() {
               <div className="space-y-3 bg-background border border-[#202226] p-4 rounded-xl text-xs font-mono text-secondary-text">
                 <div className="flex justify-between items-center border-b border-[#202226] pb-2.5">
                   <span className="text-foreground">Google Places API</span>
-                  <span className="text-[9px] bg-primary/15 text-primary border border-primary/25 px-2 py-0.5 rounded-full font-bold uppercase">Included</span>
+                  <span className="text-2xs bg-primary/15 text-primary border border-primary/25 px-2 py-0.5 rounded-full font-bold uppercase">Included</span>
                 </div>
                 <div className="flex justify-between items-center border-b border-[#202226] pb-2.5">
                   <span className="text-foreground">AI Search Credits</span>
-                  <span className="text-[9px] bg-primary/15 text-primary border border-primary/25 px-2 py-0.5 rounded-full font-bold uppercase">Included</span>
+                  <span className="text-2xs bg-primary/15 text-primary border border-primary/25 px-2 py-0.5 rounded-full font-bold uppercase">Included</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-foreground">Vulnerability Audit</span>
-                  <span className="text-[9px] bg-primary/15 text-primary border border-primary/25 px-2 py-0.5 rounded-full font-bold uppercase">Included</span>
+                  <span className="text-2xs bg-primary/15 text-primary border border-primary/25 px-2 py-0.5 rounded-full font-bold uppercase">Included</span>
                 </div>
               </div>
 
               <div className="pt-2 border-t border-[#202226] space-y-3">
-                <p className="text-[9px] text-muted-text leading-relaxed">
+                <p className="text-2xs text-muted-text leading-relaxed">
                   Need to bring your own keys or hook up a custom database? Advanced Integrations are available on the Agency Plus Plan.
                 </p>
                 <button
@@ -647,7 +647,7 @@ export default function SettingsPage() {
                 </span>
               </div>
 
-              <p className="text-[10px] text-secondary-text leading-relaxed">
+              <p className="text-2xs text-secondary-text leading-relaxed">
                 Configure custom infrastructure credentials. Enabling BYOK bypasses LocalRadar server limits and routes requests using your keys.
               </p>
 
@@ -655,7 +655,7 @@ export default function SettingsPage() {
               <div className="flex items-center justify-between bg-background border border-border p-3 rounded-xl">
                 <div className="space-y-0.5">
                   <span className="text-xs font-bold text-foreground block">BYOK Mode</span>
-                  <span className="text-[9px] text-muted-text block font-mono">Bring Your Own Keys</span>
+                  <span className="text-2xs text-muted-text block font-mono">Bring Your Own Keys</span>
                 </div>
                 <button
                   type="button"
@@ -676,7 +676,7 @@ export default function SettingsPage() {
 
               <form onSubmit={handleSaveKeys} className="space-y-4 border-t border-border pt-4">
                 <div className="space-y-1.5">
-                  <label className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest block font-mono">Google Places API Key</label>
+                  <label className="text-2xs font-bold text-zinc-500 uppercase tracking-widest block font-mono">Google Places API Key</label>
                   <input
                     type="password"
                     placeholder={googlePlacesKey === '••••••••' ? '••••••••' : 'AIzaSy...'}
@@ -697,7 +697,7 @@ export default function SettingsPage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest block font-mono">OpenRouter API Key</label>
+                  <label className="text-2xs font-bold text-zinc-500 uppercase tracking-widest block font-mono">OpenRouter API Key</label>
                   <input
                     type="password"
                     placeholder={openrouterKey === '••••••••' ? '••••••••' : 'sk-or-v1-...'}
@@ -718,7 +718,7 @@ export default function SettingsPage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest block font-mono">Supabase URL</label>
+                  <label className="text-2xs font-bold text-zinc-500 uppercase tracking-widest block font-mono">Supabase URL</label>
                   <input
                     type="text"
                     placeholder={supabaseUrl === '••••••••' ? '••••••••' : 'https://your-project.supabase.co'}
@@ -739,7 +739,7 @@ export default function SettingsPage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest block font-mono">Supabase Anon Key</label>
+                  <label className="text-2xs font-bold text-zinc-500 uppercase tracking-widest block font-mono">Supabase Anon Key</label>
                   <input
                     type="password"
                     placeholder={supabaseAnon === '••••••••' ? '••••••••' : 'eyJhbG...'}
@@ -762,7 +762,7 @@ export default function SettingsPage() {
                 <button
                   type="submit"
                   disabled={isSaving}
-                  className="w-full bg-gradient-to-r from-primary to-[#14B88C] hover:opacity-95 text-on-primary font-extrabold text-xs py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-md font-mono disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full bg-gradient-to-r from-primary to-[#14B88C] hover:opacity-95 text-on-primary font-bold text-xs py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-md font-mono disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isSaving ? (
                     <>

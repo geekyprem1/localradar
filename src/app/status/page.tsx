@@ -20,19 +20,19 @@ export default function StatusPage() {
   return (
     <MarketingShell>
       <div className="relative z-10 mx-auto max-w-2xl px-5 py-16 sm:px-8 sm:py-24">
-        <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-[#2DD4A7]">Status</p>
-        <h1 className="mt-3 text-3xl font-semibold tracking-[-0.02em] text-white sm:text-4xl">
+        <p className="type-overline text-primary">Status</p>
+        <h1 className="type-h1 mt-3 sm:text-4xl">
           System status
         </h1>
-        <p className="mt-4 text-[15px] leading-relaxed text-white/50">
+        <p className="type-body mt-4">
           We publish this page for transparency. It does not invent uptime history. If a component is degraded, we will mark it here when automated status monitoring is connected.
         </p>
 
         <div className="mt-10 overflow-hidden rounded-2xl border border-white/[0.08] bg-[#0B0C0D]">
           <div className="flex items-center gap-2 border-b border-white/[0.06] px-5 py-4">
             <CheckCircle2 className="h-4 w-4 text-[#2DD4A7]" aria-hidden />
-            <span className="text-sm font-semibold text-white">All systems operational</span>
-            <span className="ml-auto font-mono text-[10px] uppercase tracking-wider text-white/35">
+            <span className="type-h5 text-foreground">All systems operational</span>
+            <span className="ml-auto type-overline">
               Monitored
             </span>
           </div>
@@ -40,10 +40,10 @@ export default function StatusPage() {
             {systems.map((s) => (
               <li key={s.name} className="flex items-start justify-between gap-4 px-5 py-4">
                 <div>
-                  <p className="text-sm font-medium text-white">{s.name}</p>
-                  <p className="mt-0.5 text-xs text-white/40">{s.detail}</p>
+                  <p className="type-h6 text-foreground">{s.name}</p>
+                  <p className="mt-0.5 type-caption">{s.detail}</p>
                 </div>
-                <span className="shrink-0 rounded-full border border-[#2DD4A7]/25 bg-[#2DD4A7]/10 px-2.5 py-0.5 font-mono text-[10px] uppercase text-[#2DD4A7]">
+                <span className="shrink-0 rounded-full border border-[#2DD4A7]/25 bg-[#2DD4A7]/10 px-2.5 py-0.5 font-mono text-2xs uppercase text-[#2DD4A7]">
                   Operational
                 </span>
               </li>
@@ -51,7 +51,7 @@ export default function StatusPage() {
           </ul>
         </div>
 
-        <p className="mt-8 text-xs text-white/35">
+        <p className="mt-8 type-caption">
           Incident reports and historical uptime will appear here when a status provider is configured. For urgent issues, email{' '}
           <a href="mailto:hello@localradar.io" className="text-[#2DD4A7] hover:underline">
             hello@localradar.io

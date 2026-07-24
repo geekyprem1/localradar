@@ -62,7 +62,7 @@ export default function RevenueLeakCards({
 
   return (
     <div className="space-y-3">
-      <h4 className="text-[10px] font-semibold text-secondary-text uppercase tracking-widest font-mono">
+      <h4 className="text-2xs font-semibold text-secondary-text uppercase tracking-widest font-mono">
         Active Revenue Leakage Audits
       </h4>
       
@@ -82,7 +82,7 @@ export default function RevenueLeakCards({
             >
               <div>
                 <div className="flex items-center justify-between gap-1.5 mb-2">
-                  <span className={`text-[8px] font-normal font-mono px-1.5 py-0.5 rounded ${
+                  <span className={`text-2xs font-normal font-mono px-1.5 py-0.5 rounded ${
                     leak.active ? 'bg-[#FF5C5C]/10 text-[#FF5C5C]' : 'bg-background text-muted-text border border-border'
                   }`}>
                     {leak.category}
@@ -98,12 +98,12 @@ export default function RevenueLeakCards({
                 <h5 className={`text-xs font-semibold ${leak.active ? 'text-foreground' : 'text-muted-text'}`}>
                   {leak.label}
                 </h5>
-                <p className="text-[10px] text-secondary-text mt-1 leading-relaxed font-normal">
+                <p className="text-2xs text-secondary-text mt-1 leading-relaxed font-normal">
                   {leak.impact}
                 </p>
               </div>
 
-              <div className="mt-3 pt-2 border-t border-border flex items-center justify-between text-[9px] font-mono">
+              <div className="mt-3 pt-2 border-t border-border flex items-center justify-between text-2xs font-mono">
                 <span className="text-muted-text font-normal">Status</span>
                 <span className={leak.active ? 'text-[#FF5C5C] font-semibold' : 'text-primary font-semibold'}>
                   {leak.active ? '✓ CRITICAL LEAK' : '✓ SECURED'}

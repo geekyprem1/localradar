@@ -41,7 +41,7 @@ export default function OnboardingBanner({ hasData }: { hasData: boolean }) {
         >
           <X className="h-4 w-4" />
         </button>
-        <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-primary">Get started</p>
+        <p className="font-mono text-2xs uppercase tracking-[0.18em] text-primary">Get started</p>
         <h2 className="mt-2 pr-8 text-lg font-semibold text-foreground">
           Run your first market scan
         </h2>

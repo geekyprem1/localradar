@@ -39,7 +39,7 @@ function VerifyContent() {
             You will return here signed in and ready to scan.
           </li>
         </ol>
-        <p className="mt-6 text-[11px] text-zinc-600">
+        <p className="mt-6 text-2xs text-zinc-600">
           Wrong email?{' '}
           <Link href={isMagic ? '/login' : '/signup'} className="font-bold text-[#2DD4A7] hover:underline">
             Try again

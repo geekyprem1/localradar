@@ -36,6 +36,7 @@ import {
   Download
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { generateLeads, generateMockCompetitors } from '@/lib/mockData';
 import { scoreBusinessOpportunity, getVulnerabilityTags } from '@/lib/scoring';
 import { Business, Opportunity } from '@/types';
@@ -86,6 +87,9 @@ export default function LeadFinderPage() {
   const [totalResults, setTotalResults] = useState(0);
   const [visibleResults, setVisibleResults] = useState(0);
   const [hiddenResults, setHiddenResults] = useState(0);
+  /** When true, results are synthetic (sandbox / no Places key / API error) — not Google live data */
+  const [isDemoData, setIsDemoData] = useState(false);
+  const [demoReason, setDemoReason] = useState<string | null>(null);
 
   const fetchUsage = async () => {
     try {
@@ -359,18 +363,22 @@ export default function LeadFinderPage() {
         const total = data.totalResults ?? data.businesses.length;
         const visible = data.visibleResults ?? data.businesses.length;
         const hidden = data.hiddenResults ?? 0;
+        const demo = data.data_source === 'demo' || user?.is_mock === true;
 
         setLeads(data.businesses);
         setOpportunities(data.opportunities);
         setTotalResults(total);
         setVisibleResults(visible);
         setHiddenResults(hidden);
+        setIsDemoData(demo);
+        setDemoReason(demo ? (data.demo_reason || (user?.is_mock ? 'sandbox_session' : 'demo_fallback')) : null);
 
         localStorage.setItem('localradar_latest_leads', JSON.stringify(data.businesses));
         localStorage.setItem('localradar_latest_opps', JSON.stringify(data.opportunities));
         localStorage.setItem('localradar_latest_total_results', String(total));
         localStorage.setItem('localradar_latest_visible_results', String(visible));
         localStorage.setItem('localradar_latest_hidden_results', String(hidden));
+        localStorage.setItem('localradar_latest_data_source', demo ? 'demo' : 'live');
 
         if (user?.subscription_tier === 'free') {
           trackEvent('free_search_completed', {
@@ -394,7 +402,7 @@ export default function LeadFinderPage() {
       console.warn('Live search failed, falling back to sandbox simulation:', err);
     }
 
-    // Fallback sandbox generator
+    // Fallback sandbox generator (client-side)
     setTimeout(() => {
       const { businesses, opportunities: opps } = generateLeads(finalNiche, finalCity, finalCountry);
       
@@ -416,12 +424,15 @@ export default function LeadFinderPage() {
       setTotalResults(total);
       setVisibleResults(visible);
       setHiddenResults(hidden);
+      setIsDemoData(true);
+      setDemoReason('client_fallback');
       
       localStorage.setItem('localradar_latest_leads', JSON.stringify(visibleBizs));
       localStorage.setItem('localradar_latest_opps', JSON.stringify(visibleOpps));
       localStorage.setItem('localradar_latest_total_results', String(total));
       localStorage.setItem('localradar_latest_visible_results', String(visible));
       localStorage.setItem('localradar_latest_hidden_results', String(hidden));
+      localStorage.setItem('localradar_latest_data_source', 'demo');
       
       if (isFreeUser) {
         trackEvent('free_search_completed', {
@@ -578,7 +589,7 @@ export default function LeadFinderPage() {
       {/* Page header — title left, stats right */}
       <div className="flex flex-col gap-5 border-b border-border pb-6 lg:flex-row lg:items-end lg:justify-between">
         <div className="min-w-0 space-y-1.5">
-          <div className="flex items-center gap-2 font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-secondary-text">
+          <div className="flex items-center gap-2 font-mono text-2xs font-medium uppercase tracking-[0.14em] text-secondary-text">
             <Zap className="h-3.5 w-3.5 shrink-0 text-primary" aria-hidden />
             Opportunity Engine
           </div>
@@ -599,7 +610,7 @@ export default function LeadFinderPage() {
                   : 'border-border bg-secondary-bg'
               }`}
             >
-              <span className="font-mono text-[9px] font-medium uppercase tracking-wider text-secondary-text">
+              <span className="font-mono text-2xs font-medium uppercase tracking-wider text-secondary-text">
                 Searches left
               </span>
               <span
@@ -614,31 +625,58 @@ export default function LeadFinderPage() {
                   : `${usageStats.searches_used} / ${usageStats.searches_limit}`}
               </span>
               {user?.subscription_tier === 'free' && (
-                <span className="text-[10px] text-muted-text">Free plan this month</span>
+                <span className="text-2xs text-muted-text">Free plan this month</span>
               )}
             </div>
           )}
 
           <div className="flex min-w-[7.5rem] flex-col justify-center gap-0.5 rounded-xl border border-border bg-secondary-bg px-3.5 py-2.5">
-            <span className="font-mono text-[9px] font-medium uppercase tracking-wider text-secondary-text">
+            <span className="font-mono text-2xs font-medium uppercase tracking-wider text-secondary-text">
               Saved
             </span>
             <span className="text-sm font-semibold tabular-nums text-foreground">
               {savedLeadsList.length}
             </span>
-            <span className="text-[10px] text-muted-text">Opportunities</span>
+            <span className="text-2xs text-muted-text">Opportunities</span>
           </div>
 
           <div className="flex min-w-[7.5rem] flex-col justify-center gap-0.5 rounded-xl border border-border bg-secondary-bg px-3.5 py-2.5">
-            <span className="flex items-center gap-1 font-mono text-[9px] font-medium uppercase tracking-wider text-secondary-text">
+            <span className="flex items-center gap-1 font-mono text-2xs font-medium uppercase tracking-wider text-secondary-text">
               <LineChart className="h-3 w-3" aria-hidden />
               Focus
             </span>
             <span className="text-sm font-semibold text-foreground">High fit</span>
-            <span className="text-[10px] text-muted-text">Priority targets</span>
+            <span className="text-2xs text-muted-text">Priority targets</span>
           </div>
         </div>
       </div>
+
+      {/* Demo data notice — honest labeling when results are synthetic */}
+      {searched && isDemoData && (
+        <div className="flex flex-col gap-2 rounded-xl border border-[#F5A623]/30 bg-[#F5A623]/10 px-4 py-3 text-xs text-[#B45309] sm:flex-row sm:items-center sm:justify-between">
+          <div className="space-y-0.5">
+            <p className="font-semibold text-[#B45309]">
+              Demo data — not live Google Places results
+            </p>
+            <p className="text-[11px] leading-relaxed text-[#92400E]/90">
+              {demoReason === 'sandbox_session' &&
+                'You are signed in with Sandbox Mode. Names like “Elite Dental of …” are generated for product demos.'}
+              {demoReason === 'missing_places_api_key' &&
+                'No Google Places API key is configured. Add GOOGLE_PLACES_API_KEY (or Agency Plus BYOK key) for live listings.'}
+              {demoReason === 'places_api_error' &&
+                'Google Places API returned an error, so the app fell back to synthetic demo leads.'}
+              {(demoReason === 'client_fallback' || demoReason === 'demo_fallback' || !demoReason) &&
+                'Results are synthetic demo leads used when live Places data is unavailable.'}
+            </p>
+          </div>
+          <Link
+            href="/dashboard/settings"
+            className="shrink-0 rounded-lg border border-[#F5A623]/40 bg-secondary-bg px-3 py-1.5 text-[11px] font-semibold text-foreground transition-colors hover:bg-background"
+          >
+            Open Settings
+          </Link>
+        </div>
+      )}
 
       {/* Credit Warning Banner */}
       {user?.subscription_tier === 'free' && usageStats && usageStats.searches_remaining <= 3 && (
@@ -654,7 +692,7 @@ export default function LeadFinderPage() {
         
         <form onSubmit={(e) => handleSearch(e)} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end font-sans">
           <div className="space-y-2">
-            <label className="text-[10px] font-normal text-secondary-text uppercase tracking-widest flex items-center gap-1.5 font-mono">
+            <label className="text-2xs font-normal text-secondary-text uppercase tracking-widest flex items-center gap-1.5 font-mono">
               <Compass className="w-3.5 h-3.5 text-secondary-text" />
               Niche / Industry
             </label>
@@ -669,7 +707,7 @@ export default function LeadFinderPage() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-normal text-secondary-text uppercase tracking-widest flex items-center gap-1.5 font-mono">
+            <label className="text-2xs font-normal text-secondary-text uppercase tracking-widest flex items-center gap-1.5 font-mono">
               <MapPin className="w-3.5 h-3.5 text-secondary-text" />
               Target City
             </label>
@@ -684,7 +722,7 @@ export default function LeadFinderPage() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-normal text-secondary-text uppercase tracking-widest flex items-center gap-1.5 font-mono">
+            <label className="text-2xs font-normal text-secondary-text uppercase tracking-widest flex items-center gap-1.5 font-mono">
               <Globe className="w-3.5 h-3.5 text-secondary-text" />
               Country
             </label>
@@ -732,7 +770,7 @@ export default function LeadFinderPage() {
               key={`${tag.niche}-${tag.city}`}
               type="button"
               onClick={() => handleSearch(undefined, tag.niche, tag.city, tag.country)}
-              className="bg-background hover:bg-secondary-bg border border-border/85 hover:border-zinc-500 px-2.5 py-1 rounded-md text-[10px] font-mono text-secondary-text hover:text-foreground transition-all cursor-pointer"
+              className="bg-background hover:bg-secondary-bg border border-border/85 hover:border-zinc-500 px-2.5 py-1 rounded-md text-2xs font-mono text-secondary-text hover:text-foreground transition-all cursor-pointer"
             >
               💡 {tag.niche} in {tag.city}
             </button>
@@ -753,7 +791,7 @@ export default function LeadFinderPage() {
                     key={idx}
                     type="button"
                     onClick={() => handleSearch(undefined, search.niche, search.city, search.country)}
-                    className="bg-background border border-border px-2.5 py-1 rounded-md text-[10px] font-mono text-zinc-300 hover:text-foreground hover:border-white transition-all cursor-pointer"
+                    className="bg-background border border-border px-2.5 py-1 rounded-md text-2xs font-mono text-zinc-300 hover:text-foreground hover:border-white transition-all cursor-pointer"
                   >
                     🔍 {search.niche} ({search.city})
                   </button>
@@ -771,7 +809,7 @@ export default function LeadFinderPage() {
                   <button
                     key={recNiche}
                     onClick={() => executePopularNiche(recNiche)}
-                    className="bg-background border border-border px-2.5 py-1 rounded-md text-[10px] font-mono text-zinc-300 hover:text-foreground hover:border-white transition-all cursor-pointer"
+                    className="bg-background border border-border px-2.5 py-1 rounded-md text-2xs font-mono text-zinc-300 hover:text-foreground hover:border-white transition-all cursor-pointer"
                   >
                     🔍 {recNiche}
                   </button>
@@ -792,7 +830,7 @@ export default function LeadFinderPage() {
                   key={nicheName}
                   type="button"
                   onClick={() => executePopularNiche(nicheName)}
-                  className="bg-background border border-border px-2.5 py-1 rounded-md text-[10px] font-mono text-zinc-300 hover:text-foreground hover:border-white transition-all cursor-pointer"
+                  className="bg-background border border-border px-2.5 py-1 rounded-md text-2xs font-mono text-zinc-300 hover:text-foreground hover:border-white transition-all cursor-pointer"
                 >
                   {nicheName}
                 </button>
@@ -820,8 +858,8 @@ export default function LeadFinderPage() {
                   <Search className="w-8 h-8 text-foreground animate-pulse" />
                 </div>
                 <div>
-                  <h3 className="text-foreground text-base font-bold font-serif">Deep Opportunity Scanning</h3>
-                  <p className="text-secondary-text text-[11px] mt-1 font-mono">Resolving Places APIs & SEO indices...</p>
+                  <h3 className="text-foreground text-base font-bold">Deep Opportunity Scanning</h3>
+                  <p className="text-secondary-text text-2xs mt-1 font-mono">Resolving Places APIs & SEO indices...</p>
                 </div>
               </div>
 
@@ -837,7 +875,7 @@ export default function LeadFinderPage() {
                       className="flex items-center gap-3 text-xs font-mono"
                     >
                       {isPassed ? (
-                        <div className="w-4.5 h-4.5 rounded-full bg-primary/10 text-primary border border-primary/30 flex items-center justify-center text-[9px] font-bold">✓</div>
+                        <div className="w-4.5 h-4.5 rounded-full bg-primary/10 text-primary border border-primary/30 flex items-center justify-center text-2xs font-bold">✓</div>
                       ) : isActive ? (
                         <Loader2 className="w-4.5 h-4.5 text-primary animate-spin" />
                       ) : (
@@ -910,13 +948,13 @@ export default function LeadFinderPage() {
                 style={{ borderTopColor: card.color }}
               >
                 <div className="flex justify-between items-start">
-                  <span className="text-[9px] font-bold text-secondary-text uppercase tracking-widest font-mono truncate max-w-[80%]">{card.label}</span>
-                  <span className="text-[8px] font-bold px-1.5 py-0.5 rounded bg-background text-secondary-text border border-border font-mono">{card.pill}</span>
+                  <span className="text-2xs font-bold text-secondary-text uppercase tracking-widest font-mono truncate max-w-[80%]">{card.label}</span>
+                  <span className="text-2xs font-bold px-1.5 py-0.5 rounded bg-background text-secondary-text border border-border font-mono">{card.pill}</span>
                 </div>
-                <div className={`text-2xl font-mono font-extrabold tracking-tight mt-3 ${card.accent}`}>
+                <div className={`text-2xl font-mono font-bold tracking-tight mt-3 ${card.accent}`}>
                   {card.val}
                 </div>
-                <p className="text-[10px] text-muted-text mt-2 font-mono leading-tight border-t border-border pt-2 truncate">{card.desc}</p>
+                <p className="text-2xs text-muted-text mt-2 font-mono leading-tight border-t border-border pt-2 truncate">{card.desc}</p>
               </motion.div>
             );
           })}
@@ -928,13 +966,13 @@ export default function LeadFinderPage() {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-base font-serif font-semibold text-foreground flex items-center gap-1.5">
+              <h2 className="text-base font-semibold text-foreground flex items-center gap-1.5">
                 <Sparkles className="w-4 h-4 text-secondary-text" />
                 Priority Opportunity Board™
               </h2>
-              <p className="text-[11px] text-secondary-text font-mono">Top opportunities ranked by Opportunity Engine™</p>
+              <p className="text-2xs text-secondary-text font-mono">Top opportunities ranked by Opportunity Engine™</p>
             </div>
-            <span className="text-[9px] font-bold text-secondary-text bg-background border border-border px-2 py-0.5 rounded font-mono uppercase tracking-wider">
+            <span className="text-2xs font-bold text-secondary-text bg-background border border-border px-2 py-0.5 rounded font-mono uppercase tracking-wider">
               High-Value Targets
             </span>
           </div>
@@ -961,11 +999,11 @@ export default function LeadFinderPage() {
                   <div>
                     {/* Header */}
                     <div className="flex items-center justify-between gap-1.5">
-                      <span className={`text-[9px] font-semibold font-mono px-2 py-0.5 rounded ${getScoreBadgeColor(score)}`}>
+                      <span className={`text-2xs font-semibold font-mono px-2 py-0.5 rounded ${getScoreBadgeColor(score)}`}>
                         {score} {getScoreLabel(score)}
                       </span>
                       <div className="flex items-center gap-2">
-                        <span className={`text-[9px] font-mono font-semibold ${
+                        <span className={`text-2xs font-mono font-semibold ${
                           closing >= 70 
                             ? 'text-primary' 
                             : closing >= 40 
@@ -989,14 +1027,14 @@ export default function LeadFinderPage() {
                       </div>
                     </div>
 
-                    <h3 className="font-serif font-semibold text-foreground text-sm mt-4 leading-snug truncate group-hover:text-foreground transition-colors flex items-center gap-1.5">
+                    <h3 className="font-semibold text-foreground text-sm mt-4 leading-snug truncate group-hover:text-foreground transition-colors flex items-center gap-1.5">
                       {lead.name}
                       {hotLeadsMap[lead.id] && <Flame className="w-3.5 h-3.5 text-[#F5A623] fill-[#F5A623] shrink-0" />}
                     </h3>
-                    <p className="text-[10px] text-secondary-text font-mono mt-1 truncate">{lead.address}</p>
+                    <p className="text-2xs text-secondary-text font-mono mt-1 truncate">{lead.address}</p>
 
                     {/* Stats */}
-                    <div className="mt-4 space-y-2 border-t border-border pt-3 text-[11px] font-mono">
+                    <div className="mt-4 space-y-2 border-t border-border pt-3 text-2xs font-mono">
                       <div className="flex justify-between items-center">
                         <span className="text-muted-text">Opportunity Score™</span>
                         <span className="text-foreground font-semibold text-xs">{score}/100</span>
@@ -1019,7 +1057,7 @@ export default function LeadFinderPage() {
                               e.stopPropagation();
                               triggerLockedModal('audit');
                             }}
-                            className="text-[10px] font-mono text-secondary-text hover:text-foreground transition-colors cursor-pointer select-none bg-background px-2 py-0.5 rounded border border-border"
+                            className="text-2xs font-mono text-secondary-text hover:text-foreground transition-colors cursor-pointer select-none bg-background px-2 py-0.5 rounded border border-border"
                           >
                             🔒 Locked
                           </span>
@@ -1029,7 +1067,7 @@ export default function LeadFinderPage() {
                       </div>
                       <div className="flex justify-between items-center border-t border-border/40 pt-1.5 mt-1.5">
                         <span className="text-muted-text">Top Reason</span>
-                        <span className="text-[#FF5C5C] font-semibold text-[10px] tracking-wide truncate max-w-[110px]" title={getCleanTopReason(lead.id)}>
+                        <span className="text-[#FF5C5C] font-semibold text-2xs tracking-wide truncate max-w-[110px]" title={getCleanTopReason(lead.id)}>
                           {getCleanTopReason(lead.id)}
                         </span>
                       </div>
@@ -1046,7 +1084,7 @@ export default function LeadFinderPage() {
                           setSelectedLeadId(lead.id);
                         }
                       }}
-                      className="w-full bg-background hover:bg-secondary-bg border border-border text-secondary-text hover:text-foreground text-[10px] font-bold py-1.5 rounded-lg transition-all flex items-center justify-center gap-1 cursor-pointer font-mono"
+                      className="w-full bg-background hover:bg-secondary-bg border border-border text-secondary-text hover:text-foreground text-2xs font-bold py-1.5 rounded-lg transition-all flex items-center justify-center gap-1 cursor-pointer font-mono"
                     >
                       <Info className="w-3.5 h-3.5 text-muted-text" />
                       View Intelligence
@@ -1059,7 +1097,7 @@ export default function LeadFinderPage() {
                           router.push(`/dashboard/pitch?bizId=${lead.id}`);
                         }
                       }}
-                      className="w-full bg-gradient-to-r from-primary to-[#14B88C] hover:opacity-95 text-on-primary text-[10px] font-extrabold py-1.5 rounded-lg transition-all flex items-center justify-center gap-1 cursor-pointer font-mono shadow-sm"
+                      className="w-full bg-gradient-to-r from-primary to-[#14B88C] hover:opacity-95 text-on-primary text-2xs font-bold py-1.5 rounded-lg transition-all flex items-center justify-center gap-1 cursor-pointer font-mono shadow-sm"
                     >
                       <Send className="w-3.5 h-3.5 text-on-primary" />
                       Generate Pitch
@@ -1087,7 +1125,7 @@ export default function LeadFinderPage() {
                   e.stopPropagation();
                   handleExport('csv');
                 }}
-                className="bg-background hover:bg-secondary-bg border border-border text-foreground text-[10px] font-bold py-1.5 px-3 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer font-mono shadow-sm"
+                className="bg-background hover:bg-secondary-bg border border-border text-foreground text-2xs font-bold py-1.5 px-3 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer font-mono shadow-sm"
               >
                 <Download className="w-3.5 h-3.5 text-zinc-400" />
                 Export CSV
@@ -1097,7 +1135,7 @@ export default function LeadFinderPage() {
                   e.stopPropagation();
                   handleExport('pdf');
                 }}
-                className="bg-background hover:bg-secondary-bg border border-border text-foreground text-[10px] font-bold py-1.5 px-3 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer font-mono shadow-sm"
+                className="bg-background hover:bg-secondary-bg border border-border text-foreground text-2xs font-bold py-1.5 px-3 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer font-mono shadow-sm"
               >
                 <FileText className="w-3.5 h-3.5 text-zinc-400" />
                 Export PDF
@@ -1109,7 +1147,7 @@ export default function LeadFinderPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-border bg-background/90 text-secondary-text text-[11px] font-mono uppercase tracking-widest">
+                  <tr className="border-b border-border bg-background/90 text-secondary-text text-2xs font-mono uppercase tracking-widest">
                     <th className="py-5 px-6">Business</th>
                     <th className="py-5 px-6 text-center">Opportunity Score™</th>
                     <th className="py-5 px-6 text-center">Why This Lead™</th>
@@ -1179,7 +1217,7 @@ export default function LeadFinderPage() {
                                 e.stopPropagation();
                                 triggerLockedModal('audit');
                               }}
-                              className="inline-block text-[10px] font-mono text-secondary-text hover:text-foreground transition-colors cursor-pointer select-none bg-background px-2 py-0.5 rounded border border-border"
+                              className="inline-block text-2xs font-mono text-secondary-text hover:text-foreground transition-colors cursor-pointer select-none bg-background px-2 py-0.5 rounded border border-border"
                             >
                               🔒 Locked
                             </span>
@@ -1202,7 +1240,7 @@ export default function LeadFinderPage() {
                                 e.stopPropagation();
                                 triggerLockedModal('audit');
                               }}
-                              className="inline-block text-[10px] font-mono text-secondary-text hover:text-foreground transition-colors cursor-pointer select-none bg-background px-2 py-0.5 rounded border border-border"
+                              className="inline-block text-2xs font-mono text-secondary-text hover:text-foreground transition-colors cursor-pointer select-none bg-background px-2 py-0.5 rounded border border-border"
                             >
                               🔒 Locked
                             </span>
@@ -1217,7 +1255,7 @@ export default function LeadFinderPage() {
                             {tags.slice(0, 2).map((r) => (
                               <span 
                                 key={r} 
-                                className="text-[10px] text-[#FF5C5C] bg-[#FF5C5C]/5 border border-[#FF5C5C]/15 px-2 py-1 rounded font-mono"
+                                className="text-2xs text-[#FF5C5C] bg-[#FF5C5C]/5 border border-[#FF5C5C]/15 px-2 py-1 rounded font-mono"
                               >
                                 {r}
                               </span>
@@ -1296,7 +1334,7 @@ export default function LeadFinderPage() {
             <Target className="w-6 h-6 animate-pulse" />
           </div>
           
-          <h2 className="text-foreground text-2xl font-serif font-extrabold tracking-tight">
+          <h2 className="text-foreground text-2xl font-bold tracking-tight">
             Welcome to LocalRadar! 🚀
           </h2>
           <p className="text-secondary-text text-xs mt-2 max-w-md mx-auto font-mono">
@@ -1305,31 +1343,31 @@ export default function LeadFinderPage() {
           
           <div className="text-left max-w-md mx-auto mt-6 space-y-3 font-mono text-xs text-secondary-text">
             <div className="p-3 bg-background border border-border rounded-xl flex items-start gap-3">
-              <span className="bg-primary/10 text-primary w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[10px] font-bold">1</span>
+              <span className="bg-primary/10 text-primary w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-2xs font-bold">1</span>
               <div>
                 <p className="text-foreground font-semibold">Search a Local Market</p>
-                <p className="text-[10px] mt-0.5 text-muted-text">Enter any service (e.g., Dentists) and a city (e.g., Austin) in the search console above.</p>
+                <p className="text-2xs mt-0.5 text-muted-text">Enter any service (e.g., Dentists) and a city (e.g., Austin) in the search console above.</p>
               </div>
             </div>
             <div className="p-3 bg-background border border-border rounded-xl flex items-start gap-3">
-              <span className="bg-primary/10 text-primary w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[10px] font-bold">2</span>
+              <span className="bg-primary/10 text-primary w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-2xs font-bold">2</span>
               <div>
                 <p className="text-foreground font-semibold">Examine Intelligence Dossier</p>
-                <p className="text-[10px] mt-0.5 text-muted-text">Review their Opportunity Score, competitor gaps, booking leaks, and estimated deal value.</p>
+                <p className="text-2xs mt-0.5 text-muted-text">Review their Opportunity Score, competitor gaps, booking leaks, and estimated deal value.</p>
               </div>
             </div>
             <div className="p-3 bg-background border border-border rounded-xl flex items-start gap-3">
-              <span className="bg-primary/10 text-primary w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[10px] font-bold">3</span>
+              <span className="bg-primary/10 text-primary w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-2xs font-bold">3</span>
               <div>
                 <p className="text-foreground font-semibold">Generate & Send Pitch Sequence</p>
-                <p className="text-[10px] mt-0.5 text-muted-text">Instantly create highly personalized Cold Email, LinkedIn DM, WhatsApp pitch sequences, or export branded PDF audits.</p>
+                <p className="text-2xs mt-0.5 text-muted-text">Instantly create highly personalized Cold Email, LinkedIn DM, WhatsApp pitch sequences, or export branded PDF audits.</p>
               </div>
             </div>
           </div>
 
           {/* Quick-action helper niches */}
           <div className="mt-8 pt-6 border-t border-border space-y-4">
-            <h4 className="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-text">
+            <h4 className="text-2xs font-mono font-bold uppercase tracking-wider text-muted-text">
               Or Try A Popular Target Profile:
             </h4>
             <div className="flex flex-wrap justify-center gap-2">
@@ -1422,7 +1460,7 @@ function UpgradeBanner({ hiddenResults, totalResults, triggerLockedModal }: Upgr
       <div className="absolute -top-20 -right-20 w-44 h-44 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute -bottom-20 -left-20 w-44 h-44 bg-foreground/5 rounded-full blur-3xl pointer-events-none" />
 
-      <h3 className="text-xl font-serif font-semibold text-foreground flex items-center justify-center gap-2">
+      <h3 className="text-xl font-semibold text-foreground flex items-center justify-center gap-2">
         <span>🔒</span> {hiddenResults} Additional Opportunities Hidden
       </h3>
       
@@ -1435,7 +1473,7 @@ function UpgradeBanner({ hiddenResults, totalResults, triggerLockedModal }: Upgr
           trackEvent('upgrade_banner_clicked', { hidden_results: hiddenResults, total_results: totalResults });
           triggerLockedModal('audit');
         }}
-        className="mt-6 bg-gradient-to-r from-primary to-[#14B88C] hover:opacity-95 text-on-primary font-mono text-xs font-extrabold px-8 py-3 rounded-xl transition-all shadow-[0_0_15px_rgba(45,212,167,0.2)] hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+        className="mt-6 bg-gradient-to-r from-primary to-[#14B88C] hover:opacity-95 text-on-primary font-mono text-xs font-bold px-8 py-3 rounded-xl transition-all shadow-[0_0_15px_rgba(45,212,167,0.2)] hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
       >
         Unlock all {totalResults} businesses instantly
       </button>

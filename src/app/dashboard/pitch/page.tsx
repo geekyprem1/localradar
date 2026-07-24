@@ -270,7 +270,7 @@ export default function PitchGeneratorPage() {
     <div className="space-y-8 max-w-5xl mx-auto font-sans text-foreground pb-16">
       {/* Header */}
       <div className="border-b border-border pb-6">
-        <h1 className="text-2xl font-serif font-bold text-foreground flex items-center gap-2">
+        <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
           AI Pitch Engine
           <Sparkles className="w-5 h-5 text-foreground fill-foreground/10 animate-pulse" />
         </h1>
@@ -289,7 +289,7 @@ export default function PitchGeneratorPage() {
           </h3>
 
           <div className="space-y-3">
-            <label className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest block font-mono">
+            <label className="text-2xs font-bold text-zinc-500 uppercase tracking-widest block font-mono">
               Select Client
             </label>
             <select
@@ -356,13 +356,13 @@ export default function PitchGeneratorPage() {
                   <Sparkles className="w-8 h-8 text-secondary-text animate-pulse" />
                   <div className="text-center">
                     <p className="text-xs font-semibold text-foreground font-mono">{getTabLabel(activeTab)} Not Generated</p>
-                    <p className="text-[10px] text-muted-text font-mono mt-1">
+                    <p className="text-2xs text-muted-text font-mono mt-1">
                       Click the button below to generate personalized copy using AI diagnostic tools.
                     </p>
                   </div>
                   <button
                     onClick={() => handleGenerateTabPitch(activeTab)}
-                    className="bg-gradient-to-r from-primary to-[#14B88C] hover:opacity-95 text-on-primary text-xs font-mono font-extrabold px-5 py-2.5 rounded-xl transition-all shadow-md flex items-center gap-1.5 cursor-pointer uppercase tracking-wider"
+                    className="bg-gradient-to-r from-primary to-[#14B88C] hover:opacity-95 text-on-primary text-xs font-mono font-bold px-5 py-2.5 rounded-xl transition-all shadow-md flex items-center gap-1.5 cursor-pointer uppercase tracking-wider"
                   >
                     <Sparkles className="w-3.5 h-3.5" />
                     Generate {getTabLabel(activeTab)}
@@ -375,14 +375,14 @@ export default function PitchGeneratorPage() {
           {/* Bottom Actions Row */}
           {!loadingStates[activeTab] && pitches[activeTab] && (
             <div className="flex flex-col sm:flex-row sm:items-center justify-between border-t border-border pt-6 mt-6 gap-3">
-              <span className="text-[10px] text-zinc-500 font-medium flex items-center gap-1 font-mono">
+              <span className="text-2xs text-zinc-500 font-medium flex items-center gap-1 font-mono">
                 <AlertTriangle className="w-3.5 h-3.5 text-zinc-500" />
                 Customize variables prior to sending.
               </span>
 
               <button
                 onClick={handleCopy}
-                className="bg-gradient-to-r from-primary to-[#14B88C] hover:opacity-95 text-on-primary text-xs font-extrabold px-5 py-2.5 rounded-xl transition-all shadow-sm flex items-center gap-1.5 cursor-pointer font-mono"
+                className="bg-gradient-to-r from-primary to-[#14B88C] hover:opacity-95 text-on-primary text-xs font-bold px-5 py-2.5 rounded-xl transition-all shadow-sm flex items-center gap-1.5 cursor-pointer font-mono"
               >
                 {copied ? <Check className="w-3.5 h-3.5 text-foreground" /> : <Copy className="w-3.5 h-3.5" />}
                 {copied ? 'Copied' : 'Copy Pitch'}

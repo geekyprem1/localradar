@@ -45,7 +45,7 @@ export default function WhyThisLead({
           <Sparkles className="w-4 h-4 text-secondary-text animate-pulse" />
           Why This Lead™
         </div>
-        <span className="text-[8px] text-muted-text lowercase font-normal">Powered by Why This Lead™</span>
+        <span className="text-2xs text-muted-text lowercase font-normal">Powered by Why This Lead™</span>
       </div>
 
       <div className="space-y-4">
@@ -60,14 +60,14 @@ export default function WhyThisLead({
         {/* Highlight Stats Grid */}
         <div className="grid grid-cols-2 gap-3.5 pt-3 border-t border-border text-xs font-mono">
           <div>
-            <span className="text-secondary-text block mb-1 uppercase tracking-widest text-[9px] font-normal">Est. Opportunity Value</span>
+            <span className="text-secondary-text block mb-1 uppercase tracking-widest text-2xs font-normal">Est. Opportunity Value</span>
             <span className="text-primary font-semibold text-sm flex items-center gap-0.5">
               <DollarSign className="w-3.5 h-3.5 text-primary" />
               {formatIndianCurrency(dealValueMin)} - {formatIndianCurrency(dealValueMax)}
             </span>
           </div>
           <div>
-            <span className="text-secondary-text block mb-1 uppercase tracking-widest text-[9px] font-normal">Recommended Entry Service</span>
+            <span className="text-secondary-text block mb-1 uppercase tracking-widest text-2xs font-normal">Recommended Entry Service</span>
             <span className="text-foreground font-semibold text-sm flex items-center gap-1">
               <Award className="w-3.5 h-3.5 text-secondary-text" />
               {recommendedService}

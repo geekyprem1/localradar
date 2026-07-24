@@ -79,7 +79,7 @@ export default function SignupPage() {
     >
       {error && <AuthError message={error} />}
 
-      <ul className="mb-5 space-y-1.5 text-[11px] text-[#A1A1AA]">
+      <ul className="mb-5 space-y-1.5 text-2xs text-[#A1A1AA]">
         {['AI opportunity scoring', 'Google Business analysis', 'Personalized outreach drafts'].map((t) => (
           <li key={t} className="flex items-center gap-2">
             <Check className="h-3.5 w-3.5 text-[#2DD4A7]" aria-hidden />
@@ -167,7 +167,7 @@ export default function SignupPage() {
           Sign in
         </Link>
       </p>
-      <p className="mt-3 text-center text-[10px] leading-relaxed text-zinc-600">
+      <p className="mt-3 text-center text-2xs leading-relaxed text-zinc-600">
         By creating an account you agree to our{' '}
         <Link href="/terms" className="underline hover:text-zinc-400">Terms</Link>
         {' '}and{' '}

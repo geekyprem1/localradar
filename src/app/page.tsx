@@ -316,7 +316,7 @@ export default function LandingPage() {
           ].map((b) => (
             <span
               key={b.label}
-              className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.08] bg-white/[0.02] px-3 py-1.5 text-[11px] font-medium text-white/55"
+              className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.08] bg-white/[0.02] px-3 py-1.5 text-2xs font-medium text-white/55"
             >
               <b.icon className="h-3 w-3 text-[#2DD4A7]" aria-hidden />
               {b.label}
@@ -337,11 +337,11 @@ export default function LandingPage() {
           <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#2DD4A7]/50 to-transparent" />
 
           <div className="mb-5 flex items-center justify-between border-b border-white/[0.07] pb-4">
-            <div className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.18em] text-white/45">
+            <div className="flex items-center gap-2 font-mono text-2xs uppercase tracking-[0.18em] text-white/45">
               <MapPin className="h-3.5 w-3.5 text-[#2DD4A7]" />
               Live opportunity scanner
             </div>
-            <span className="rounded-md border border-white/10 bg-black/40 px-2.5 py-1 font-mono text-[10px] text-white/40">
+            <span className="rounded-md border border-white/10 bg-black/40 px-2.5 py-1 font-mono text-2xs text-white/40">
               Example · Dallas, TX
             </span>
           </div>
@@ -354,7 +354,7 @@ export default function LandingPage() {
                     <Search className="h-5 w-5 animate-pulse" />
                   </div>
                   <p className="font-mono text-sm text-white/80">Ready to scan a local market</p>
-                  <p className="mx-auto max-w-xs font-mono text-[11px] text-white/35">Illustrative demo of the product workflow</p>
+                  <p className="mx-auto max-w-xs font-mono text-2xs text-white/35">Illustrative demo of the product workflow</p>
                 </motion.div>
               )}
 
@@ -364,7 +364,7 @@ export default function LandingPage() {
                     <Loader2 className="h-4 w-4 animate-spin text-[#2DD4A7]" />
                     Resolving local business registries…
                   </div>
-                  <div className="space-y-2 rounded-xl border border-white/[0.07] bg-black/40 p-4 text-[11px] text-white/45">
+                  <div className="space-y-2 rounded-xl border border-white/[0.07] bg-black/40 p-4 text-2xs text-white/45">
                     {scanLogs.slice(0, scanLogIndex + 1).map((log, idx) => (
                       <div key={idx} className="flex items-start gap-2">
                         <span className="font-bold text-[#2DD4A7]">▸</span>
@@ -379,11 +379,11 @@ export default function LandingPage() {
                 <motion.div key="results" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} className="grid grid-cols-1 gap-5 text-left md:grid-cols-3">
                   <div className="space-y-3 md:col-span-2">
                     <div>
-                      <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-[#2DD4A7]">Sample match</span>
+                      <span className="font-mono text-2xs uppercase tracking-[0.15em] text-[#2DD4A7]">Sample match</span>
                       <h4 className="mt-1 text-lg font-semibold text-white">AK Fitness Gym &amp; Boxing</h4>
-                      <p className="mt-0.5 font-mono text-[11px] text-white/40">Illustrative listing · Dallas, TX</p>
+                      <p className="mt-0.5 font-mono text-2xs text-white/40">Illustrative listing · Dallas, TX</p>
                     </div>
-                    <div className="space-y-2.5 border-t border-white/[0.07] pt-3.5 text-[13px]">
+                    <div className="space-y-2.5 border-t border-white/[0.07] pt-3.5 text-sm">
                       <Row label="Google rating" value="Below local average" warn />
                       <Row label="Website" value="None detected" bad />
                       <Row label="Biggest gap" value="No mobile booking funnel" bad />
@@ -392,7 +392,7 @@ export default function LandingPage() {
 
                   <div className="flex flex-col justify-between rounded-xl border border-white/10 bg-black/40 p-4">
                     <div className="space-y-3">
-                      <div className="flex items-center justify-between font-mono text-[10px] text-white/40">
+                      <div className="flex items-center justify-between font-mono text-2xs text-white/40">
                         <span>OPPORTUNITY</span>
                         <span className="font-semibold text-[#2DD4A7]">High fit</span>
                       </div>
@@ -400,7 +400,7 @@ export default function LandingPage() {
                         <span className="text-4xl font-semibold text-[#2DD4A7]">{counterValue}</span>
                         <span className="text-sm text-white/35">/ 100</span>
                       </div>
-                      <div className="flex justify-between border-t border-white/[0.07] pt-2.5 font-mono text-[11px] text-white/40">
+                      <div className="flex justify-between border-t border-white/[0.07] pt-2.5 font-mono text-2xs text-white/40">
                         <span>Est. deal range</span>
                         <span className="font-semibold text-white">Varies by service</span>
                       </div>
@@ -437,7 +437,7 @@ export default function LandingPage() {
                 <c.icon className="h-5 w-5" />
               </div>
               <h3 className="mt-4 text-sm font-semibold text-white">{c.title}</h3>
-              <p className="mt-2 text-[13px] leading-relaxed text-white/50">{c.desc}</p>
+              <p className="mt-2 text-sm leading-relaxed text-white/50">{c.desc}</p>
             </div>
           ))}
         </div>
@@ -525,9 +525,9 @@ export default function LandingPage() {
               <span className="h-2.5 w-2.5 rounded-full bg-white/15" />
               <span className="h-2.5 w-2.5 rounded-full bg-white/15" />
               <span className="h-2.5 w-2.5 rounded-full bg-white/15" />
-              <span className="ml-3 font-mono text-[11px] text-white/35">Sample · Dallas Dental Clinic — 42/100</span>
+              <span className="ml-3 font-mono text-2xs text-white/35">Sample · Dallas Dental Clinic — 42/100</span>
             </div>
-            <pre className="max-h-[360px] overflow-auto whitespace-pre-wrap px-5 py-5 text-left font-mono text-[12.5px] leading-relaxed text-white/70 select-all">
+            <pre className="max-h-[360px] overflow-auto whitespace-pre-wrap px-5 py-5 text-left font-mono text-sm leading-relaxed text-white/70 select-all">
 {pitchTab === 'email' &&
 `Subject: A quick note about your clinic's website
 
@@ -577,7 +577,7 @@ Status: HIGH OPPORTUNITY — 42/100
   • Review engagement .... Weak
   • Google Business ....... Incomplete signals`}
             </pre>
-            <div className="flex items-center gap-2 border-t border-white/[0.07] px-5 py-3 font-mono text-[11px] text-white/35">
+            <div className="flex items-center gap-2 border-t border-white/[0.07] px-5 py-3 font-mono text-2xs text-white/35">
               <ShieldCheck className="h-3.5 w-3.5 text-[#2DD4A7]" />
               Sample output — always review and edit before sending.
             </div>
@@ -597,7 +597,7 @@ Status: HIGH OPPORTUNITY — 42/100
             <div key={a.tag} className="rounded-2xl border border-white/[0.08] bg-white/[0.015] p-6 transition-colors hover:border-white/15">
               <a.icon className="h-5 w-5 text-[#2DD4A7]" />
               <h4 className="mt-4 text-sm font-semibold text-white">{a.tag}</h4>
-              <p className="mt-2 text-[13px] leading-relaxed text-white/50">{a.line}</p>
+              <p className="mt-2 text-sm leading-relaxed text-white/50">{a.line}</p>
             </div>
           ))}
         </div>
@@ -628,15 +628,15 @@ Status: HIGH OPPORTUNITY — 42/100
         <div className="overflow-hidden rounded-3xl border border-white/[0.08] bg-gradient-to-b from-[#0F1311] to-[#0A0B0C] p-8 sm:p-12">
           <div className="grid items-start gap-12 lg:grid-cols-2">
             <div>
-              <span className="font-mono text-[11px] uppercase tracking-[0.22em] text-[#2DD4A7]">Powered by AI</span>
+              <span className="type-overline text-primary">Powered by AI</span>
               <h2 className="mt-3 text-3xl font-semibold tracking-[-0.02em] text-white sm:text-4xl">
                 Intelligence that turns public data into pipeline
               </h2>
-              <p className="mt-4 text-[15px] leading-relaxed text-white/50">
+              <p className="mt-4 text-base leading-relaxed text-white/50">
                 LocalRadar uses AI to analyze markets and accelerate research—not to replace your judgment.
                 You stay in control of outreach, pricing, and client relationships.
               </p>
-              <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-[#2DD4A7]/25 bg-[#2DD4A7]/10 px-3 py-1.5 font-mono text-[11px] text-[#2DD4A7]">
+              <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-[#2DD4A7]/25 bg-[#2DD4A7]/10 px-3 py-1.5 font-mono text-2xs text-[#2DD4A7]">
                 <Brain className="h-3.5 w-3.5" />
                 Configurable generation · Human review recommended
               </div>
@@ -668,7 +668,7 @@ Status: HIGH OPPORTUNITY — 42/100
             <div key={s.title} className="rounded-2xl border border-white/[0.08] bg-[#0B0C0D] p-6">
               <s.icon className="h-5 w-5 text-[#2DD4A7]" />
               <h3 className="mt-4 text-sm font-semibold text-white">{s.title}</h3>
-              <p className="mt-2 text-[13px] leading-relaxed text-white/50">{s.desc}</p>
+              <p className="mt-2 text-sm leading-relaxed text-white/50">{s.desc}</p>
             </div>
           ))}
         </div>
@@ -696,7 +696,7 @@ Status: HIGH OPPORTUNITY — 42/100
           </button>
           <span className={`flex items-center gap-2 text-sm ${billingPeriod === 'yearly' ? 'text-white' : 'text-white/40'}`}>
             Yearly
-            <span className="rounded-full border border-[#2DD4A7]/25 bg-[#2DD4A7]/10 px-2 py-0.5 font-mono text-[10px] uppercase text-[#2DD4A7]">Save 20%</span>
+            <span className="rounded-full border border-[#2DD4A7]/25 bg-[#2DD4A7]/10 px-2 py-0.5 font-mono text-2xs uppercase text-[#2DD4A7]">Save 20%</span>
           </span>
         </div>
 
@@ -709,7 +709,7 @@ Status: HIGH OPPORTUNITY — 42/100
               }`}
             >
               {tier.popular && (
-                <span className="absolute -top-2.5 left-6 rounded-full bg-[#2DD4A7] px-2.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wide text-[#04130E]">
+                <span className="absolute -top-2.5 left-6 rounded-full bg-[#2DD4A7] px-2.5 py-0.5 font-mono text-2xs font-semibold uppercase tracking-wide text-[#04130E]">
                   Most popular
                 </span>
               )}
@@ -721,7 +721,7 @@ Status: HIGH OPPORTUNITY — 42/100
                 </span>
                 {tier.monthlyPrice !== 'Custom' && <span className="text-xs text-white/40">/mo</span>}
               </div>
-              <ul className="mt-5 flex-1 space-y-3 text-[13px] text-white/55">
+              <ul className="mt-5 flex-1 space-y-3 text-sm text-white/55">
                 {tier.features.map((f) => (
                   <li key={f} className="flex items-start gap-2">
                     <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#2DD4A7]" />
@@ -750,7 +750,7 @@ Status: HIGH OPPORTUNITY — 42/100
             <div key={idx}>
               <button
                 onClick={() => setActiveFaq(activeFaq === idx ? null : idx)}
-                className="flex w-full items-center justify-between gap-4 py-5 text-left text-[15px] font-medium text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2DD4A7] rounded"
+                className="flex w-full items-center justify-between gap-4 py-5 text-left text-base font-medium text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2DD4A7] rounded"
                 aria-expanded={activeFaq === idx}
                 aria-controls={`faq-panel-${idx}`}
                 id={`faq-button-${idx}`}
@@ -783,7 +783,7 @@ Status: HIGH OPPORTUNITY — 42/100
         <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-[#0F1311] to-[#0A0B0C] px-6 py-16 text-center sm:px-12">
           <div className="pointer-events-none absolute -top-24 left-1/2 h-64 w-[80%] -translate-x-1/2 rounded-full bg-[radial-gradient(ellipse_at_center,rgba(45,212,167,0.18),transparent_70%)] blur-2xl" />
           <h2 className="relative mx-auto max-w-2xl text-3xl font-semibold tracking-[-0.02em] sm:text-5xl">
-            Your next client is already <span className="font-serif font-normal italic text-[#2DD4A7]">on the map.</span>
+            Your next client is already <span className="font-normal italic text-[#2DD4A7]">on the map.</span>
           </h2>
           <p className="relative mx-auto mt-4 max-w-md text-sm text-white/50 sm:text-base">
             Find local businesses with real digital gaps—score them, personalize outreach, and grow with a product built for operators.
@@ -824,15 +824,9 @@ Status: HIGH OPPORTUNITY — 42/100
 function SectionHead({ eyebrow, title, sub }: { eyebrow: string; title: string; sub?: string }) {
   return (
     <div className="mx-auto max-w-2xl text-center">
-      <span className="font-mono text-[11px] font-medium uppercase tracking-[0.14em] text-[#2DD4A7]">{eyebrow}</span>
-      <h2 className="section-title mt-3 text-3xl font-semibold tracking-[-0.025em] text-[#F4F4F5] sm:text-4xl">
-        {title}
-      </h2>
-      {sub && (
-        <p className="section-sub mx-auto mt-3 max-w-xl text-center text-[15px] leading-relaxed text-[#A1A1AA] sm:text-lg">
-          {sub}
-        </p>
-      )}
+      <span className="type-overline text-primary">{eyebrow}</span>
+      <h2 className="section-title type-h1 mt-3 sm:text-4xl">{title}</h2>
+      {sub && <p className="section-sub type-body-lg mx-auto mt-3 text-center">{sub}</p>}
     </div>
   );
 }
@@ -840,17 +834,19 @@ function SectionHead({ eyebrow, title, sub }: { eyebrow: string; title: string; 
 function Stat({ value, label, accent }: { value: string; label: string; accent?: boolean }) {
   return (
     <div>
-      <div className={`text-xl font-semibold sm:text-2xl ${accent ? 'text-[#2DD4A7]' : 'text-white'}`}>{value}</div>
-      <div className="mt-1 text-[11px] uppercase tracking-wide text-white/40">{label}</div>
+      <div className={`type-metric text-xl sm:text-2xl ${accent ? 'text-primary' : 'text-foreground'}`}>{value}</div>
+      <div className="type-overline mt-1">{label}</div>
     </div>
   );
 }
 
 function Row({ label, value, warn, bad }: { label: string; value: string; warn?: boolean; bad?: boolean }) {
   return (
-    <div className="flex items-center justify-between font-mono">
-      <span className="text-white/40">{label}</span>
-      <span className={`font-semibold ${bad ? 'text-[#F87171]' : warn ? 'text-[#FBBF24]' : 'text-white/70'}`}>{value}</span>
+    <div className="type-mono flex items-center justify-between text-sm">
+      <span className="text-secondary-text">{label}</span>
+      <span className={`font-semibold tabular-nums ${bad ? 'text-danger-fg' : warn ? 'text-warning-fg' : 'text-foreground'}`}>
+        {value}
+      </span>
     </div>
   );
 }

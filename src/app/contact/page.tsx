@@ -17,11 +17,11 @@ export default function ContactPage() {
   return (
     <MarketingShell>
       <div className="relative z-10 mx-auto max-w-5xl px-5 py-16 sm:px-8 sm:py-24">
-        <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-[#2DD4A7]">Contact</p>
-        <h1 className="mt-3 max-w-2xl text-4xl font-semibold tracking-[-0.02em] text-white sm:text-5xl">
+        <p className="type-overline text-primary">Contact</p>
+        <h1 className="type-display-sm mt-3 max-w-2xl sm:text-5xl">
           Talk to a real team
         </h1>
-        <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/55">
+        <p className="type-body-lg mt-6 max-w-xl">
           Support, sales, and general questions—pick a channel or use the form. No fake chatbots, no invented headcount.
         </p>
 
@@ -124,7 +124,7 @@ function Channel({
       <Icon className="h-5 w-5 text-[#2DD4A7]" aria-hidden />
       <h2 className="mt-3 text-sm font-semibold text-white">{title}</h2>
       <p className="mt-1 text-xs leading-relaxed text-white/45">{body}</p>
-      <p className="mt-3 font-mono text-[11px] text-[#2DD4A7]">{cta}</p>
+      <p className="mt-3 font-mono text-2xs text-[#2DD4A7]">{cta}</p>
     </a>
   );
 }

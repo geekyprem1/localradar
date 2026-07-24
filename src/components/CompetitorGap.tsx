@@ -85,7 +85,7 @@ export default function CompetitorGap({
           <Users className="w-4 h-4 text-[#10B981]" />
           Competitor Gap Analysis
         </h3>
-        <div className="flex gap-4 text-[9px] font-mono">
+        <div className="flex gap-4 text-2xs font-mono">
           <span className="flex items-center gap-1 font-normal text-muted-text">
             <span className="w-2 h-2 rounded bg-white inline-block" /> Target
           </span>
@@ -103,7 +103,7 @@ export default function CompetitorGap({
           
           return (
             <div key={param.label} className="space-y-1 text-xs">
-              <div className="flex justify-between text-foreground text-[10px]">
+              <div className="flex justify-between text-foreground text-2xs">
                 <span className="text-secondary-text font-sans font-normal">{param.label}</span>
                 <div className="flex gap-2">
                   <span className="text-foreground font-semibold">{param.bizText}</span>

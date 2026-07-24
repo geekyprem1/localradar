@@ -241,9 +241,15 @@ export async function POST(request: Request) {
       apiKey = process.env.GOOGLE_PLACES_API_KEY || '';
     }
 
-    // 8. Execute search (live vs sandbox fallback)
+    // 8. Execute search (live vs demo fallback)
+    // Demo data is returned when: sandbox user, no Places key, or key is placeholder.
     if (!apiKey || apiKey === 'mock-key' || user.is_mock) {
       const mockResult = generateLeads(niche, city, country);
+      const demoReason = user.is_mock
+        ? 'sandbox_session'
+        : !apiKey || apiKey === 'mock-key'
+          ? 'missing_places_api_key'
+          : 'demo_fallback';
       
       if (!user.is_mock) {
         await supabase.from('search_logs').insert({
@@ -258,8 +264,10 @@ export async function POST(request: Request) {
 
       return NextResponse.json({
         success: true,
+        data_source: 'demo',
+        demo_reason: demoReason,
         businesses: mockResult.businesses,
-        opportunities: mockResult.opportunities
+        opportunities: mockResult.opportunities,
       });
     }
 
@@ -280,12 +288,15 @@ export async function POST(request: Request) {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.warn(`Google API error status: ${response.status}. Falling back to mock generator.`);
+      console.warn(`Google API error status: ${response.status}. Falling back to demo generator.`);
       const mockResult = generateLeads(niche, city, country);
       return NextResponse.json({
         success: true,
+        data_source: 'demo',
+        demo_reason: 'places_api_error',
+        places_status: response.status,
         businesses: mockResult.businesses,
-        opportunities: mockResult.opportunities
+        opportunities: mockResult.opportunities,
       });
     }
 
@@ -428,6 +439,7 @@ export async function POST(request: Request) {
     const truncated = truncateResultsForFreePlan(businesses, opportunities, user.subscription_tier);
     return NextResponse.json({
       success: true,
+      data_source: 'live',
       businesses: truncated.businesses,
       opportunities: truncated.opportunities,
       totalResults: truncated.totalResults,

@@ -240,8 +240,8 @@ export default function DashboardOverviewPage() {
             {/* Plan tier and billing cycle */}
             <div className="space-y-1.5">
               <div className="flex items-center gap-2.5">
-                <span className="text-[10px] text-secondary-text uppercase tracking-wider font-mono">Current Plan</span>
-                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border font-mono uppercase ${
+                <span className="text-2xs text-secondary-text uppercase tracking-wider font-mono">Current Plan</span>
+                <span className={`text-2xs font-bold px-2 py-0.5 rounded-full border font-mono uppercase ${
                   usageStats.subscription_tier === 'agency_plus'
                     ? 'bg-[#A855F7]/10 text-[#C084FC] border-[#C084FC]/25'
                     : usageStats.subscription_tier === 'agency'
@@ -262,7 +262,7 @@ export default function DashboardOverviewPage() {
                       ? 'Agency Partner' 
                       : 'Enterprise Agency Plus'}
               </h2>
-              <p className="text-[10px] text-muted-text font-mono">
+              <p className="text-2xs text-muted-text font-mono">
                 Next Billing Cycle: {new Date(usageStats.next_billing_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
               </p>
             </div>
@@ -346,7 +346,7 @@ export default function DashboardOverviewPage() {
               style={{ borderTopColor: stat.color }}
             >
               <div className="flex items-center justify-between">
-                <span className="text-secondary-text text-[9px] font-semibold uppercase tracking-wider font-mono truncate max-w-[80%]">{stat.name}</span>
+                <span className="text-secondary-text text-2xs font-semibold uppercase tracking-wider font-mono truncate max-w-[80%]">{stat.name}</span>
                 <div 
                   className="p-2 rounded-lg bg-background border border-border transition-colors"
                   style={{ color: stat.color }}
@@ -371,7 +371,7 @@ export default function DashboardOverviewPage() {
               <h3 className="text-sm font-bold text-foreground">Lead discovery</h3>
               <p className="text-secondary-text text-xs mt-0.5 font-mono">Trends from your scans — not sample data</p>
             </div>
-            <span className="text-[10px] font-bold text-secondary-text bg-background border border-border px-2.5 py-1 rounded-full font-mono uppercase">
+            <span className="text-2xs font-bold text-secondary-text bg-background border border-border px-2.5 py-1 rounded-full font-mono uppercase">
               Workspace
             </span>
           </div>
@@ -388,15 +388,15 @@ export default function DashboardOverviewPage() {
             <div className="space-y-4">
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 <div className="rounded-xl border border-border bg-background p-4">
-                  <p className="text-[10px] font-mono uppercase text-secondary-text">Recent leads</p>
+                  <p className="text-2xs font-mono uppercase text-secondary-text">Recent leads</p>
                   <p className="mt-1 text-2xl font-semibold text-foreground">{recentLeads.length}</p>
                 </div>
                 <div className="rounded-xl border border-border bg-background p-4">
-                  <p className="text-[10px] font-mono uppercase text-secondary-text">High opportunity</p>
+                  <p className="text-2xs font-mono uppercase text-secondary-text">High opportunity</p>
                   <p className="mt-1 text-2xl font-semibold text-primary">{liveStats?.highOppClients ?? 0}</p>
                 </div>
                 <div className="rounded-xl border border-border bg-background p-4">
-                  <p className="text-[10px] font-mono uppercase text-secondary-text">Avg close prob.</p>
+                  <p className="text-2xs font-mono uppercase text-secondary-text">Avg close prob.</p>
                   <p className="mt-1 text-2xl font-semibold text-foreground">{liveStats?.avgClosingProb ?? 0}%</p>
                 </div>
               </div>
@@ -429,11 +429,11 @@ export default function DashboardOverviewPage() {
                   <div key={lead.name} className="flex items-center justify-between border-b border-border pb-3 last:border-0 last:pb-0">
                     <div className="max-w-[55%]">
                       <p className="text-xs font-bold text-foreground truncate">{lead.name}</p>
-                      <p className="text-[10px] text-secondary-text mt-0.5 font-mono">{lead.city} • {lead.date}</p>
+                      <p className="text-2xs text-secondary-text mt-0.5 font-mono">{lead.city} • {lead.date}</p>
                     </div>
                     <div className="text-right space-y-1">
                       <div className="flex items-center gap-1.5 justify-end">
-                        <span className={`inline-block text-[9px] font-bold px-2 py-0.5 rounded border font-mono ${
+                        <span className={`inline-block text-2xs font-bold px-2 py-0.5 rounded border font-mono ${
                           lead.opportunity === 'High' 
                             ? 'bg-primary/10 text-primary border-primary/25' 
                             : lead.opportunity === 'Medium'
@@ -443,7 +443,7 @@ export default function DashboardOverviewPage() {
                           {lead.score}pts
                         </span>
                       </div>
-                      <p className="text-[9px] text-primary font-mono font-bold">{lead.dealValue}</p>
+                      <p className="text-2xs text-primary font-mono font-bold">{lead.dealValue}</p>
                     </div>
                   </div>
                 ))}

@@ -60,7 +60,7 @@ export default function SalesStrategy({
         {/* Pitch Angles Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 font-mono">
           <div className="p-2.5 bg-background border border-border rounded-lg">
-            <span className="text-muted-text block text-[8px] uppercase tracking-widest mb-1 font-normal">Pitch First</span>
+            <span className="text-muted-text block text-2xs uppercase tracking-widest mb-1 font-normal">Pitch First</span>
             <span className="text-foreground font-semibold flex items-center gap-1">
               <Target className="w-3.5 h-3.5 text-secondary-text" />
               {strategy.pitchFirst}
@@ -68,7 +68,7 @@ export default function SalesStrategy({
           </div>
 
           <div className="p-2.5 bg-background border border-border rounded-lg">
-            <span className="text-muted-text block text-[8px] uppercase tracking-widest mb-1 font-normal">Do Not Lead With</span>
+            <span className="text-muted-text block text-2xs uppercase tracking-widest mb-1 font-normal">Do Not Lead With</span>
             <span className="text-secondary-text font-semibold flex items-center gap-1">
               <MessageSquareCode className="w-3.5 h-3.5 text-muted-text" />
               {strategy.doNotLeadWith}
@@ -76,7 +76,7 @@ export default function SalesStrategy({
           </div>
 
           <div className="p-2.5 bg-background border border-border rounded-lg">
-            <span className="text-muted-text block text-[8px] uppercase tracking-widest mb-1 font-normal">Outreach Angle</span>
+            <span className="text-muted-text block text-2xs uppercase tracking-widest mb-1 font-normal">Outreach Angle</span>
             <span className="text-foreground font-semibold flex items-center gap-1">
               <Send className="w-3.5 h-3.5 text-secondary-text" />
               {strategy.angle}
@@ -86,7 +86,7 @@ export default function SalesStrategy({
 
         {/* Strategy Rationale */}
         <div className="p-3 bg-background border border-border rounded-lg space-y-1">
-          <span className="text-[9px] font-normal text-secondary-text uppercase tracking-widest font-mono block">AI Strategy Rationale</span>
+          <span className="text-2xs font-normal text-secondary-text uppercase tracking-widest font-mono block">AI Strategy Rationale</span>
           <p className="text-secondary-text leading-relaxed font-sans mt-0.5 font-normal">
             {strategy.rationale}
           </p>

@@ -56,7 +56,7 @@ export default function VideoModal({ open, onClose, title, videoSrc, description
             <h2 id="video-modal-title" className="text-sm font-semibold text-white">
               {title}
             </h2>
-            {description && <p className="mt-0.5 text-[11px] text-white/40">{description}</p>}
+            {description && <p className="mt-0.5 text-2xs text-white/40">{description}</p>}
           </div>
           <button
             type="button"

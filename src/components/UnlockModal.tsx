@@ -204,7 +204,7 @@ export default function UnlockModal({ isOpen, onClose, type, onUpgradeSuccess }:
                   </span>
                   <span className="block text-lg font-bold text-foreground">{config.price}</span>
                 </div>
-                <span className="rounded-full border border-border bg-background px-2.5 py-1 font-mono text-[10px] text-secondary-text">
+                <span className="rounded-full border border-border bg-background px-2.5 py-1 font-mono text-2xs text-secondary-text">
                   Cancel Anytime
                 </span>
               </div>

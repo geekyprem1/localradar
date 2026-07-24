@@ -102,9 +102,45 @@ html.light {
   --color-secondary-bg: var(--secondary-bg);
   --color-border: var(--border);
   --color-card-hover: var(--card-hover);
-  --font-sans: var(--font-ui);
-  --font-serif: var(--font-ui);
-  --font-mono: var(--font-data);
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-ibm-plex-mono), ui-monospace, monospace;
+  --font-body: var(--font-inter), var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+
+  /* Canonical type scale → Tailwind text-* utilities */
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 1.3;
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1.35;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.45;
+  --text-base: 1rem;
+  --text-base--line-height: 1.6;
+  --text-lg: 1.125rem;
+  --text-lg--line-height: 1.55;
+  --text-xl: 1.25rem;
+  --text-xl--line-height: 1.4;
+  --text-2xl: 1.5rem;
+  --text-2xl--line-height: 1.25;
+  --text-3xl: 1.875rem;
+  --text-3xl--line-height: 1.2;
+  --text-4xl: 2.25rem;
+  --text-4xl--line-height: 1.15;
+  --text-5xl: 3rem;
+  --text-5xl--line-height: 1.1;
+  --text-6xl: 3.75rem;
+  --text-6xl--line-height: 1.05;
+  --text-7xl: 4.5rem;
+  --text-7xl--line-height: 1.05;
+
+  --tracking-tighter: -0.035em;
+  --tracking-tight: -0.025em;
+  --tracking-snug: -0.011em;
+  --tracking-wide: 0.06em;
+  --tracking-wider: 0.1em;
+  --tracking-widest: 0.12em;
+
   --radius-custom: 24px;
 }
 
@@ -211,634 +247,624 @@ html.light .grid-faint {
   background: var(--primary);
 }
 
-/* ===== TYPOGRAPHY SYSTEM (inlined — Tailwind was dropping @import) ===== */
-/*
-  LocalRadar Typography System
-  Fonts: Geist (UI) · Inter (secondary/body long-form) · IBM Plex Mono (data)
-  Inspired by Stripe, Linear, Vercel — no layout redesign, type only.
-*/
+/* ===== TYPOGRAPHY DESIGN SYSTEM ===== */
+/* ═══════════════════════════════════════════════════════════════════════════
+   LocalRadar Typography Design System
+   Fonts: Geist (UI) · Inter (body) · IBM Plex Mono (data/labels)
+   Single source of truth — all pages must use these tokens only.
+   ═══════════════════════════════════════════════════════════════════════════ */
 
-/* ─── Font families (wired from next/font CSS variables) ─── */
 :root {
+  /* Families (wired by next/font on <html>) */
   --font-ui: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-body: var(--font-inter), var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   --font-data: var(--font-ibm-plex-mono), ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
-
-  /* Backward-compatible aliases used across the app */
   --font-sans: var(--font-ui);
-  --font-serif: var(--font-ui); /* display previously used Instrument Serif — map to Geist */
+  --font-serif: var(--font-ui);
   --font-mono: var(--font-data);
-  --font-secondary: var(--font-body);
 
-  /* ─── Semantic text colors (soft, never pure #000 / #fff) ─── */
-  --text-primary: #F4F4F5;
-  --text-secondary: #A1A1AA;
-  --text-muted: #71717A;
-  --text-disabled: #52525B;
-  --text-inverse: #18181B;
-  --text-success: #34D399;
-  --text-warning: #FBBF24;
-  --text-danger: #F87171;
-  --text-link: #2DD4A7;
-  --text-on-accent: #042F2E;
+  /* Semantic text colors */
+  --text-primary: #f4f4f5;
+  --text-secondary: #a1a1aa;
+  --text-muted: #71717a;
+  --text-disabled: #52525b;
+  --text-inverse: #18181b;
+  --text-success: #34d399;
+  --text-warning: #fbbf24;
+  --text-danger: #f87171;
+  --text-link: #2dd4a7;
+  --text-on-accent: #042f2e;
 
-  /* ─── Type scale (rem @ 16px root) ─── */
-  --type-display-xl: clamp(2.75rem, 5vw + 1rem, 4.5rem);   /* 44–72 */
-  --type-display-lg: clamp(2.25rem, 3.5vw + 1rem, 3.75rem); /* 36–60 */
-  --type-display-md: clamp(1.875rem, 2.5vw + 0.75rem, 3rem); /* 30–48 */
-  --type-display-sm: clamp(1.5rem, 1.5vw + 0.75rem, 2.25rem); /* 24–36 */
-
-  --type-h1: clamp(1.75rem, 1.2vw + 1rem, 2.25rem);  /* 28–36 */
-  --type-h2: clamp(1.5rem, 0.8vw + 1rem, 1.875rem);   /* 24–30 */
-  --type-h3: 1.25rem;   /* 20 */
-  --type-h4: 1.125rem;  /* 18 */
-  --type-h5: 1rem;      /* 16 */
-  --type-h6: 0.875rem;  /* 14 */
-
-  --type-body-xl: 1.25rem;   /* 20 */
-  --type-body-lg: 1.125rem;  /* 18 */
-  --type-body: 1rem;         /* 16 */
-  --type-body-sm: 0.875rem;  /* 14 */
-  --type-caption: 0.75rem;   /* 12 */
-  --type-overline: 0.6875rem;/* 11 */
-  --type-button: 0.875rem;   /* 14 */
-  --type-input: 0.875rem;    /* 14 */
-  --type-label: 0.75rem;     /* 12 */
-  --type-table: 0.8125rem;   /* 13 */
-  --type-metric: clamp(1.5rem, 1vw + 1rem, 2rem); /* 24–32 */
-  --type-badge: 0.6875rem;   /* 11 */
-  --type-mono: 0.8125rem;    /* 13 */
+  /* Type scale (canonical) */
+  --type-2xs: 0.6875rem; /* 11px — overline / badge minimum */
+  --type-xs: 0.75rem; /* 12px — caption / label */
+  --type-sm: 0.875rem; /* 14px — body-sm / button / input */
+  --type-md: 1rem; /* 16px — body */
+  --type-lg: 1.125rem; /* 18px — body-lg */
+  --type-xl: 1.25rem; /* 20px — h3 / body-xl */
+  --type-2xl: 1.5rem; /* 24px — h2 / metric */
+  --type-3xl: 1.875rem; /* 30px — h1 */
+  --type-4xl: 2.25rem; /* 36px — display-sm */
+  --type-5xl: 3rem; /* 48px — display-md */
+  --type-6xl: 3.75rem; /* 60px — display-lg */
+  --type-7xl: 4.5rem; /* 72px — display-xl */
 
   /* Line heights */
-  --leading-display: 1.05;
-  --leading-heading: 1.2;
-  --leading-body: 1.6;
-  --leading-body-tight: 1.45;
-  --leading-ui: 1.35;
-  --leading-label: 1.3;
-  --leading-none: 1;
+  --lh-display: 1.05;
+  --lh-heading: 1.2;
+  --lh-ui: 1.4;
+  --lh-body: 1.6;
+  --lh-tight: 1.3;
 
   /* Letter spacing */
-  --tracking-display: -0.035em;
-  --tracking-heading: -0.025em;
-  --tracking-body: -0.011em;
-  --tracking-label: 0.02em;
-  --tracking-overline: 0.14em;
-  --tracking-button: -0.01em;
-  --tracking-mono: -0.01em;
-  --tracking-metric: -0.03em;
+  --tr-display: -0.035em;
+  --tr-heading: -0.025em;
+  --tr-body: -0.011em;
+  --tr-ui: 0;
+  --tr-label: 0.04em;
+  --tr-overline: 0.12em;
+  --tr-button: -0.01em;
 
-  /* Font weights */
-  --weight-regular: 400;
-  --weight-medium: 500;
-  --weight-semibold: 600;
-  --weight-bold: 700;
+  /* Weights */
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
 
   /* Measure */
-  --prose-width: 40rem; /* ~640px readable line length */
-  --prose-width-wide: 48rem;
+  --prose: 40rem;
+  --prose-wide: 48rem;
 }
 
 html.light {
-  --text-primary: #09090B;
-  --text-secondary: #3F3F46;
-  --text-muted: #52525B;
-  --text-disabled: #71717A;
-  --text-inverse: #FAFAF9;
+  --text-primary: #09090b;
+  --text-secondary: #3f3f46;
+  --text-muted: #52525b;
+  --text-disabled: #71717a;
+  --text-inverse: #fafafa;
   --text-success: #047857;
-  --text-warning: #B45309;
-  --text-danger: #B91C1C;
-  --text-link: #0F766E;
-  --text-on-accent: #F0FDFA;
-  --foreground: #09090B;
-  --color-foreground: #09090B;
+  --text-warning: #b45309;
+  --text-danger: #b91c1c;
+  --text-link: #0f766e;
+  --text-on-accent: #f0fdfa;
 }
 
-/* Soften pure white/black text utilities toward semantic primary */
-html.dark,
-html:not(.light) {
-  --foreground: #F4F4F5;
-  --color-foreground: #F4F4F5;
-}
-
-/* ─── Base ─── */
+/* ─── HTML base ─── */
 html {
   font-size: 16px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
-  font-feature-settings: "ss01" on, "cv11" on;
+  font-feature-settings: "ss01" on, "cv11" on, "kern" on;
 }
 
 body {
   font-family: var(--font-ui);
-  font-size: var(--type-body);
-  font-weight: var(--weight-regular);
-  line-height: var(--leading-body);
-  letter-spacing: var(--tracking-body);
+  font-size: var(--type-sm);
+  font-weight: var(--fw-regular);
+  line-height: var(--lh-body);
+  letter-spacing: var(--tr-body);
   color: var(--text-primary);
   font-feature-settings: "ss01" on, "cv11" on, "kern" on;
 }
 
-/* Long-form marketing paragraphs prefer Inter for effortless reading */
-.prose-body,
-.font-secondary {
+@media (min-width: 768px) {
+  body {
+    font-size: var(--type-md);
+  }
+}
+
+/* ─── Element defaults (consistency without touching every file) ─── */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-ui);
+  font-weight: var(--fw-semibold);
+  color: var(--text-primary);
+  text-wrap: balance;
+}
+
+h1 {
+  font-size: var(--type-3xl);
+  line-height: var(--lh-heading);
+  letter-spacing: var(--tr-heading);
+}
+h2 {
+  font-size: var(--type-2xl);
+  line-height: var(--lh-heading);
+  letter-spacing: var(--tr-heading);
+}
+h3 {
+  font-size: var(--type-xl);
+  line-height: var(--lh-heading);
+  letter-spacing: var(--tr-heading);
+}
+h4 {
+  font-size: var(--type-lg);
+  line-height: var(--lh-ui);
+  letter-spacing: var(--tr-body);
+}
+h5 {
+  font-size: var(--type-md);
+  line-height: var(--lh-ui);
+  letter-spacing: var(--tr-body);
+}
+h6 {
+  font-size: var(--type-sm);
+  line-height: var(--lh-ui);
+  letter-spacing: var(--tr-body);
+}
+
+p {
   font-family: var(--font-body);
-}
-
-/* Tabular figures for metrics/pricing */
-.tabular-nums,
-.font-tabular {
-  font-variant-numeric: tabular-nums lining-nums;
-}
-
-/* ═══════════════════════════════════════
-   TYPE ROLES
-   ═══════════════════════════════════════ */
-
-.text-display-xl {
-  font-family: var(--font-ui);
-  font-size: var(--type-display-xl);
-  font-weight: var(--weight-semibold);
-  line-height: var(--leading-display);
-  letter-spacing: var(--tracking-display);
-  color: var(--text-primary);
-}
-
-.text-display-lg {
-  font-family: var(--font-ui);
-  font-size: var(--type-display-lg);
-  font-weight: var(--weight-semibold);
-  line-height: var(--leading-display);
-  letter-spacing: var(--tracking-display);
-  color: var(--text-primary);
-}
-
-.text-display-md {
-  font-family: var(--font-ui);
-  font-size: var(--type-display-md);
-  font-weight: var(--weight-semibold);
-  line-height: 1.1;
-  letter-spacing: -0.03em;
-  color: var(--text-primary);
-}
-
-.text-display-sm {
-  font-family: var(--font-ui);
-  font-size: var(--type-display-sm);
-  font-weight: var(--weight-semibold);
-  line-height: 1.15;
-  letter-spacing: -0.025em;
-  color: var(--text-primary);
-}
-
-.text-h1, h1.type-h1 {
-  font-family: var(--font-ui);
-  font-size: var(--type-h1);
-  font-weight: var(--weight-semibold);
-  line-height: var(--leading-heading);
-  letter-spacing: var(--tracking-heading);
-  color: var(--text-primary);
-}
-
-.text-h2, h2.type-h2 {
-  font-family: var(--font-ui);
-  font-size: var(--type-h2);
-  font-weight: var(--weight-semibold);
-  line-height: var(--leading-heading);
-  letter-spacing: var(--tracking-heading);
-  color: var(--text-primary);
-}
-
-.text-h3, h3.type-h3 {
-  font-family: var(--font-ui);
-  font-size: var(--type-h3);
-  font-weight: var(--weight-semibold);
-  line-height: 1.3;
-  letter-spacing: -0.02em;
-  color: var(--text-primary);
-}
-
-.text-h4, h4.type-h4 {
-  font-family: var(--font-ui);
-  font-size: var(--type-h4);
-  font-weight: var(--weight-semibold);
-  line-height: 1.35;
-  letter-spacing: -0.015em;
-  color: var(--text-primary);
-}
-
-.text-h5, h5.type-h5 {
-  font-family: var(--font-ui);
-  font-size: var(--type-h5);
-  font-weight: var(--weight-semibold);
-  line-height: 1.4;
-  letter-spacing: -0.01em;
-  color: var(--text-primary);
-}
-
-.text-h6, h6.type-h6 {
-  font-family: var(--font-ui);
-  font-size: var(--type-h6);
-  font-weight: var(--weight-semibold);
-  line-height: 1.4;
-  letter-spacing: 0;
-  color: var(--text-primary);
-}
-
-.text-body-xl {
-  font-family: var(--font-body);
-  font-size: var(--type-body-xl);
-  font-weight: var(--weight-regular);
-  line-height: var(--leading-body);
-  letter-spacing: var(--tracking-body);
+  font-size: inherit;
+  line-height: var(--lh-body);
+  letter-spacing: var(--tr-body);
   color: var(--text-secondary);
 }
 
-.text-body-lg {
-  font-family: var(--font-body);
-  font-size: var(--type-body-lg);
-  font-weight: var(--weight-regular);
-  line-height: var(--leading-body);
-  letter-spacing: var(--tracking-body);
+label {
+  font-family: var(--font-ui);
+  font-size: var(--type-xs);
+  font-weight: var(--fw-medium);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--tr-label);
   color: var(--text-secondary);
 }
 
-.text-body {
-  font-family: var(--font-body);
-  font-size: var(--type-body);
-  font-weight: var(--weight-regular);
-  line-height: var(--leading-body);
-  letter-spacing: var(--tracking-body);
-  color: var(--text-secondary);
-}
-
-.text-body-sm {
-  font-family: var(--font-body);
-  font-size: var(--type-body-sm);
-  font-weight: var(--weight-regular);
-  line-height: var(--leading-body-tight);
-  letter-spacing: var(--tracking-body);
-  color: var(--text-secondary);
-}
-
-.text-caption {
-  font-family: var(--font-ui);
-  font-size: var(--type-caption);
-  font-weight: var(--weight-regular);
-  line-height: var(--leading-ui);
-  letter-spacing: 0;
-  color: var(--text-muted);
-}
-
-.text-overline {
-  font-family: var(--font-data);
-  font-size: var(--type-overline);
-  font-weight: var(--weight-medium);
-  line-height: var(--leading-label);
-  letter-spacing: var(--tracking-overline);
-  text-transform: uppercase;
-  color: var(--text-muted);
-}
-
-.text-button {
-  font-family: var(--font-ui);
-  font-size: var(--type-button);
-  font-weight: var(--weight-semibold);
-  line-height: 1;
-  letter-spacing: var(--tracking-button);
-}
-
-.text-input {
-  font-family: var(--font-ui);
-  font-size: var(--type-input);
-  font-weight: var(--weight-regular);
-  line-height: var(--leading-ui);
-  letter-spacing: var(--tracking-body);
-}
-
-.text-label {
-  font-family: var(--font-ui);
-  font-size: var(--type-label);
-  font-weight: var(--weight-medium);
-  line-height: var(--leading-label);
-  letter-spacing: var(--tracking-label);
-  color: var(--text-secondary);
-}
-
-.text-table-header {
-  font-family: var(--font-ui);
-  font-size: var(--type-table);
-  font-weight: var(--weight-medium);
-  line-height: var(--leading-ui);
-  letter-spacing: 0.01em;
-  color: var(--text-muted);
-}
-
-.text-table-cell {
-  font-family: var(--font-ui);
-  font-size: var(--type-table);
-  font-weight: var(--weight-regular);
-  line-height: var(--leading-ui);
-  letter-spacing: var(--tracking-body);
-  color: var(--text-primary);
-}
-
-.text-metric {
-  font-family: var(--font-ui);
-  font-size: var(--type-metric);
-  font-weight: var(--weight-semibold);
-  line-height: 1.1;
-  letter-spacing: var(--tracking-metric);
-  font-variant-numeric: tabular-nums lining-nums;
-  color: var(--text-primary);
-}
-
-.text-badge {
-  font-family: var(--font-ui);
-  font-size: var(--type-badge);
-  font-weight: var(--weight-medium);
-  line-height: 1.2;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.text-mono {
-  font-family: var(--font-data);
-  font-size: var(--type-mono);
-  font-weight: var(--weight-regular);
-  line-height: var(--leading-ui);
-  letter-spacing: var(--tracking-mono);
-  font-variant-numeric: tabular-nums;
-}
-
-/* Semantic color utilities */
-.text-primary-fg { color: var(--text-primary); }
-.text-secondary-fg { color: var(--text-secondary); }
-.text-muted-fg { color: var(--text-muted); }
-.text-disabled-fg { color: var(--text-disabled); }
-.text-inverse-fg { color: var(--text-inverse); }
-.text-success-fg { color: var(--text-success); }
-.text-warning-fg { color: var(--text-warning); }
-.text-danger-fg { color: var(--text-danger); }
-.text-link-fg { color: var(--text-link); }
-
-/* Links */
-a.text-link,
-.link {
-  color: var(--text-link);
-  text-underline-offset: 3px;
-}
-a.text-link:hover,
-.link:hover {
-  text-decoration: underline;
-}
-
-/* ─── Component defaults (typography only) ─── */
-
-/* Buttons: Linear/Stripe feel */
 button,
-[role="button"],
-.btn {
+[type="button"],
+[type="submit"],
+[role="button"] {
   font-family: var(--font-ui);
-  font-weight: var(--weight-semibold);
-  letter-spacing: var(--tracking-button);
+  font-size: var(--type-sm);
+  font-weight: var(--fw-semibold);
+  line-height: 1.25;
+  letter-spacing: var(--tr-button);
 }
 
-/* Forms */
 input,
 textarea,
 select {
   font-family: var(--font-ui);
-  font-size: var(--type-input);
-  font-weight: var(--weight-regular);
-  letter-spacing: var(--tracking-body);
-  line-height: var(--leading-ui);
+  font-size: var(--type-sm);
+  font-weight: var(--fw-regular);
+  line-height: var(--lh-ui);
+  letter-spacing: var(--tr-body);
 }
 
 input::placeholder,
 textarea::placeholder {
   color: var(--text-disabled);
   opacity: 1;
-  font-weight: var(--weight-regular);
+  font-weight: var(--fw-regular);
 }
 
-label {
-  font-family: var(--font-ui);
-  font-size: var(--type-label);
-  font-weight: var(--weight-medium);
-  letter-spacing: var(--tracking-label);
-  color: var(--text-secondary);
-}
-
-/* Tables */
 th {
   font-family: var(--font-ui);
-  font-size: var(--type-table);
-  font-weight: var(--weight-medium);
-  letter-spacing: 0.01em;
-  color: var(--text-muted);
-  text-align: left;
-}
-
-td {
-  font-family: var(--font-ui);
-  font-size: var(--type-table);
-  font-weight: var(--weight-regular);
-  color: var(--text-primary);
-  font-variant-numeric: tabular-nums;
-}
-
-/* Navigation */
-nav a,
-nav button {
-  font-family: var(--font-ui);
-  font-weight: var(--weight-medium);
-  letter-spacing: -0.01em;
-}
-
-/* Code / mono blocks */
-code, kbd, pre, samp {
-  font-family: var(--font-data);
-  font-variant-numeric: tabular-nums;
-}
-
-/* ─── Marketing prose measure ─── */
-.prose-marketing {
-  max-width: var(--prose-width);
-}
-
-.prose-marketing-wide {
-  max-width: var(--prose-width-wide);
-}
-
-/* Hero display — explicit sizes (avoid Tailwind --text-* token collisions) */
-h1.hero-display,
-.hero-display {
-  font-family: var(--font-ui) !important;
-  font-size: 2.5rem !important; /* 40px mobile */
-  font-weight: 600 !important;
-  line-height: 1.08 !important;
-  letter-spacing: -0.035em !important;
-  text-wrap: balance;
-  color: var(--text-primary) !important;
-}
-
-@media (min-width: 640px) {
-  h1.hero-display,
-  .hero-display {
-    font-size: 3.5rem !important; /* 56px */
-    line-height: 1.05 !important;
-  }
-}
-
-@media (min-width: 1024px) {
-  h1.hero-display,
-  .hero-display {
-    font-size: 4.25rem !important; /* 68px — premium SaaS hero */
-    line-height: 1.04 !important;
-    letter-spacing: -0.04em !important;
-  }
-}
-
-@media (min-width: 1440px) {
-  h1.hero-display,
-  .hero-display {
-    font-size: 4.5rem !important; /* 72px */
-  }
-}
-
-/* Accent word inside hero (e.g. Smartest) */
-.hero-display .hero-accent,
-h1.hero-display em,
-h1.hero-display .hero-accent {
-  font-style: italic !important;
-  font-weight: 500 !important;
-  color: #2DD4A7 !important;
-  letter-spacing: -0.03em;
-}
-
-/* Section title helper */
-h2.section-title,
-.section-title {
-  font-family: var(--font-ui) !important;
-  font-size: 1.875rem !important; /* 30px */
-  font-weight: 600 !important;
-  line-height: 1.2 !important;
-  letter-spacing: -0.025em !important;
-  text-wrap: balance;
-  color: var(--text-primary) !important;
-}
-
-@media (min-width: 640px) {
-  h2.section-title,
-  .section-title {
-    font-size: 2.25rem !important; /* 36px */
-  }
-}
-
-.section-sub {
-  font-family: var(--font-body) !important;
-  font-size: 1.0625rem !important; /* 17px */
-  font-weight: 400 !important;
-  line-height: 1.65 !important;
-  letter-spacing: -0.011em !important;
-  color: var(--text-secondary) !important;
-  max-width: var(--prose-width);
-}
-
-@media (min-width: 640px) {
-  .section-sub {
-    font-size: 1.125rem !important; /* 18px */
-  }
-}
-
-/* Dashboard metric cards */
-.metric-value {
-  font-family: var(--font-ui);
-  font-size: var(--type-metric);
-  font-weight: var(--weight-semibold);
-  line-height: 1.1;
-  letter-spacing: var(--tracking-metric);
-  font-variant-numeric: tabular-nums lining-nums;
-  color: var(--text-primary);
-}
-
-.metric-label {
-  font-family: var(--font-data);
-  font-size: var(--type-overline);
-  font-weight: var(--weight-medium);
-  letter-spacing: var(--tracking-overline);
+  font-size: var(--type-xs);
+  font-weight: var(--fw-medium);
+  line-height: var(--lh-ui);
+  letter-spacing: var(--tr-label);
   text-transform: uppercase;
   color: var(--text-muted);
 }
 
-/* Soften pure white text utilities sitewide (premium, not harsh) */
-.text-white {
-  color: var(--text-primary) !important;
-}
-
-/* font-serif → display UI font (was Instrument Serif) */
-.font-serif {
-  font-family: var(--font-ui) !important;
-  font-style: normal;
-  letter-spacing: var(--tracking-heading);
-}
-
-.font-serif.italic {
-  font-style: italic;
-  font-weight: var(--weight-medium);
-}
-
-.font-sans {
-  font-family: var(--font-ui) !important;
-}
-
-.font-mono {
-  font-family: var(--font-data) !important;
+td {
+  font-family: var(--font-ui);
+  font-size: var(--type-sm);
+  font-weight: var(--fw-regular);
+  line-height: var(--lh-ui);
+  letter-spacing: var(--tr-body);
+  color: var(--text-primary);
   font-variant-numeric: tabular-nums;
 }
 
-/* ─── Responsive type floor ─── */
-@media (max-width: 374px) {
-  html { font-size: 15px; }
-  h1.hero-display,
-  .hero-display {
-    font-size: 2rem !important; /* 32px small phones */
-  }
+nav a,
+nav button {
+  font-family: var(--font-ui);
+  font-size: var(--type-sm);
+  font-weight: var(--fw-medium);
+  letter-spacing: var(--tr-body);
+  line-height: var(--lh-ui);
 }
 
-/* Prefer reduced motion */
-@media (prefers-reduced-motion: reduce) {
-  .hero-display,
-  .section-title {
-    text-wrap: pretty;
-  }
+code,
+kbd,
+pre,
+samp {
+  font-family: var(--font-data);
+  font-size: 0.92em;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tr-ui);
 }
 
-/* Dashboard page titles */
+/* ─── Role utilities (single API) ─── */
+.type-display-xl {
+  font-family: var(--font-ui);
+  font-size: clamp(2.5rem, 4vw + 1rem, var(--type-7xl));
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-display);
+  letter-spacing: var(--tr-display);
+  color: var(--text-primary);
+  text-wrap: balance;
+}
+.type-display-lg {
+  font-family: var(--font-ui);
+  font-size: clamp(2.25rem, 3vw + 1rem, var(--type-6xl));
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-display);
+  letter-spacing: var(--tr-display);
+  color: var(--text-primary);
+  text-wrap: balance;
+}
+.type-display-md {
+  font-family: var(--font-ui);
+  font-size: clamp(1.875rem, 2vw + 1rem, var(--type-5xl));
+  font-weight: var(--fw-semibold);
+  line-height: 1.1;
+  letter-spacing: var(--tr-display);
+  color: var(--text-primary);
+}
+.type-display-sm {
+  font-family: var(--font-ui);
+  font-size: clamp(1.5rem, 1.5vw + 0.75rem, var(--type-4xl));
+  font-weight: var(--fw-semibold);
+  line-height: 1.15;
+  letter-spacing: var(--tr-heading);
+  color: var(--text-primary);
+}
+
+.type-h1 {
+  font-family: var(--font-ui);
+  font-size: var(--type-3xl);
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-heading);
+  letter-spacing: var(--tr-heading);
+  color: var(--text-primary);
+}
+.type-h2 {
+  font-family: var(--font-ui);
+  font-size: var(--type-2xl);
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-heading);
+  letter-spacing: var(--tr-heading);
+  color: var(--text-primary);
+}
+.type-h3 {
+  font-family: var(--font-ui);
+  font-size: var(--type-xl);
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-heading);
+  letter-spacing: var(--tr-heading);
+  color: var(--text-primary);
+}
+.type-h4 {
+  font-family: var(--font-ui);
+  font-size: var(--type-lg);
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-ui);
+  letter-spacing: var(--tr-body);
+  color: var(--text-primary);
+}
+.type-h5 {
+  font-family: var(--font-ui);
+  font-size: var(--type-md);
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-ui);
+  color: var(--text-primary);
+}
+.type-h6 {
+  font-family: var(--font-ui);
+  font-size: var(--type-sm);
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-ui);
+  color: var(--text-primary);
+}
+
+.type-body-xl {
+  font-family: var(--font-body);
+  font-size: var(--type-xl);
+  font-weight: var(--fw-regular);
+  line-height: var(--lh-body);
+  letter-spacing: var(--tr-body);
+  color: var(--text-secondary);
+}
+.type-body-lg {
+  font-family: var(--font-body);
+  font-size: var(--type-lg);
+  font-weight: var(--fw-regular);
+  line-height: var(--lh-body);
+  letter-spacing: var(--tr-body);
+  color: var(--text-secondary);
+}
+.type-body {
+  font-family: var(--font-body);
+  font-size: var(--type-md);
+  font-weight: var(--fw-regular);
+  line-height: var(--lh-body);
+  letter-spacing: var(--tr-body);
+  color: var(--text-secondary);
+}
+.type-body-sm {
+  font-family: var(--font-body);
+  font-size: var(--type-sm);
+  font-weight: var(--fw-regular);
+  line-height: var(--lh-body);
+  letter-spacing: var(--tr-body);
+  color: var(--text-secondary);
+}
+
+.type-caption {
+  font-family: var(--font-ui);
+  font-size: var(--type-xs);
+  font-weight: var(--fw-regular);
+  line-height: var(--lh-ui);
+  letter-spacing: var(--tr-ui);
+  color: var(--text-muted);
+}
+
+/* Overline / kicker / table headers / form labels (mono optional) */
+.type-overline {
+  font-family: var(--font-data);
+  font-size: var(--type-2xs);
+  font-weight: var(--fw-medium);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--tr-overline);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.type-label {
+  font-family: var(--font-ui);
+  font-size: var(--type-xs);
+  font-weight: var(--fw-medium);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--tr-label);
+  color: var(--text-secondary);
+}
+
+.type-button {
+  font-family: var(--font-ui);
+  font-size: var(--type-sm);
+  font-weight: var(--fw-semibold);
+  line-height: 1.25;
+  letter-spacing: var(--tr-button);
+}
+
+.type-input {
+  font-family: var(--font-ui);
+  font-size: var(--type-sm);
+  font-weight: var(--fw-regular);
+  line-height: var(--lh-ui);
+  letter-spacing: var(--tr-body);
+}
+
+.type-table-header {
+  font-family: var(--font-ui);
+  font-size: var(--type-2xs);
+  font-weight: var(--fw-medium);
+  line-height: var(--lh-ui);
+  letter-spacing: var(--tr-overline);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.type-table-cell {
+  font-family: var(--font-ui);
+  font-size: var(--type-sm);
+  font-weight: var(--fw-regular);
+  line-height: var(--lh-ui);
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.type-metric {
+  font-family: var(--font-ui);
+  font-size: var(--type-2xl);
+  font-weight: var(--fw-semibold);
+  line-height: 1.1;
+  letter-spacing: var(--tr-heading);
+  font-variant-numeric: tabular-nums lining-nums;
+  color: var(--text-primary);
+}
+
+.type-badge {
+  font-family: var(--font-ui);
+  font-size: var(--type-2xs);
+  font-weight: var(--fw-medium);
+  line-height: 1.25;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.type-mono {
+  font-family: var(--font-data);
+  font-size: var(--type-sm);
+  font-weight: var(--fw-regular);
+  line-height: var(--lh-ui);
+  letter-spacing: var(--tr-ui);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Aliases used across the app */
+.hero-display {
+  font-family: var(--font-ui) !important;
+  font-size: clamp(2.5rem, 5vw + 0.5rem, 4.5rem) !important;
+  font-weight: 600 !important;
+  line-height: 1.06 !important;
+  letter-spacing: -0.035em !important;
+  color: var(--text-primary) !important;
+  text-wrap: balance;
+}
+.hero-display .hero-accent {
+  font-style: italic !important;
+  font-weight: 500 !important;
+  color: #2dd4a7 !important;
+}
+html.light .hero-display .hero-accent {
+  color: #0f766e !important;
+}
+
+.section-title {
+  font-family: var(--font-ui) !important;
+  font-size: clamp(1.75rem, 2vw + 0.5rem, 2.25rem) !important;
+  font-weight: 600 !important;
+  line-height: 1.2 !important;
+  letter-spacing: -0.025em !important;
+  color: var(--text-primary) !important;
+  text-wrap: balance;
+}
+.section-sub {
+  font-family: var(--font-body) !important;
+  font-size: var(--type-lg) !important;
+  font-weight: 400 !important;
+  line-height: 1.65 !important;
+  letter-spacing: -0.011em !important;
+  color: var(--text-secondary) !important;
+  max-width: var(--prose);
+}
+.metric-value {
+  font-family: var(--font-ui) !important;
+  font-size: var(--type-2xl) !important;
+  font-weight: 600 !important;
+  line-height: 1.1 !important;
+  letter-spacing: -0.025em !important;
+  font-variant-numeric: tabular-nums lining-nums !important;
+  color: var(--text-primary) !important;
+}
+.metric-label,
+.text-overline {
+  font-family: var(--font-data) !important;
+  font-size: var(--type-2xs) !important;
+  font-weight: 500 !important;
+  line-height: 1.3 !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
+  color: var(--text-muted) !important;
+}
 .dash-title {
   font-family: var(--font-ui) !important;
-  font-size: 1.5rem !important;
+  font-size: var(--type-3xl) !important;
   font-weight: 600 !important;
-  line-height: 1.25 !important;
+  line-height: 1.2 !important;
   letter-spacing: -0.025em !important;
   color: var(--text-primary) !important;
 }
+.prose-marketing {
+  max-width: var(--prose);
+}
+.prose-body {
+  font-family: var(--font-body);
+}
 
-@media (min-width: 768px) {
-  .dash-title {
-    font-size: 1.75rem !important;
+/* Normalize legacy Tailwind font helpers */
+.font-sans {
+  font-family: var(--font-ui) !important;
+}
+.font-serif {
+  font-family: var(--font-ui) !important;
+  font-style: normal;
+  letter-spacing: var(--tr-heading);
+}
+.font-mono {
+  font-family: var(--font-data) !important;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tr-ui);
+}
+
+/* Soft pure-white utility (dark theme only) */
+html.dark .text-white,
+html:not(.light) .text-white {
+  color: var(--text-primary) !important;
+}
+
+/* Tabular numbers helper */
+.tabular-nums,
+.font-tabular {
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+/* Nav links size lock */
+nav a {
+  font-size: var(--type-sm) !important;
+  font-weight: var(--fw-medium) !important;
+}
+
+/* Dialogs / modals body text */
+[role="dialog"] p,
+[role="dialog"] .text-sm {
+  line-height: var(--lh-body);
+}
+
+/* Accessibility: never go below 11px */
+.text-\[7px\],
+.text-\[8px\],
+.text-\[9px\],
+.text-\[10px\] {
+  font-size: var(--type-2xs) !important;
+  line-height: var(--lh-tight) !important;
+}
+.text-\[11px\] {
+  font-size: var(--type-2xs) !important;
+  line-height: var(--lh-tight) !important;
+}
+.text-\[12\.5px\],
+.text-\[13px\] {
+  font-size: var(--type-sm) !important;
+}
+.text-\[15px\] {
+  font-size: var(--type-md) !important;
+  line-height: var(--lh-body) !important;
+}
+
+/* Normalize extreme weights */
+.font-extrabold {
+  font-weight: var(--fw-bold) !important;
+}
+
+/* Tracking normalize for overlines using tracking-widest */
+.uppercase.tracking-widest,
+.uppercase.tracking-wider {
+  letter-spacing: var(--tr-overline) !important;
+  font-size: max(0.6875rem, 1em);
+}
+
+/* Form labels that use mono + uppercase */
+label.font-mono,
+label.uppercase {
+  font-size: var(--type-2xs) !important;
+  font-weight: var(--fw-medium) !important;
+  letter-spacing: var(--tr-overline) !important;
+  line-height: var(--lh-tight) !important;
+}
+
+/* Table headers often use mono uppercase tiny text */
+th.font-mono,
+thead .font-mono {
+  font-size: var(--type-2xs) !important;
+  font-weight: var(--fw-medium) !important;
+  letter-spacing: var(--tr-overline) !important;
+}
+
+@media (max-width: 374px) {
+  html {
+    font-size: 15px;
+  }
+  .hero-display {
+    font-size: 2rem !important;
   }
 }
 
-/* ═══════════════════════════════════════════════════
-   LIGHT THEME — readability overrides (WCAG-oriented)
-   ═══════════════════════════════════════════════════ */
+
+/* LIGHT THEME - readability overrides (WCAG-oriented) */
 
 html.light {
   /* Stronger type weights for small labels on light surfaces */
-  --weight-medium: 550;
+  --weight-medium: 500;
 }
 
 /* Cards: clear edge + soft depth so white-on-gray is obvious */
@@ -899,8 +925,7 @@ html.light .from-primary {
   --tw-gradient-from: #2DD4A7 !important;
 }
 
-html.light .to-\[\#14B88C\],
-html.light [class*="to-[#14B88C]"] {
+html.light .to-\[\#14B88C\] {
   --tw-gradient-to: #14B88C !important;
 }
 
@@ -958,19 +983,16 @@ html.light textarea::placeholder {
 }
 
 /* Danger / warning keep readable */
-html.light .text-\[\#FF5C5C\],
-html.light [class*="text-[#FF5C5C]"] {
+html.light .text-\[\#FF5C5C\] {
   color: #B91C1C !important;
 }
 
-html.light .text-\[\#F5A623\],
-html.light [class*="text-[#F5A623]"] {
+html.light .text-\[\#F5A623\] {
   color: #B45309 !important;
 }
 
 /* Hardcoded dark greens that were for dark UI metrics */
-html.light .text-\[\#2DD4A7\],
-html.light [class*="text-[#2DD4A7]"] {
+html.light .text-\[\#2DD4A7\] {
   color: #0F766E !important;
 }
 
@@ -993,12 +1015,6 @@ html.light .grain .text-white\/35 {
   color: #3F3F46 !important;
 }
 
-/* Never flip text inside fixed dark modals */
-html.light .unlock-modal,
-html.light .unlock-modal * {
-  /* let component hardcoded colors win — no forced recolor */
-}
-
 /* Secondary panel hover */
 html.light .hover\:bg-secondary-bg:hover {
   background-color: #F9FAFB !important;
@@ -1016,4 +1032,3 @@ html.light .shadow-lg {
     0 0 0 1px rgba(9, 9, 11, 0.05),
     0 2px 8px rgba(9, 9, 11, 0.05) !important;
 }
-

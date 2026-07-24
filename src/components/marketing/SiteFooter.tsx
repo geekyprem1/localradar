@@ -46,10 +46,10 @@ export default function SiteFooter() {
           <FooterCol title="Legal" links={legal} />
         </div>
         <div className="mt-12 flex flex-col items-start justify-between gap-3 border-t border-white/[0.06] pt-8 sm:flex-row sm:items-center">
-          <p className="font-mono text-[11px] text-white/30">
+          <p className="font-mono text-2xs text-white/30">
             © {new Date().getFullYear()} LocalRadar. All rights reserved.
           </p>
-          <nav aria-label="Legal quick links" className="flex flex-wrap gap-x-4 gap-y-1 font-mono text-[11px] text-white/30">
+          <nav aria-label="Legal quick links" className="flex flex-wrap gap-x-4 gap-y-1 font-mono text-2xs text-white/30">
             <Link href="/privacy" className="hover:text-white/60">Privacy</Link>
             <Link href="/terms" className="hover:text-white/60">Terms</Link>
             <Link href="/cookies" className="hover:text-white/60">Cookies</Link>
@@ -71,14 +71,14 @@ function FooterCol({
 }) {
   return (
     <div>
-      <h4 className="font-mono text-[11px] uppercase tracking-[0.18em] text-white/35">{title}</h4>
+      <h4 className="font-mono text-2xs uppercase tracking-[0.18em] text-white/35">{title}</h4>
       <ul className="mt-4 space-y-2.5">
         {links.map((l) => (
           <li key={l.label}>
             <Link href={l.href} className="inline-flex items-center gap-2 text-sm text-white/50 transition-colors hover:text-white">
               {l.label}
               {l.badge && (
-                <span className="rounded-full border border-white/10 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wide text-white/30">
+                <span className="rounded-full border border-white/10 px-1.5 py-0.5 font-mono text-2xs uppercase tracking-wide text-white/30">
                   {l.badge}
                 </span>
               )}
