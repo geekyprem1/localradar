@@ -1,5 +1,13 @@
-import { Business, Competitor } from '@/types';
-import { BusinessSignals, ScoredOpportunity, CompetitorBenchmark } from '@/types/scoring';
+import { Business } from '@/types';
+import {
+  BusinessSignals,
+  ScoredOpportunity,
+  CompetitorBenchmark,
+  SignalProvenance,
+  ProvenanceLabel,
+  ConfidenceValue,
+} from '@/types/scoring';
+import { CompetitorBenchmarkResult } from './competitorBenchmark';
 import { calculateOpportunityScore } from './opportunityScore';
 import { calculateClosingProbability } from './closingProbability';
 import { calculateDealValue, detectBusinessSize } from './dealValue';
@@ -7,6 +15,150 @@ import { calculateServiceFit } from './serviceFit';
 
 export { generateExplanation, getVulnerabilityTags } from './explainScore';
 export { calculateServiceFit } from './serviceFit';
+
+/**
+ * Confirmation verbs that may only appear on `real` (inspected/verified) signal
+ * reasons. On any non-real label these are rewritten so the reason is never
+ * presented as a confirmed detection (Req 3.3, 3.4, 3.7).
+ */
+const CONFIRMATION_REWRITES: ReadonlyArray<[RegExp, string]> = [
+  [/\bdetected\b/gi, 'likely'],
+  [/\bconfirmed\b/gi, 'likely'],
+  [/\bverified\b/gi, 'assumed'],
+  [/\bfound\b/gi, 'likely present'],
+];
+
+/** Assumption-indicating markers that satisfy the heuristic phrasing rule. */
+const ASSUMPTION_MARKERS: ReadonlyArray<string> = ['likely', 'may', 'possibly', 'not verified'];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Confidence model (Req 11.2, 11.5, 11.6, 12.4)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Per-provenance contribution weight used to build the data-availability portion
+ * of the Confidence_Value. A value labeled `unavailable` contributes 0 (Req 11.5);
+ * verified values count fully; inferred/estimated values count partially so the
+ * confidence honestly reflects how much of the result is real vs assumed.
+ */
+const PROVENANCE_CONFIDENCE_WEIGHT: Record<ProvenanceLabel, number> = {
+  real: 1.0,
+  estimated: 0.6,
+  heuristic: 0.5,
+  unavailable: 0.0,
+};
+
+/**
+ * Maximum points contributed by data availability. The remaining headroom up to
+ * 100 is reserved for the competitor-benchmark bonus so that a benchmark of
+ * `>= 5` real competitors is always at least 20 points more confident than the
+ * `< 5` case (Req 11.6, 12.4) while the total stays within `[0, 100]` (Req 11.2).
+ */
+const AVAILABILITY_CONFIDENCE_MAX = 80;
+
+/**
+ * Confidence bonus granted only when the competitor benchmark is backed by
+ * `>= 5` real competitors. Because it is a fixed additive term and the
+ * availability portion is always `>= 0`, the `< 5` case is guaranteed to be at
+ * least this many points lower than the `>= 5` case, floored at 0 (Req 11.6).
+ */
+const STRONG_BENCHMARK_CONFIDENCE_BONUS = 20;
+
+/** Threshold of real competitors at/above which the benchmark is "strong" (Req 11.6). */
+const STRONG_BENCHMARK_MIN_COMPETITORS = 5;
+
+/**
+ * Compute a bounded, honest {@link ConfidenceValue} in `[0, 100]` from the
+ * per-signal provenance map and the competitor sample size (Req 11.2, 11.5, 11.6,
+ * 12.4).
+ *
+ * The value has two independent parts:
+ *  1. **Data availability** (`[0, {@link AVAILABILITY_CONFIDENCE_MAX}]`): the
+ *     mean provenance weight across every emitted signal, scaled. Signals
+ *     labeled `unavailable` contribute exactly 0, so missing/failed data can
+ *     never inflate confidence (Req 11.5).
+ *  2. **Benchmark bonus** (`+{@link STRONG_BENCHMARK_CONFIDENCE_BONUS}` only when
+ *     `sampleSize >= {@link STRONG_BENCHMARK_MIN_COMPETITORS}`): because this is
+ *     additive and the availability part is non-negative, an otherwise-identical
+ *     opportunity backed by `< 5` real competitors always lands at least 20
+ *     points below the `>= 5` case, and never below 0 (Req 11.6, 12.4).
+ *
+ * The result is rounded to an integer and clamped to `[0, 100]`.
+ */
+export function computeConfidence(
+  signalProvenance: SignalProvenance,
+  sampleSize: number
+): ConfidenceValue {
+  const labels = Object.values(signalProvenance) as ProvenanceLabel[];
+
+  // Data-availability portion: mean provenance weight scaled to [0, MAX].
+  // `unavailable` signals carry weight 0 and therefore contribute nothing.
+  const availability =
+    labels.length === 0
+      ? 0
+      : (labels.reduce((sum, label) => sum + PROVENANCE_CONFIDENCE_WEIGHT[label], 0) /
+          labels.length) *
+        AVAILABILITY_CONFIDENCE_MAX;
+
+  // Benchmark bonus only for a strong (>= 5) real-competitor sample.
+  const benchmarkBonus =
+    sampleSize >= STRONG_BENCHMARK_MIN_COMPETITORS ? STRONG_BENCHMARK_CONFIDENCE_BONUS : 0;
+
+  const confidence = Math.round(availability + benchmarkBonus);
+
+  // Bounded integer in [0, 100] (Req 11.2).
+  return Math.max(0, Math.min(100, confidence));
+}
+
+/**
+ * Central, single-source-of-truth reason phrasing helper (Design §4/§Signal_Extractor).
+ *
+ * Rewrites a raw reason string so its wording matches the provenance of the
+ * signal it describes. This is the ONE place that decides which reasons may use
+ * confirmation language; both the Scoring_Engine and the Audit_Generator import
+ * it so heuristic and unavailable signals can never leak "detected"/"confirmed"
+ * wording to the user.
+ *
+ * - `real`: value came from an actual inspection/verified source, so
+ *   confirmation language ("detected", "confirmed") is kept unchanged (Req 3.5).
+ * - `heuristic`: rewritten into assumption language ("likely", "may", ...) with
+ *   all confirmation terms stripped, so an inferred signal is never stated as a
+ *   confirmed detection (Req 3.3, 3.4).
+ * - `unavailable` / `estimated`: confirmation terms are stripped so the reason
+ *   is never presented as a confirmed detection (Req 3.7).
+ */
+export function phraseReason(text: string, label: ProvenanceLabel): string {
+  const input = (text || '').trim();
+
+  // Real signals are backed by an actual inspection/verified value; their
+  // confirmation language is allowed to stand.
+  if (label === 'real' || input.length === 0) {
+    return input;
+  }
+
+  // Protect the allowed assumption phrase "not verified" from the `verified`
+  // rewrite, then restore it afterwards.
+  const NOT_VERIFIED_TOKEN = '\u0000NOT_VERIFIED\u0000';
+  let out = input.replace(/\bnot verified\b/gi, NOT_VERIFIED_TOKEN);
+
+  for (const [pattern, replacement] of CONFIRMATION_REWRITES) {
+    out = out.replace(pattern, replacement);
+  }
+
+  out = out.split(NOT_VERIFIED_TOKEN).join('not verified');
+
+  // Heuristic reasons must read as assumptions; ensure a marker is present and
+  // otherwise lead with "Likely".
+  if (label === 'heuristic') {
+    const lower = out.toLowerCase();
+    const hasMarker = ASSUMPTION_MARKERS.some((marker) => lower.includes(marker));
+    if (!hasMarker) {
+      out = `Likely ${out.charAt(0).toLowerCase()}${out.slice(1)}`;
+    }
+  }
+
+  return out;
+}
 
 /**
  * Infer category/niche based on business name or query.
@@ -38,13 +190,48 @@ export function inferCategory(name: string, category?: string): string {
 }
 
 /**
- * Extract deterministic signals from a Business and its competitors.
+ * Optional website-inspection result. When a business website is actually
+ * inspected, confirmed features let the Signal_Extractor emit `real` signals
+ * with confirmation-language reasons. Absent fields fall back to heuristics.
+ * (Design §4, Req 3.5)
+ */
+export interface WebsiteInspection {
+  bookingConfirmed?: boolean;
+  leadFormConfirmed?: boolean;
+  chatConfirmed?: boolean;
+  appointmentConfirmed?: boolean;
+  ageConfirmed?: boolean;
+}
+
+/**
+ * Extension point for real website inspection (future). The default pipeline
+ * supplies no inspection, so the inspected signals are labeled `heuristic`.
+ */
+export interface WebsiteInspector {
+  inspect(website: string): Promise<WebsiteInspection>;
+}
+
+/**
+ * Extract deterministic signals from a Business and a competitor benchmark,
+ * together with a per-signal provenance map (Req 3).
+ *
  * No randomness. Only uses available data.
+ *
+ * Provenance rules:
+ * - `hasWebsite`, `isInstagramOnly`, `isFacebookOnly`, `reviewCount`, `rating`
+ *   are derived directly from the real values on the business record → `real`.
+ * - Booking / lead-form / WhatsApp-chat / appointment / website-age signals are
+ *   inferred from website+phone presence when no `WebsiteInspection` is supplied
+ *   → `heuristic`. When an inspection confirms (or denies) a feature, that
+ *   signal is derived from the inspection → `real`.
+ * - `competitorAvgReviews` reflects the benchmark's provenance; when the
+ *   benchmark has no sample (null) it is `unavailable`.
  */
 export function extractSignals(
   business: Business,
-  competitors: Competitor[] = []
-): BusinessSignals {
+  benchmark: CompetitorBenchmarkResult,
+  inspection?: WebsiteInspection
+): { signals: BusinessSignals; provenance: SignalProvenance } {
   const website = (business.website || '').trim().toLowerCase();
   const hasWebsite = website.length > 0 
     && !website.includes('instagram.com') 
@@ -52,15 +239,39 @@ export function extractSignals(
   
   const isInstagramOnly = website.includes('instagram.com');
   const isFacebookOnly = website.includes('facebook.com') && !isInstagramOnly;
-  
-  // Outdated website heuristic: if has website but rating < 4.0 and reviews < 30
-  const isOldWebsite = hasWebsite && business.rating < 4.0 && business.reviews_count < 30;
 
-  const competitorAvgReviews = competitors.length > 0
-    ? Math.round(competitors.reduce((sum, c) => sum + c.reviews_count, 0) / competitors.length)
-    : 180; // Default competitor benchmark
+  const hasPhone = !!(business.phone && business.phone.trim().length > 0);
 
-  return {
+  // Website-age signal: `real` when inspected, otherwise a heuristic derived
+  // from rating/review activity.
+  const ageConfirmed = inspection?.ageConfirmed;
+  const isOldWebsite = ageConfirmed !== undefined
+    ? ageConfirmed
+    : hasWebsite && business.rating < 4.0 && business.reviews_count < 30;
+
+  // Revenue-leakage signals: `real` when an inspection confirms/denies the
+  // feature, otherwise heuristics from website+phone presence.
+  const bookingConfirmed = inspection?.bookingConfirmed;
+  const noBookingSystem = bookingConfirmed !== undefined ? !bookingConfirmed : !hasWebsite;
+
+  const leadFormConfirmed = inspection?.leadFormConfirmed;
+  const noLeadForm = leadFormConfirmed !== undefined ? !leadFormConfirmed : !hasWebsite;
+
+  const chatConfirmed = inspection?.chatConfirmed;
+  const noWhatsApp = chatConfirmed !== undefined ? !chatConfirmed : (!hasWebsite || !hasPhone);
+
+  const appointmentConfirmed = inspection?.appointmentConfirmed;
+  const noAppointment = appointmentConfirmed !== undefined ? !appointmentConfirmed : !hasWebsite;
+
+  // Competitor benchmark: consume the real benchmark; when unavailable (no
+  // sample) treat the review gap as neutral by mirroring the business's own
+  // review count so it contributes nothing.
+  const benchmarkAvailable = benchmark.competitorAvgReviews !== null;
+  const competitorAvgReviews = benchmarkAvailable
+    ? (benchmark.competitorAvgReviews as number)
+    : business.reviews_count;
+
+  const signals: BusinessSignals = {
     hasWebsite,
     isInstagramOnly,
     isFacebookOnly,
@@ -68,39 +279,103 @@ export function extractSignals(
     reviewCount: business.reviews_count,
     rating: business.rating,
     competitorAvgReviews,
-    hasPhone: !!(business.phone && business.phone.trim().length > 0),
+    hasPhone,
     hasAddress: !!(business.address && business.address.trim().length > 0),
     lowRating: business.rating < 4.0,
     fewReviews: business.reviews_count < 10,
-    noBookingSystem: !hasWebsite, // no website = no booking
-    noLeadForm: !hasWebsite, // no website = no lead form
-    noWhatsApp: !hasWebsite || !business.phone, // no phone = no whatsapp
-    noAppointment: !hasWebsite, // no website = no appointment system
+    noBookingSystem,
+    noLeadForm,
+    noWhatsApp,
+    noAppointment,
     hasRecentReviews: business.reviews_count > 5,
     hasRecentActivity: business.rating > 0,
   };
+
+  // A signal is `real` when it comes from an inspection confirmation; otherwise
+  // the inspected-feature signals are `heuristic`.
+  const bookingLabel = bookingConfirmed !== undefined ? 'real' : 'heuristic';
+  const leadFormLabel = leadFormConfirmed !== undefined ? 'real' : 'heuristic';
+  const whatsAppLabel = chatConfirmed !== undefined ? 'real' : 'heuristic';
+  const appointmentLabel = appointmentConfirmed !== undefined ? 'real' : 'heuristic';
+  const ageLabel = ageConfirmed !== undefined ? 'real' : 'heuristic';
+
+  const provenance: SignalProvenance = {
+    // Derived directly from real values on the business record.
+    hasWebsite: 'real',
+    isInstagramOnly: 'real',
+    isFacebookOnly: 'real',
+    reviewCount: 'real',
+    rating: 'real',
+    // Inspected-or-heuristic signals.
+    isOldWebsite: ageLabel,
+    noBookingSystem: bookingLabel,
+    noLeadForm: leadFormLabel,
+    noWhatsApp: whatsAppLabel,
+    noAppointment: appointmentLabel,
+    // Benchmark provenance: real/estimated when a sample exists, else unavailable.
+    competitorAvgReviews: benchmarkAvailable ? benchmark.provenance : 'unavailable',
+  };
+
+  return { signals, provenance };
 }
 
 /**
- * Master scoring function.
- * Runs all intelligence modules and returns a unified ScoredOpportunity.
+ * Master scoring function (Scoring facade — Design §9).
+ *
+ * Runs every intelligence module against a single business and returns a
+ * unified {@link ScoredOpportunity}. The facade now consumes a real
+ * {@link CompetitorBenchmarkResult} (produced once per result set by the
+ * Competitor_Benchmark_Service) instead of fabricating a competitor list, and
+ * forwards `country` + an optional {@link WebsiteInspection} to the
+ * sub-components so deal values format in the right currency and inspected
+ * signals can be labeled `real` (Req 4.1).
+ *
+ * Legacy → semantic component mapping (Req 8.1). The backward-compatible
+ * component score fields map to opportunity components *by meaning*, so
+ * downstream consumers (e.g. the Audit_Generator) can key off the semantically
+ * correct weakness rather than a misnamed field:
+ *
+ * | Legacy field   | Opportunity component | Meaning                                   |
+ * |----------------|-----------------------|-------------------------------------------|
+ * | `websiteScore` | `websiteOpportunity`  | Website weakness / absence                |
+ * | `reviewsScore` | `reviewGap`           | Review deficit vs benchmark               |
+ * | `seoScore`     | `gbpWeakness`         | Google Business Profile weakness          |
+ * | `gbpScore`     | `revenueLeakage`      | Booking / lead-capture leakage            |
+ * | `socialScore`  | `growthIntent`        | Activity / growth intent                  |
+ *
+ * @param business    The business being scored.
+ * @param benchmark   Real (or estimated) competitor benchmark for this niche+city,
+ *                    already self-excluding the scored business by place id.
+ * @param categoryInput Optional niche hint used to infer the category.
+ * @param country     Optional ISO/country name forwarded to currency formatting.
+ * @param inspection  Optional confirmed website features; when present, the
+ *                    inspected signals are labeled `real` instead of `heuristic`.
  */
 export function scoreBusinessOpportunity(
   business: Business,
-  competitors: Competitor[] = [],
+  benchmark: CompetitorBenchmarkResult,
   categoryInput?: string,
-  country?: string
+  country?: string,
+  inspection?: WebsiteInspection
 ): ScoredOpportunity {
   const category = inferCategory(business.name, categoryInput);
-  const signals = extractSignals(business, competitors);
-  
+
+  // Extract deterministic signals from the business and the real competitor
+  // benchmark, forwarding any confirmed website inspection so inspected signals
+  // are labeled `real` rather than `heuristic`.
+  const { signals, provenance: signalProvenance } = extractSignals(
+    business,
+    benchmark,
+    inspection
+  );
+
   // 1. Opportunity Score™
   const { score: opportunityScore, level, breakdown, reasons } = calculateOpportunityScore(signals, category);
-  
+
   // 2. Closing Probability™
   const closingProbability = calculateClosingProbability(opportunityScore, signals, business.id);
-  
-  // 3. Deal Value Engine™
+
+  // 3. Deal Value Engine™ (country forwarded for currency formatting, Req 4.1)
   const dealValue = calculateDealValue(
     signals,
     opportunityScore,
@@ -109,69 +384,48 @@ export function scoreBusinessOpportunity(
     business.name,
     country
   );
-  
+
   // 4. Business Size Detection
   const businessSize = detectBusinessSize(business.reviews_count, business.rating, business.name);
 
-  // 5. Competitor Benchmark Calculations
-  const competitorAvgReviews = competitors.length > 0
-    ? Math.round(competitors.reduce((sum, c) => sum + c.reviews_count, 0) / competitors.length)
-    : 180;
-  
-  const competitorAvgRating = competitors.length > 0
-    ? Math.round((competitors.reduce((sum, c) => sum + c.rating, 0) / competitors.length) * 10) / 10
-    : 4.5;
-  
-  const competitorWebsiteCount = competitors.length > 0
-    ? competitors.filter(c => c.website && c.website.trim().length > 0 && !c.website.includes('instagram.com') && !c.website.includes('facebook.com')).length
-    : Math.min(competitors.length, 3);
-  const competitorWebsiteRatio = competitors.length > 0
-    ? Math.round((competitorWebsiteCount / competitors.length) * 100)
-    : 85;
-  
-  const competitorBookingCount = competitors.length > 0
-    ? competitors.filter(c => c.rating > 4.2).length
-    : Math.min(competitors.length, 2);
-  const competitorBookingRatio = competitors.length > 0
-    ? Math.round((competitorBookingCount / competitors.length) * 100)
-    : 70;
-
+  // 5. Competitor Benchmark — surface the real benchmark result on the display
+  // shape. Null averages (sample size 0) fall back to the business's own values
+  // so the comparison reads as neutral; the honesty labels (`provenance`,
+  // `sampleSize`) carry the real data availability. The benchmark service does
+  // not compute a booking ratio, so it is reported as 0 (no competitor data).
   const competitorBenchmark: CompetitorBenchmark = {
     currentReviews: business.reviews_count,
-    competitorAvgReviews,
+    competitorAvgReviews: benchmark.competitorAvgReviews ?? business.reviews_count,
     currentRating: business.rating,
-    competitorAvgRating,
+    competitorAvgRating: benchmark.competitorAvgRating ?? business.rating,
     hasWebsite: signals.hasWebsite,
-    competitorWebsiteRatio,
+    competitorWebsiteRatio: benchmark.competitorWebsiteRatio ?? 0,
     hasBooking: !signals.noBookingSystem,
-    competitorBookingRatio
+    competitorBookingRatio: 0,
+    provenance: benchmark.provenance,
+    sampleSize: benchmark.sampleSize,
   };
 
-  // 6. Confidence Score™
-  let confidence = 72; // baseline
-  if (signals.hasPhone && signals.hasAddress) confidence += 10;
-  else confidence -= 5;
-  
-  if (business.reviews_count > 100) confidence += 8;
-  else if (business.reviews_count > 20) confidence += 4;
-  else if (business.reviews_count === 0) confidence -= 10;
-  
-  if (competitors.length >= 3) confidence += 5;
-  else confidence -= 5;
-  
-  if (signals.hasWebsite) confidence += 3;
-  
-  const confidenceScore = Math.min(98, Math.max(55, confidence));
+  // 6. Confidence Score™ — honest, per-contribution confidence model (Req 11.2,
+  // 11.5, 11.6, 12.4). Data availability is derived from the per-signal
+  // provenance map (values labeled `unavailable` contribute 0), and a benchmark
+  // backed by fewer than 5 real competitors yields a confidence at least 20
+  // points lower than the >= 5 case, floored at 0. See computeConfidence.
+  const confidenceScore: ConfidenceValue = computeConfidence(
+    signalProvenance,
+    benchmark.sampleSize
+  );
 
   // 7. Service Fit Score™
   const { scores: serviceFitScores, bestFit } = calculateServiceFit(signals, business.id);
 
-  // Map component scores for backward compatibility
-  const websiteScore = breakdown.websiteOpportunity.score;
-  const reviewsScore = breakdown.reviewGap.score;
-  const seoScore = breakdown.gbpWeakness.score;
-  const gbpScore = breakdown.revenueLeakage.score;
-  const socialScore = breakdown.growthIntent.score;
+  // Map component scores to their semantic components (Req 8.1). See the JSDoc
+  // table above for the legacy → semantic mapping.
+  const websiteScore = breakdown.websiteOpportunity.score; // website weakness/absence
+  const reviewsScore = breakdown.reviewGap.score; // review deficit vs benchmark
+  const seoScore = breakdown.gbpWeakness.score; // Google Business Profile weakness
+  const gbpScore = breakdown.revenueLeakage.score; // booking/lead-capture leakage
+  const socialScore = breakdown.growthIntent.score; // activity/growth intent
 
   return {
     opportunityScore,
@@ -182,6 +436,7 @@ export function scoreBusinessOpportunity(
     businessSize,
     competitorBenchmark,
     category,
+    signalProvenance,
     serviceFitScores,
     bestFit,
     breakdown,

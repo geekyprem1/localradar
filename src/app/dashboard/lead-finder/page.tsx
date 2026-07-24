@@ -37,8 +37,9 @@ import {
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { generateLeads, generateMockCompetitors } from '@/lib/mockData';
+import { generateLeads } from '@/lib/mockData';
 import { scoreBusinessOpportunity, getVulnerabilityTags } from '@/lib/scoring';
+import { competitorBenchmarkService, type PlaceLite } from '@/lib/scoring/competitorBenchmark';
 import { Business, Opportunity } from '@/types';
 import { ScoredOpportunity } from '@/types/scoring';
 import OpportunityIntelligenceDrawer from '@/components/OpportunityIntelligenceDrawer';
@@ -217,9 +218,20 @@ export default function LeadFinderPage() {
   useEffect(() => {
     if (leads.length === 0) return;
     const map: Record<string, ScoredOpportunity> = {};
+    // Build the competitor benchmark input ONCE from the lead set; each business
+    // self-excludes by its own place id (Req 2.4).
+    const resultSet: PlaceLite[] = leads.map(b => ({
+      placeId: b.place_id,
+      rating: b.rating,
+      reviewsCount: b.reviews_count,
+      website: b.website,
+    }));
     leads.forEach(biz => {
-      const competitors = generateMockCompetitors(biz);
-      map[biz.id] = scoreBusinessOpportunity(biz, competitors, niche, country);
+      const benchmark = competitorBenchmarkService.build({
+        scoredPlaceId: biz.place_id,
+        resultSet,
+      });
+      map[biz.id] = scoreBusinessOpportunity(biz, benchmark, niche, country);
     });
     setScoredMap(map);
     refreshHotLeadsMap();
@@ -543,12 +555,12 @@ export default function LeadFinderPage() {
     highProbCount: leads.filter(l => getClosing(l.id) >= 70).length,
     pipeline: leads.reduce((sum, l) => {
       const scored = scoredMap[l.id];
-      if (scored) return sum + scored.dealValue.max;
+      if (scored) return sum + (scored.dealValue.max ?? 0);
       return sum + (opportunities[l.id]?.estimated_deal_value || 0);
     }, 0),
     weightedPipeline: leads.reduce((sum, l) => {
       const scored = scoredMap[l.id];
-      const maxVal = scored ? scored.dealValue.max : (opportunities[l.id]?.estimated_deal_value || 0);
+      const maxVal = (scored ? scored.dealValue.max : opportunities[l.id]?.estimated_deal_value) ?? 0;
       const prob = getClosing(l.id);
       return sum + Math.round(maxVal * (prob / 100));
     }, 0),

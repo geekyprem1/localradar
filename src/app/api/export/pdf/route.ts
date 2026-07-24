@@ -1,6 +1,7 @@
 import { supabase } from '@/lib/supabase';
 import { scoreBusinessOpportunity } from '@/lib/scoring';
 import { generateMockAudit, generateMockCompetitors } from '@/lib/mockData';
+import { competitorBenchmarkService, type PlaceLite } from '@/lib/scoring/competitorBenchmark';
 import { getServerUser, validateUsageAndEntitlement } from '@/lib/entitlements';
 
 function escapeHtml(input: unknown): string {
@@ -94,7 +95,19 @@ export async function GET(request: Request) {
 
     if (!opportunity) {
       competitors = generateMockCompetitors(business);
-      const scored = scoreBusinessOpportunity(business, competitors);
+      // Build a real (self-excluding) benchmark from the mock competitor set.
+      const resultSet: PlaceLite[] = competitors.map((c) => ({
+        placeId: c.id,
+        rating: c.rating,
+        reviewsCount: c.reviews_count,
+        website: c.website,
+      }));
+      const benchmark = competitorBenchmarkService.build({
+        scoredPlaceId: business.place_id || business.id || '',
+        resultSet,
+      });
+      const scored = scoreBusinessOpportunity(business, benchmark);
+      const dealValueUnavailable = scored.dealValue.provenance === 'unavailable';
       opportunity = {
         website_score: scored.websiteScore,
         reviews_score: scored.reviewsScore,
@@ -103,7 +116,7 @@ export async function GET(request: Request) {
         social_score: scored.socialScore,
         total_score: scored.opportunityScore,
         opportunity_level: scored.opportunityLevel,
-        estimated_deal_value: scored.dealValue.max,
+        estimated_deal_value: dealValueUnavailable ? null : scored.dealValue.representative,
         closing_probability: scored.closingProbability
       };
     }

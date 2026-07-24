@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { generateMockAudit, generateMockCompetitors } from '@/lib/mockData';
 import { scoreBusinessOpportunity } from '@/lib/scoring';
+import { competitorBenchmarkService, type PlaceLite } from '@/lib/scoring/competitorBenchmark';
 import { Business, Opportunity, Audit, Competitor } from '@/types';
 import { ScoredOpportunity } from '@/types/scoring';
 import { useAuth } from '@/lib/auth';
@@ -81,6 +82,7 @@ export default function AuditDetailsPage() {
       selectedBiz = {
         id: businessId,
         created_at: new Date().toISOString(),
+        place_id: `sandbox-${businessId}`,
         name: 'Preston Dental Practice',
         website: 'https://www.prestondentalpractice.com',
         rating: 3.8,
@@ -91,16 +93,29 @@ export default function AuditDetailsPage() {
       };
     }
 
-    // Use Intelligence Engine™ for scoring
+    // Use Intelligence Engine™ for scoring. Competitors remain available for the
+    // UI list; a real (self-excluding) benchmark is built from them for scoring.
     const mockCompetitors = generateMockCompetitors(selectedBiz);
-    const scoredResult = scoreBusinessOpportunity(selectedBiz, mockCompetitors);
+    const resultSet: PlaceLite[] = mockCompetitors.map((c) => ({
+      placeId: c.id,
+      rating: c.rating,
+      reviewsCount: c.reviews_count,
+      website: c.website,
+    }));
+    const benchmark = competitorBenchmarkService.build({
+      scoredPlaceId: selectedBiz.place_id,
+      resultSet,
+    });
+    const scoredResult = scoreBusinessOpportunity(selectedBiz, benchmark);
 
     // Build opportunity from engine if not cached
     if (!selectedOpp) {
+      const dealValueUnavailable = scoredResult.dealValue.provenance === 'unavailable';
       selectedOpp = {
         id: `opp-${businessId}`,
         created_at: new Date().toISOString(),
         business_id: businessId,
+        place_id: selectedBiz.place_id,
         website_score: scoredResult.websiteScore,
         reviews_score: scoredResult.reviewsScore,
         seo_score: scoredResult.seoScore,
@@ -108,8 +123,13 @@ export default function AuditDetailsPage() {
         social_score: scoredResult.socialScore,
         total_score: scoredResult.opportunityScore,
         opportunity_level: scoredResult.opportunityLevel,
-        estimated_deal_value: scoredResult.dealValue.max,
-        closing_probability: scoredResult.closingProbability
+        estimated_deal_value: dealValueUnavailable ? null : scoredResult.dealValue.representative,
+        deal_value_min: scoredResult.dealValue.min,
+        deal_value_max: scoredResult.dealValue.max,
+        deal_value_provenance: scoredResult.dealValue.provenance,
+        closing_probability: scoredResult.closingProbability,
+        confidence: scoredResult.confidenceScore,
+        data_source: 'sandbox',
       };
     }
 

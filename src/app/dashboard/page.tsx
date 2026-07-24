@@ -21,7 +21,7 @@ import { useAuth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 import { Business, Opportunity } from '@/types';
 import { scoreBusinessOpportunity } from '@/lib/scoring';
-import { generateMockCompetitors } from '@/lib/mockData';
+import { competitorBenchmarkService, type PlaceLite } from '@/lib/scoring/competitorBenchmark';
 import { ScoredOpportunity } from '@/types/scoring';
 import EmptyState from '@/components/ui/EmptyState';
 import OnboardingBanner from '@/components/dashboard/OnboardingBanner';
@@ -67,10 +67,21 @@ export default function DashboardOverviewPage() {
 
       if (leads.length > 0) {
         const country = localStorage.getItem('localradar_latest_country') || 'United States';
+        // Build the competitor benchmark input ONCE from the cached lead set; each
+        // business self-excludes by its own place id (Req 2.4).
+        const resultSet: PlaceLite[] = leads.map(b => ({
+          placeId: b.place_id,
+          rating: b.rating,
+          reviewsCount: b.reviews_count,
+          website: b.website,
+        }));
         const scoredResults: Record<string, ScoredOpportunity> = {};
         leads.forEach(biz => {
-          const competitors = generateMockCompetitors(biz);
-          scoredResults[biz.id] = scoreBusinessOpportunity(biz, competitors, undefined, country);
+          const benchmark = competitorBenchmarkService.build({
+            scoredPlaceId: biz.place_id,
+            resultSet,
+          });
+          scoredResults[biz.id] = scoreBusinessOpportunity(biz, benchmark, undefined, country);
         });
 
         const totalPipeline = leads.reduce((sum, l) => sum + (scoredResults[l.id]?.dealValue.max ?? 0), 0);

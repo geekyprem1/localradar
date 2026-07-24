@@ -11,7 +11,37 @@ import { BusinessSignals, OpportunityBreakdown, ScoreComponent } from '@/types/s
  * - Default: Website (25%), Review (25%), Google Presence (20%), Booking (15%), Activity (15%)
  */
 
-function getNormalizedCategory(cat?: string): 'dentist' | 'plumber' | 'lawyer' | 'gym' | 'default' {
+type NormalizedCategory = 'dentist' | 'plumber' | 'lawyer' | 'gym' | 'default';
+
+/** Weights for the five opportunity components. Each set MUST sum to 1.00 (±0.001). */
+interface CategoryWeights {
+  wWeb: number;
+  wRev: number;
+  wGBP: number;
+  wBook: number;
+  wAct: number;
+}
+
+const CATEGORY_WEIGHTS: Record<NormalizedCategory, CategoryWeights> = {
+  default: { wWeb: 0.25, wRev: 0.25, wGBP: 0.20, wBook: 0.15, wAct: 0.15 },
+  dentist: { wWeb: 0.20, wRev: 0.40, wGBP: 0.20, wBook: 0.00, wAct: 0.20 },
+  plumber: { wWeb: 0.35, wRev: 0.20, wGBP: 0.00, wBook: 0.35, wAct: 0.10 },
+  lawyer: { wWeb: 0.40, wRev: 0.30, wGBP: 0.20, wBook: 0.00, wAct: 0.10 },
+  gym: { wWeb: 0.30, wRev: 0.30, wGBP: 0.00, wBook: 0.25, wAct: 0.15 },
+};
+
+// Req 5.5: assert every category's five weights sum to 1.00 within ±0.001.
+// Validated once at module load so future edits to the table cannot silently break the invariant.
+for (const [cat, w] of Object.entries(CATEGORY_WEIGHTS)) {
+  const sum = w.wWeb + w.wRev + w.wGBP + w.wBook + w.wAct;
+  if (Math.abs(sum - 1.0) > 0.001) {
+    throw new Error(
+      `Opportunity score weights for category "${cat}" must sum to 1.00 (±0.001), got ${sum}`
+    );
+  }
+}
+
+function getNormalizedCategory(cat?: string): NormalizedCategory {
   if (!cat) return 'default';
   const c = cat.toLowerCase();
   if (c.includes('dent')) return 'dentist';
@@ -127,18 +157,9 @@ export function calculateOpportunityScore(
   reasons: string[];
 } {
   const cat = getNormalizedCategory(category);
-  
-  // Category-specific weights (Must sum to 1.00)
-  let wWeb = 0.25, wRev = 0.25, wGBP = 0.20, wBook = 0.15, wAct = 0.15;
-  if (cat === 'dentist') {
-    wRev = 0.40; wWeb = 0.20; wGBP = 0.20; wAct = 0.20; wBook = 0.00;
-  } else if (cat === 'plumber') {
-    wWeb = 0.35; wBook = 0.35; wRev = 0.20; wAct = 0.10; wGBP = 0.00;
-  } else if (cat === 'lawyer') {
-    wWeb = 0.40; wRev = 0.30; wGBP = 0.20; wAct = 0.10; wBook = 0.00;
-  } else if (cat === 'gym') {
-    wWeb = 0.30; wRev = 0.30; wBook = 0.25; wAct = 0.15; wGBP = 0.00;
-  }
+
+  // Category-specific weights (asserted to sum to 1.00 ±0.001 at module load).
+  const { wWeb, wRev, wGBP, wBook, wAct } = CATEGORY_WEIGHTS[cat];
 
   const webOpp = calcWebsiteOppPercent(signals);
   const revOpp = calcReviewGapPercent(signals);
@@ -146,27 +167,28 @@ export function calculateOpportunityScore(
   const bookOpp = calcBookingPercent(signals);
   const actOpp = calcActivityGapPercent(signals);
 
-  // Raw weighted score calculation
-  let rawScore = Math.round(
+  // Pre-clamp score = weighted sum of exactly five components, each contributing once.
+  // Booking signals (noBookingSystem/noLeadForm/noWhatsApp/noAppointment) count solely via
+  // the weighted booking component (bookOpp) — no additive flat bonus is applied (Req 5.1–5.3).
+  let rawScore =
     (webOpp.score * wWeb) +
     (revOpp.score * wRev) +
     (gbpOpp.score * wGBP) +
     (bookOpp.score * wBook) +
-    (actOpp.score * wAct)
-  );
+    (actOpp.score * wAct);
 
-  // Floor rules to fix the "No Website" auto-90 bias
+  // Category-independent floors applied to the weighted sum (not additive stacking).
+  // They correct the "no real website" under-scoring bias by enforcing a minimum opportunity:
+  //   - no website at all           ⇒ max(55, weighted sum)
+  //   - Instagram-/Facebook-only    ⇒ max(45, weighted sum)
   if (!signals.hasWebsite) {
     rawScore = Math.max(55, rawScore);
   } else if (signals.isInstagramOnly || signals.isFacebookOnly) {
     rawScore = Math.max(45, rawScore);
   }
 
-  // Adjustments for active leaks
-  if (signals.noBookingSystem) rawScore += 5;
-  if (signals.noLeadForm) rawScore += 5;
-
-  const score = Math.min(100, Math.max(0, rawScore));
+  // Final score is an integer clamped to the inclusive range [0, 100] (Req 5.4).
+  const score = Math.min(100, Math.max(0, Math.round(rawScore)));
 
   let level: 'High' | 'Medium' | 'Low' = 'Low';
   if (score >= 60) level = 'High';

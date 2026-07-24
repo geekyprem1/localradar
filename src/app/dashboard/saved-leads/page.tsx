@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 import { Business, Opportunity } from '@/types';
 import { scoreBusinessOpportunity, getVulnerabilityTags } from '@/lib/scoring';
-import { generateMockCompetitors } from '@/lib/mockData';
+import { competitorBenchmarkService, type PlaceLite } from '@/lib/scoring/competitorBenchmark';
 import { ScoredOpportunity } from '@/types/scoring';
 import OpportunityIntelligenceDrawer from '@/components/OpportunityIntelligenceDrawer';
 
@@ -67,9 +67,20 @@ export default function SavedLeadsPage() {
   useEffect(() => {
     if (savedLeads.length === 0) return;
     const map: Record<string, ScoredOpportunity> = {};
+    // Build the competitor benchmark input ONCE from the saved lead set; each
+    // business self-excludes by its own place id (Req 2.4).
+    const resultSet: PlaceLite[] = savedLeads.map(b => ({
+      placeId: b.place_id,
+      rating: b.rating,
+      reviewsCount: b.reviews_count,
+      website: b.website,
+    }));
     savedLeads.forEach(biz => {
-      const competitors = generateMockCompetitors(biz);
-      map[biz.id] = scoreBusinessOpportunity(biz, competitors, undefined, country);
+      const benchmark = competitorBenchmarkService.build({
+        scoredPlaceId: biz.place_id,
+        resultSet,
+      });
+      map[biz.id] = scoreBusinessOpportunity(biz, benchmark, undefined, country);
     });
     setScoredMap(map);
   }, [savedLeads, country]);

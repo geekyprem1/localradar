@@ -92,7 +92,8 @@ export default function OpportunityIntelligenceDrawer({
     return 'text-[#FF5C5C] bg-[#FF5C5C]/10 border-[#FF5C5C]/20';
   };
 
-  const formatMoney = (val: number) => formatCurrency(val, country);
+  const formatMoney = (val: number | null) =>
+    val == null ? 'N/A' : formatCurrency(val, country);
 
   // Extract variables for sub-components
   const signals = {
@@ -356,7 +357,7 @@ export default function OpportunityIntelligenceDrawer({
                     <div className="p-2.5 bg-primary/5 border border-primary/30 rounded-lg">
                       <span className="text-primary block text-2xs uppercase tracking-widest mb-1 font-normal">Recommended Proposal</span>
                       <span className="text-primary font-semibold text-xs">
-                        {formatMoney(Math.round((scored.dealValue.min + scored.dealValue.max) / 2))}
+                        {formatMoney(scored.dealValue.representative)}
                       </span>
                     </div>
                   </div>

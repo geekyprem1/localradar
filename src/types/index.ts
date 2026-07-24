@@ -1,3 +1,5 @@
+import { ContactProvenance, ProvenanceLabel, ConfidenceValue, DataSource } from '@/types/scoring';
+
 export interface Organization {
   id: string;
   created_at: string;
@@ -29,6 +31,7 @@ export interface Business {
   created_at: string;
   search_id?: string;
   organization_id: string;
+  place_id: string;
   name: string;
   website: string;
   rating: number;
@@ -38,12 +41,14 @@ export interface Business {
   business_email?: string;
   contact_email?: string;
   contact_page?: string;
+  contact_provenance?: ContactProvenance;
 }
 
 export interface Opportunity {
   id: string;
   created_at: string;
   business_id: string;
+  place_id: string;
   website_score: number;
   reviews_score: number;
   seo_score: number;
@@ -51,8 +56,13 @@ export interface Opportunity {
   social_score: number;
   total_score: number;
   opportunity_level: 'High' | 'Medium' | 'Low';
-  estimated_deal_value: number;
+  estimated_deal_value: number | null;
+  deal_value_min: number | null;
+  deal_value_max: number | null;
+  deal_value_provenance: ProvenanceLabel;
   closing_probability: number;
+  confidence: ConfidenceValue;
+  data_source: DataSource;
 }
 
 export interface Audit {

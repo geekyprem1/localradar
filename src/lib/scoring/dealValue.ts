@@ -1,5 +1,25 @@
-import { BusinessSignals, DealValueResult } from '@/types/scoring';
+import type { BusinessSignals, ProvenanceLabel } from '@/types/scoring';
 import { formatCurrencyRange } from '@/lib/currency';
+
+// Authoritative shape for a deal value output. Re-exported from
+// `@/types/scoring` for backward compatibility with existing consumers.
+export interface DealValueResult {
+  min: number | null; // >= 0.01, <= 999_999_999.99, <= max; null when unavailable
+  max: number | null;
+  representative: number | null; // round((min+max)/2, 2); strictly < max when min < max
+  formatted: string; // formatted with resolved currency; '' when unavailable
+  services: string[];
+  provenance: ProvenanceLabel; // 'estimated' when valid; 'unavailable' when no valid range
+}
+
+// Inclusive bounds for a valid deal value amount (Req 7.1).
+const MIN_DEAL_VALUE = 0.01;
+const MAX_DEAL_VALUE = 999_999_999.99;
+
+/** Round to two decimal places, avoiding binary float drift. */
+function round2(value: number): number {
+  return Math.round((value + Number.EPSILON) * 100) / 100;
+}
 
 type BusinessSize = 'Solo Practice' | 'Small Clinic' | 'Growing Business' | 'Multi-location Business' | 'Enterprise Local Brand';
 
@@ -140,7 +160,38 @@ export function calculateDealValue(
     services.push('Digital Audit & Consultation');
   }
 
+  // 5. Validate the produced range (Req 7.1). When no valid range can be
+  // produced (invalid inputs or multipliers that invert/overflow the range),
+  // emit an `unavailable` result with null figures and an empty label (Req 7.5).
+  const isValidRange =
+    Number.isFinite(min) &&
+    Number.isFinite(max) &&
+    min >= MIN_DEAL_VALUE &&
+    max >= MIN_DEAL_VALUE &&
+    min <= MAX_DEAL_VALUE &&
+    max <= MAX_DEAL_VALUE &&
+    min <= max;
+
+  if (!isValidRange) {
+    return {
+      min: null,
+      max: null,
+      representative: null,
+      formatted: '',
+      services,
+      provenance: 'unavailable',
+    };
+  }
+
+  // Arithmetic midpoint rounded to two decimals (Req 7.2). When min < max the
+  // integer bounds keep the midpoint at least 0.5 below max, so rounding stays
+  // strictly under max; guard defensively in case rounding lands on the max.
+  let representative = round2((min + max) / 2);
+  if (min < max && representative >= max) {
+    representative = round2(max - 0.01);
+  }
+
   const formatted = formatCurrencyRange(min, max, country);
 
-  return { min, max, formatted, services };
+  return { min, max, representative, formatted, services, provenance: 'estimated' };
 }

@@ -1,5 +1,6 @@
 import { Business, Opportunity, Audit, Competitor, Pitch } from '@/types';
-import { scoreBusinessOpportunity, extractSignals } from '@/lib/scoring';
+import { scoreBusinessOpportunity } from '@/lib/scoring';
+import { competitorBenchmarkService, type PlaceLite } from '@/lib/scoring/competitorBenchmark';
 
 // Simple seedable random number generator
 function seededRandom(str: string) {
@@ -64,6 +65,8 @@ export function generateLeads(category: string, city: string, country: string): 
   const generatedBizs: Business[] = [];
   const generatedOpps: Record<string, Opportunity> = {};
 
+  // First pass: synthesize all sandbox businesses so the competitor benchmark can
+  // be built from the full generated set (each business self-excludes by place id).
   for (let i = 0; i < 8; i++) {
     const seed = `${cat}-${cit}-${i}`;
     const rand = seededRandom(seed);
@@ -93,6 +96,8 @@ export function generateLeads(category: string, city: string, country: string): 
     const business: Business = {
       id: bizId,
       created_at: new Date().toISOString(),
+      // Synthetic but stable place id — this is clearly sandbox/demo data.
+      place_id: `sandbox-${bizId}`,
       name: bizName,
       website,
       rating,
@@ -105,14 +110,32 @@ export function generateLeads(category: string, city: string, country: string): 
       contact_page
     };
 
-    // Use the Intelligence Engine™ for scoring
-    const competitors = generateMockCompetitors(business);
-    const scored = scoreBusinessOpportunity(business, competitors, category);
+    generatedBizs.push(business);
+  }
 
+  // Build the competitor benchmark input ONCE from the generated set (Req 2.4).
+  const resultSet: PlaceLite[] = generatedBizs.map((b) => ({
+    placeId: b.place_id,
+    rating: b.rating,
+    reviewsCount: b.reviews_count,
+    website: b.website,
+  }));
+
+  // Second pass: score each business against the real (sandbox) benchmark.
+  for (const business of generatedBizs) {
+    const bizId = business.id;
+    const benchmark = competitorBenchmarkService.build({
+      scoredPlaceId: business.place_id,
+      resultSet,
+    });
+    const scored = scoreBusinessOpportunity(business, benchmark, category, country);
+
+    const dealValueUnavailable = scored.dealValue.provenance === 'unavailable';
     const opportunity: Opportunity = {
       id: `opp-${bizId}`,
       created_at: new Date().toISOString(),
       business_id: bizId,
+      place_id: business.place_id,
       website_score: scored.websiteScore,
       reviews_score: scored.reviewsScore,
       seo_score: scored.seoScore,
@@ -120,11 +143,15 @@ export function generateLeads(category: string, city: string, country: string): 
       social_score: scored.socialScore,
       total_score: scored.opportunityScore,
       opportunity_level: scored.opportunityLevel,
-      estimated_deal_value: scored.dealValue.max,
-      closing_probability: scored.closingProbability
+      estimated_deal_value: dealValueUnavailable ? null : scored.dealValue.representative,
+      deal_value_min: scored.dealValue.min,
+      deal_value_max: scored.dealValue.max,
+      deal_value_provenance: scored.dealValue.provenance,
+      closing_probability: scored.closingProbability,
+      confidence: scored.confidenceScore,
+      data_source: 'sandbox',
     };
 
-    generatedBizs.push(business);
     generatedOpps[bizId] = opportunity;
   }
 

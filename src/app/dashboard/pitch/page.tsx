@@ -16,7 +16,9 @@ import {
   Zap,
   Phone
 } from 'lucide-react';
-import { generateMockAudit, generateMockPitch, calculateLocalRadarScore } from '@/lib/mockData';
+import { generateMockAudit, generateMockPitch } from '@/lib/mockData';
+import { scoreBusinessOpportunity } from '@/lib/scoring';
+import { competitorBenchmarkService, type PlaceLite } from '@/lib/scoring/competitorBenchmark';
 import { Business, Opportunity, Pitch, Audit } from '@/types';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
@@ -90,6 +92,7 @@ export default function PitchGeneratorPage() {
       const fallbackBiz: Business = {
         id: 'fallback-dental',
         created_at: new Date().toISOString(),
+        place_id: 'sandbox-fallback-dental',
         name: 'Preston Dental Clinic',
         website: 'https://www.prestondentalpractice.com',
         rating: 3.9,
@@ -142,20 +145,39 @@ export default function PitchGeneratorPage() {
     const currentBiz = businesses.find(b => b.id === selectedBizId) || businesses[0];
     
     if (!opp && currentBiz) {
-      const scoring = calculateLocalRadarScore(15, 12, 10, 8, 5); // 50/100
+      // Score the business with the real engine against a benchmark built from
+      // the loaded business set; each business self-excludes by place id (Req 2.4).
+      const resultSet: PlaceLite[] = businesses.map(b => ({
+        placeId: b.place_id,
+        rating: b.rating,
+        reviewsCount: b.reviews_count,
+        website: b.website,
+      }));
+      const benchmark = competitorBenchmarkService.build({
+        scoredPlaceId: currentBiz.place_id,
+        resultSet,
+      });
+      const scored = scoreBusinessOpportunity(currentBiz, benchmark);
+      const dealValueUnavailable = scored.dealValue.provenance === 'unavailable';
       opp = {
         id: `opp-${currentBiz.id}`,
         created_at: new Date().toISOString(),
         business_id: currentBiz.id,
-        website_score: scoring.website,
-        reviews_score: scoring.reviews,
-        seo_score: scoring.seo,
-        gbp_score: scoring.gbp,
-        social_score: scoring.social,
-        total_score: scoring.total,
-        opportunity_level: scoring.opportunityLevel,
-        estimated_deal_value: scoring.estimatedDealValue,
-        closing_probability: scoring.closingProbability
+        place_id: currentBiz.place_id,
+        website_score: scored.websiteScore,
+        reviews_score: scored.reviewsScore,
+        seo_score: scored.seoScore,
+        gbp_score: scored.gbpScore,
+        social_score: scored.socialScore,
+        total_score: scored.opportunityScore,
+        opportunity_level: scored.opportunityLevel,
+        estimated_deal_value: dealValueUnavailable ? null : scored.dealValue.representative,
+        deal_value_min: scored.dealValue.min,
+        deal_value_max: scored.dealValue.max,
+        deal_value_provenance: scored.dealValue.provenance,
+        closing_probability: scored.closingProbability,
+        confidence: scored.confidenceScore,
+        data_source: 'sandbox',
       };
     }
 

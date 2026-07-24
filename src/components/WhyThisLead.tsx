@@ -11,8 +11,8 @@ interface WhyThisLeadProps {
   reviewGap: number;
   noBookingSystem: boolean;
   recommendedService: string;
-  dealValueMin: number;
-  dealValueMax: number;
+  dealValueMin: number | null;
+  dealValueMax: number | null;
   country?: string;
 }
 
@@ -27,7 +27,8 @@ export default function WhyThisLead({
   country
 }: WhyThisLeadProps) {
   
-  const formatMoney = (num: number) => formatCurrency(num, country);
+  const formatMoney = (num: number | null) =>
+    num == null ? 'N/A' : formatCurrency(num, country);
 
   return (
     <motion.div
@@ -63,7 +64,9 @@ export default function WhyThisLead({
             <span className="text-secondary-text block mb-1 uppercase tracking-widest text-2xs font-normal">Est. Opportunity Value</span>
             <span className="text-primary font-semibold text-sm flex items-center gap-0.5">
               <DollarSign className="w-3.5 h-3.5 text-primary" />
-              {formatMoney(dealValueMin)} - {formatMoney(dealValueMax)}
+              {dealValueMin == null && dealValueMax == null
+                ? 'N/A'
+                : `${formatMoney(dealValueMin)} - ${formatMoney(dealValueMax)}`}
             </span>
           </div>
           <div>
